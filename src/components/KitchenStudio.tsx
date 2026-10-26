@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Flame, Minus, Pause, Play, Plus, RotateCcw, Timer, UtensilsCrossed } from 'lucide-react';
 import KitchenScene from './KitchenScene';
+import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
 import { recipes } from '../data/recipes';
 
@@ -83,7 +84,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <button className="scene-icon-button" type="button" onClick={() => { setAdded([]); setHeat(.35); setResetCount(count => count + 1); }} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><RotateCcw size={16} /></button>
           </div>
         </div>
-        <KitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} />
+        <SceneErrorBoundary><SupportsWebGL><KitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} /></SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">
             <span className="gesture-symbol"><UtensilsCrossed size={17} strokeWidth={1.6} /></span>
