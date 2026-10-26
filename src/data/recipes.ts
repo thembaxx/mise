@@ -237,7 +237,7 @@ export const recipes: Recipe[] = [
     "minutes": 35,
     "difficulty": "Easy",
     "servings": 2,
-    "image": "https://unsplash.com/photos/KD93b4XevCQ/download?force=true&w=1200",
+    "image": "https://images.pexels.com/photos/35672958/pexels-photo-35672958.jpeg?auto=compress&cs=tinysrgb&w=1200",
     "accent": "#e9aa87",
     "tags": [
       "Brunch",
@@ -351,7 +351,7 @@ export const recipes: Recipe[] = [
     "minutes": 40,
     "difficulty": "Medium",
     "servings": 2,
-    "image": "https://unsplash.com/photos/diDja86YL_M/download?force=true&w=1200",
+    "image": "https://images.pexels.com/photos/5773960/pexels-photo-5773960.jpeg?auto=compress&cs=tinysrgb&w=1200",
     "accent": "#bdd8a3",
     "tags": [
       "Rice",
@@ -586,7 +586,7 @@ export const recipes: Recipe[] = [
     "minutes": 40,
     "difficulty": "Medium",
     "servings": 2,
-    "image": "https://unsplash.com/photos/iOUvc07TdWo/download?force=true&w=1200",
+    "image": "https://images.pexels.com/photos/29496087/pexels-photo-29496087.jpeg?auto=compress&cs=tinysrgb&w=1200",
     "accent": "#eec783",
     "tags": [
       "Corn",

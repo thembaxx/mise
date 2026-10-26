@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run brand:assets && npm run test && tsc -b && vite build && npm run prerender:recipes",
+    "build": "npm run brand:assets && npm run test && tsc -b && vite build && npm run prerender:recipes && npm run verify:prerender",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -13,7 +13,8 @@
     "test:e2e:headed": "playwright test --headed",
     "brand:assets": "node scripts/generate-brand-assets.mjs",
     "test:pwa": "vitest run tests/pwa.test.ts",
-    "prerender:recipes": "node scripts/prerender-recipes.mjs"
+    "prerender:recipes": "node scripts/prerender-recipes.mjs",
+    "verify:prerender": "node scripts/verify-prerender.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",

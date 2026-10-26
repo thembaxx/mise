@@ -24,7 +24,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [added, setAdded] = useState<string[]>(restored.added);
   const [heat, setHeat] = useState(restored.heat);
   const [servings, setServings] = useState(restored.servings);
-  const [seconds, setSeconds] = useState(recipe.steps[0].minutes * 60);
+  const [seconds, setSeconds] = useState(restored.seconds ?? recipe.steps[restored.stepIndex].minutes * 60);
   const [running, setRunning] = useState(false);
   const timerDeadline = useRef<number | null>(null);
   const [resetCount, setResetCount] = useState(0);
@@ -39,14 +39,19 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   // KitchenGateway is keyed by recipe, so switching recipes remounts this studio.
   // The state from this device is restored before the first interactive frame.
   useEffect(() => {
-    saveKitchenSnapshot(recipe, { stepIndex, added, heat, servings, progress });
-  }, [recipe, stepIndex, added, heat, servings, progress]);
+    saveKitchenSnapshot(recipe, { stepIndex, added, heat, servings, progress, seconds });
+  }, [recipe, stepIndex, added, heat, servings, progress, seconds]);
 
+  // Do not discard a saved countdown when the component first mounts. Only
+  // restart the timer when the user actually changes the recipe step.
+  const previousTimerStep = useRef(stepIndex);
   useEffect(() => {
+    if (previousTimerStep.current === stepIndex) return;
+    previousTimerStep.current = stepIndex;
     setSeconds(recipe.steps[stepIndex].minutes * 60);
     setRunning(false);
     setTimerNotice('');
-  }, [recipe.id, stepIndex, recipe.steps]);
+  }, [stepIndex, recipe.steps]);
 
   useEffect(() => {
     if (!running) return;

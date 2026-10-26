@@ -16,6 +16,8 @@ export interface KitchenSnapshot {
   heat: number;
   servings: number;
   progress: KitchenProgress;
+  /** Remaining countdown duration; paused after reload for safety. */
+  seconds?: number;
 }
 
 const shoppingKey = 'mise:shopping:v1';
@@ -41,7 +43,7 @@ export function getShoppingItems(): ShoppingItem[] {
   return stored.filter((item): item is ShoppingItem =>
     !!item && typeof item.id === 'string' && typeof item.recipeId === 'string' &&
     typeof item.recipeName === 'string' && typeof item.name === 'string' &&
-    typeof item.amount === 'number' && Number.isFinite(item.amount) &&
+    typeof item.amount === 'number' && Number.isFinite(item.amount) && item.amount >= 0 &&
     typeof item.unit === 'string' && typeof item.checked === 'boolean').slice(0, 400);
 }
 export function saveShoppingItems(items: ShoppingItem[]): boolean {
@@ -52,25 +54,35 @@ export function saveShoppingItems(items: ShoppingItem[]): boolean {
 export function addRecipeToShoppingList(recipe: Recipe, servings = recipe.servings): number {
   const previous = getShoppingItems();
   const existing = new Set(previous.map(item => item.id));
+  const nextServings = clamp(servings, 1, 12, recipe.servings);
+  const amountFor = (ingredient: Recipe['ingredients'][number]) => Math.round(ingredient.amount * nextServings / recipe.servings * 100) / 100;
+  // A second add updates unchecked amounts to the newly selected serving size,
+  // while preserving completed check-offs and never duplicating ingredients.
+  const updated = previous.map(item => {
+    const ingredient = recipe.ingredients.find(source => item.id === recipe.id + ':' + source.id);
+    return ingredient && !item.checked ? { ...item, amount: amountFor(ingredient) } : item;
+  });
   const entries = recipe.ingredients.filter(item => !existing.has(recipe.id + ':' + item.id)).map(item => ({
     id: recipe.id + ':' + item.id, recipeId: recipe.id, recipeName: recipe.name,
-    name: item.name, amount: Math.round(item.amount * clamp(servings, 1, 12, recipe.servings) / recipe.servings * 100) / 100,
-    unit: item.unit, checked: false,
+    name: item.name, amount: amountFor(item), unit: item.unit, checked: false,
   }));
-  return saveShoppingItems([...previous, ...entries]) ? entries.length : -1;
+  return saveShoppingItems([...updated, ...entries]) ? entries.length : -1;
 }
 
 export function loadKitchenSnapshot(recipe: Recipe): KitchenSnapshot {
   const raw = read(progressKey(recipe.id));
   const fallback: KitchenSnapshot = {
     stepIndex: 0, added: [], heat: .35, servings: recipe.servings, progress: initialKitchenProgress(),
+    seconds: recipe.steps[0]?.minutes * 60 || 0,
   };
   if (!raw || typeof raw !== 'object') return fallback;
   const data = raw as Partial<KitchenSnapshot>;
   const ids = new Set(recipe.ingredients.map(item => item.id));
   const progress = data.progress && typeof data.progress === 'object' ? data.progress : fallback.progress;
+  const stepIndex = nonNegativeInt(data.stepIndex, recipe.steps.length - 1);
   return {
-    stepIndex: nonNegativeInt(data.stepIndex, recipe.steps.length - 1),
+    stepIndex,
+    seconds: Math.floor(clamp(data.seconds, 0, (recipe.steps[stepIndex]?.minutes || 0) * 60, (recipe.steps[stepIndex]?.minutes || 0) * 60)),
     added: Array.isArray(data.added) ? [...new Set(data.added.filter((id): id is string => typeof id === 'string' && ids.has(id)))] : [],
     heat: clamp(data.heat, 0, 1, .35),
     servings: Math.floor(clamp(data.servings, 1, 12, recipe.servings)),
