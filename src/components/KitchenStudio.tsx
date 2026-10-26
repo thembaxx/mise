@@ -141,9 +141,12 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           </div>
         </div>
         <SceneErrorBoundary><SupportsWebGL>
+          <div className="kitchen-scene-outer">
           {physicsEnabled
             ? <Suspense fallback={<p className="physics-loader" role="status">Loading physics simulation…</p>}><PhysicsKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
             : <LiteKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+            {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
+          </div>
         </SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">

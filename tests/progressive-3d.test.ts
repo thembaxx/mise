@@ -26,4 +26,12 @@ describe('progressive 3D kitchen boundary', () => {
     expect(config).toContain('mise-opt-in-physics-v1');
     expect(config).toContain("handler: 'CacheFirst'");
   });
+  it('keeps kitchen hints out of Drei DOM portals to avoid unmount errors', () => {
+    const effects = read('src/components/KitchenEffects.tsx');
+    expect(effects).not.toContain('<Html');
+    expect(effects).not.toContain("import { Html");
+    const studio = read('src/components/KitchenStudio.tsx');
+    expect(studio).toContain('kitchen-finished-overlay');
+    expect(studio).toContain('role="status"');
+  });
 });

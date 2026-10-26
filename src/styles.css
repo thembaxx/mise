@@ -242,3 +242,12 @@ body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area
 
 /* Prevent intrinsic recipe text from expanding the mobile grid beyond the viewport. */
 @media(max-width:760px){.discover-layout{grid-template-columns:minmax(0,1fr)}.recipes-content,.recipe-grid,.recipe-card{min-width:0;max-width:100%}}
+
+/* Keep cooking status in React-owned DOM, rather than Drei Html portals that race on scene unmount. */
+.kitchen-scene-outer{position:relative;min-width:0}
+.kitchen-finished-overlay{position:absolute;bottom:20%;left:50%;transform:translateX(-50%);z-index:3;pointer-events:none;white-space:nowrap;background:#fff7e0ef;color:#243921;padding:11px 22px;border-radius:999px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(17px,3vw,27px);box-shadow:0 12px 40px #0003}
+@media(prefers-reduced-motion:reduce){.kitchen-finished-overlay{transition:none}}
+
+/* Accessible offline notice: never intercept controls beneath status feedback. */
+.native-network-banner{pointer-events:none}
+@media(max-width:760px){.native-network-banner{top:calc(82px + env(safe-area-inset-top,0px))}}
