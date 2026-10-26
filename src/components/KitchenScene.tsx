@@ -4,8 +4,10 @@ import { ContactShadows, Html, OrbitControls, RoundedBox } from '@react-three/dr
 import { CuboidCollider, Physics, RigidBody, RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import type { Ingredient, IngredientKind } from '../data/recipes';
+import type { CookingAction, KitchenProgress } from '../lib/cooking';
+import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 
-type Props = { ingredients: Ingredient[]; added: string[]; heat: number; onAdd: (id: string) => void; resetKey: string };
+type Props = { ingredients: Ingredient[]; added: string[]; heat: number; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function IngredientModel({ kind }: { kind: IngredientKind }) {
@@ -115,6 +117,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
         }
       }}
       onPointerUp={endDrag}
+      onPointerCancel={endDrag}
     >
       <IngredientModel kind={ingredient.kind} />
       {hover && !cooked && <Html center distanceFactor={9} position={[0, .55, 0]} style={{ pointerEvents: 'none' }}><span className="ingredient-tooltip">{ingredient.name}</span></Html>}
@@ -130,7 +133,7 @@ function Burner({ heat }: { heat: number }) {
       shader.current.uniforms.uHeat.value = heat;
     }
   });
-  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, -.115, .15]}>
+  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, .279, .15]}>
     <circleGeometry args={[1.16, 64]} />
     <shaderMaterial
       ref={shader} transparent depthWrite={false}
@@ -180,14 +183,14 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onAdd }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onAction }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
     <fog attach="fog" args={['#d8d1bf', 12, 23]} />
     <ambientLight intensity={1.45} />
     <hemisphereLight args={['#fff9e8', '#6a5d4b', 1.35]} />
-    <directionalLight position={[-3, 7, 5]} intensity={3} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} />
+    <directionalLight position={[-3, 7, 5]} intensity={3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} />
     <pointLight position={[1, 2.3, .2]} color={heat > 0 ? '#ffab6b' : '#fff4d8'} intensity={heat * 4 + .6} distance={5} />
     <Physics gravity={[0, -9.81, 0]} colliders={false}>
       <KitchenEnvironment heat={heat} />
@@ -195,15 +198,16 @@ function KitchenWorld({ ingredients, added, heat, onAdd }: Omit<Props, 'resetKey
         <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} />
       )}
     </Physics>
+    <KitchenEffects progress={progress} pulse={pulse} onAction={onAction} heat={heat} addedCount={added.length} />
     <ContactShadows position={[0, -.15, 0]} opacity={.24} scale={10} blur={2.5} far={4} />
     <OrbitControls makeDefault enabled={!dragging} enablePan={false} minDistance={5} maxDistance={11} minPolarAngle={.35} maxPolarAngle={1.4} target={[0, .55, 0]} />
   </>;
 }
 
-export default function KitchenScene({ ingredients, added, heat, onAdd, resetKey }: Props) {
+export default function KitchenScene({ ingredients, added, heat, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
-    <Canvas key={resetKey} shadows camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={[1, 1.7]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} /></Suspense>
+    <Canvas key={resetKey} shadows camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} /></Suspense>
     </Canvas>
   </div>;
 }

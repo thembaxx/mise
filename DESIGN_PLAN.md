@@ -18,3 +18,7 @@ Starter collection of eight globally inspired, original recipes. 3D ingredients 
 
 ## UX quality
 Touch and pointer gestures, OrbitControls, reduced-motion support, keyboard-accessible alternatives to ingredient dragging, responsive layout, localStorage favorites, explicit cooking steps, loading fallback for 3D, and no user data collection.
+
+## Tactile kitchen update
+
+Chopping knife, pouring cruet and stirring spoon now respond to direct WebGL taps with short kinetic motion. The same functions are accessible as large HTML controls. An action-specific audiovisual response, steam, plating feedback, a six-stage non-food-safety cooking game loop and completion message help bridge discovery and kitchen. Avoids external paid models or large licensed textures. Performance safeguards include existing intersection-based code splitting, shadow/DPR limits and reduced-motion CSS.
