@@ -30,6 +30,7 @@ describe('Mise cooking journey', () => {
     const plated = applyCookingAction(progress, 'plate');
     expect(plated.plated).toBe(true);
     expect(applyCookingAction(plated, 'stir')).toEqual(plated);
+    expect(getCookingRequirements(plated, 7, 7, 0, 5, 6).every(requirement => requirement.complete)).toBe(true);
   });
 
   it('does not permit plating an empty or zero-step recipe', () => {

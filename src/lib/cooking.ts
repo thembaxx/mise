@@ -40,7 +40,7 @@ export function getCookingRequirements(
     { id: 'prep', title: 'Chop ingredients twice', complete: progress.chops >= 2 },
     { id: 'pour', title: 'Pour oil or sauce', complete: progress.pours >= 1 },
     { id: 'ingredients', title: 'Add every ingredient to the pan', complete: ingredientCount > 0 && addedCount >= ingredientCount },
-    { id: 'heat', title: 'Turn the heat on', complete: heat > 0 },
+    { id: 'heat', title: 'Turn the heat on', complete: heat > 0 || progress.plated },
     { id: 'stir', title: 'Stir the pan twice', complete: progress.stirs >= 2 },
     { id: 'steps', title: 'Read the final recipe step', complete: stepCount > 0 && stepIndex >= stepCount - 1 },
   ];
