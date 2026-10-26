@@ -93,3 +93,19 @@ Production origin: https://mise-two-teal.vercel.app/ . If a custom domain replac
 - The manifest has a single light default background. Explicit dark-theme users may see system-controlled launch UI before the site can apply their preference.
 
 Run unit tests using npm run test. For real offline and theme Playwright tests against a built local preview rather than Vite dev, install Chromium and run npm run test:e2e. The large Three.js chunk is deliberately cached for offline cooking and may make the first install larger.
+
+
+## Progressive 3D loading (2026-10-26)
+
+The interactive kitchen now has two modes. **Quick 3D** is the default: it retains the stylized kitchen, touch/drag ingredient gestures, camera orbit, heat effects, cooking steps and accessible HTML controls, but does not import or instantiate the Rapier physics engine. It provides immediate 3D interaction on lower-powered devices and slower connections. **Physics on** is an explicit opt-in button within the kitchen header: the existing Rapier-driven kitchen loads lazily, preserving original falling/rigid-body simulation.
+
+The PWA precaches the quick kitchen for offline use, and deliberately excludes the optional KitchenScene JavaScript physics chunk from initial service-worker installation. The optional physics chunk is cached only once requested and successfully downloaded; full physics cannot be guaranteed offline until it has been enabled while online. All recipes and standard cooking controls still work when WebGL is unavailable.
+
+### Bundle measurement and QA
+
+- React 19 control (before this change): initial JS 388.44 kB min / 131.52 kB gzip; full 3D kitchen 3212.84 kB min / 1099.10 kB gzip; Workbox precache 4179.72 KiB.
+- Inspect current Vercel build logs for KitchenStudio, KitchenScene, and precache to compare how much code is deferred to the optional physics path.
+- npm run test checks both the cooking flow and the progressive 3D boundary. npm run test:e2e includes desktop and touch-mobile flows validating quick mode and opt-in physics.
+- Rendering/physics input latency and GPU responsiveness must be confirmed in an actual desktop and mobile browser; build tests cannot establish smooth animation.
+
+This optimization is separate from the unmerged TanStack Redact experiment. Production and this branch both use React 19.
