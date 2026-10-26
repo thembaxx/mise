@@ -10,44 +10,48 @@ const PhysicsKitchenScene = lazy(() => import('./KitchenScene'));
 import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
 import { recipes } from '../data/recipes';
+import { addRecipeToShoppingList, loadKitchenSnapshot, saveKitchenSnapshot, clearKitchenSnapshot } from '../lib/kitchen-storage';
+import { ClipboardList } from 'lucide-react';
 
 type Props = { recipe: Recipe; onRecipeChange: (id: string) => void };
 const formatTime = (seconds: number) => [Math.floor(seconds / 60), seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
 const formatAmount = (amount: number) => Number.isInteger(amount) ? String(amount) : amount.toFixed(1).replace(/\.0$/, '');
 
 export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
+  const [restored] = useState(() => loadKitchenSnapshot(recipe));
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [added, setAdded] = useState<string[]>([]);
-  const [heat, setHeat] = useState(.35);
-  const [servings, setServings] = useState(2);
-  const [seconds, setSeconds] = useState(recipe.steps[0].minutes * 60);
+  const [stepIndex, setStepIndex] = useState(restored.stepIndex);
+  const [added, setAdded] = useState<string[]>(restored.added);
+  const [heat, setHeat] = useState(restored.heat);
+  const [servings, setServings] = useState(restored.servings);
+  const [seconds, setSeconds] = useState(restored.seconds ?? recipe.steps[restored.stepIndex].minutes * 60);
   const [running, setRunning] = useState(false);
   const timerDeadline = useRef<number | null>(null);
   const [resetCount, setResetCount] = useState(0);
   const [time, setTime] = useState(() => new Date());
   const [timerNotice, setTimerNotice] = useState('');
-  const [progress, setProgress] = useState(initialKitchenProgress);
+  const [progress, setProgress] = useState(restored.progress);
+  const [shoppingNote, setShoppingNote] = useState('');
   const [pulse, setPulse] = useState<KitchenPulse>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [actionFeedback, setActionFeedback] = useState('Try chopping an ingredient to begin.');
 
+  // KitchenGateway is keyed by recipe, so switching recipes remounts this studio.
+  // The state from this device is restored before the first interactive frame.
   useEffect(() => {
-    setStepIndex(0);
-    setAdded([]);
-    setHeat(.35);
-    setServings(2);
-    setProgress(initialKitchenProgress());
-    setPulse(null);
-    setActionFeedback('Try chopping an ingredient to begin.');
-    setResetCount(count => count + 1);
-  }, [recipe.id]);
+    saveKitchenSnapshot(recipe, { stepIndex, added, heat, servings, progress, seconds });
+  }, [recipe, stepIndex, added, heat, servings, progress, seconds]);
 
+  // Do not discard a saved countdown when the component first mounts. Only
+  // restart the timer when the user actually changes the recipe step.
+  const previousTimerStep = useRef(stepIndex);
   useEffect(() => {
+    if (previousTimerStep.current === stepIndex) return;
+    previousTimerStep.current = stepIndex;
     setSeconds(recipe.steps[stepIndex].minutes * 60);
     setRunning(false);
     setTimerNotice('');
-  }, [recipe.id, stepIndex, recipe.steps]);
+  }, [stepIndex, recipe.steps]);
 
   useEffect(() => {
     if (!running) return;
@@ -97,6 +101,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     cookingHaptic();
   }, [progress, added.length, recipe.ingredients.length, recipe.steps.length, heat, stepIndex, soundEnabled]);
   const resetKitchen = () => {
+    clearKitchenSnapshot(recipe.id);
+    setShoppingNote('');
     setAdded([]);
     setHeat(.35);
     setProgress(initialKitchenProgress());
@@ -136,13 +142,13 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
         <SceneErrorBoundary><SupportsWebGL>
           {physicsEnabled
-            ? <Suspense fallback={<><LiteKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /><p className="physics-loader" role="status">Loading physics simulation…</p></>}><PhysicsKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading physics simulation…</p>}><PhysicsKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
             : <LiteKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
         </SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">
             <span className="gesture-symbol"><UtensilsCrossed size={17} strokeWidth={1.6} /></span>
-            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan · Tap utensils · Orbit to explore · Pinch to zoom</small></div>
+            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan · Tap utensils · Orbit to explore · Pinch to zoom. Prefer a keyboard? Use the controls on the right.</small></div>
           </div>
           <div className="heat-control">
             <label htmlFor="burner-heat"><Flame size={16} strokeWidth={1.7} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
@@ -216,6 +222,11 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             </div>;
           })}
         </div>
+        <div className="studio-shopping">
+          <button type="button" onClick={() => { const count = addRecipeToShoppingList(recipe, servings); setShoppingNote(count < 0 ? 'Could not save list on this device.' : count ? count + ' ingredients added.' : 'These ingredients are already on your list.'); }}><ClipboardList size={17}/> Add ingredients to shopping list</button>
+          <a href="/shopping/">Open list <ArrowRight size={15}/></a>
+        </div>
+        {shoppingNote && <p className="studio-shopping-status" role="status">{shoppingNote}</p>}
         <CookingControls progress={progress} requirements={requirements} ingredientCount={recipe.ingredients.length} addedCount={added.length} heat={heat} sound={soundEnabled} onSoundChange={setSoundEnabled} onAction={cookingAction} />
         <p className="cooking-action-feedback" role="status" aria-live="polite">{actionFeedback}</p>
         <p className="ingredient-disclaimer">The 3D ingredients are playful representations. Follow the written recipe and cook food safely in your real kitchen.</p>

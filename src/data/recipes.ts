@@ -227,5 +227,468 @@ export const recipes: Recipe[] = [
       { title: 'Bake until golden', instruction: 'Score the top lightly, brush with oil and bake 22–25 minutes until crisp and deeply golden.', minutes: 25, tip: 'Check after 20 minutes; ovens vary.' },
       { title: 'Rest and slice', instruction: 'Let the pie rest for 5 minutes before cutting into generous squares.', minutes: 5, tip: 'Resting keeps the layers neat when sliced.' }
     ]
+  },
+  {
+    "id": "shakshuka",
+    "name": "Sunrise shakshuka",
+    "subtitle": "Eggs nestled in spiced tomatoes",
+    "country": "Tunisia",
+    "region": "Africa",
+    "minutes": 35,
+    "difficulty": "Easy",
+    "servings": 2,
+    "image": "https://images.pexels.com/photos/35672958/pexels-photo-35672958.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    "accent": "#e9aa87",
+    "tags": [
+      "Brunch",
+      "One pan",
+      "Vegetarian"
+    ],
+    "story": "A home-kitchen interpretation of North African shakshuka: tomatoes, peppers and softly set eggs shared straight from the pan.",
+    "ingredients": [
+      {
+        "id": "eggs",
+        "name": "Large eggs",
+        "amount": 4,
+        "unit": "whole",
+        "kind": "lemon"
+      },
+      {
+        "id": "tomatoes",
+        "name": "Chopped tomatoes",
+        "amount": 400,
+        "unit": "g",
+        "kind": "tomato"
+      },
+      {
+        "id": "pepper",
+        "name": "Red bell pepper",
+        "amount": 1,
+        "unit": "whole",
+        "kind": "tomato"
+      },
+      {
+        "id": "onion",
+        "name": "Onion",
+        "amount": 1,
+        "unit": "whole",
+        "kind": "onion"
+      },
+      {
+        "id": "garlic",
+        "name": "Garlic cloves",
+        "amount": 2,
+        "unit": "cloves",
+        "kind": "garlic"
+      },
+      {
+        "id": "paprika",
+        "name": "Sweet paprika",
+        "amount": 1,
+        "unit": "tsp",
+        "kind": "chili"
+      },
+      {
+        "id": "cumin",
+        "name": "Ground cumin",
+        "amount": 1,
+        "unit": "tsp",
+        "kind": "chili"
+      },
+      {
+        "id": "oil",
+        "name": "Olive oil",
+        "amount": 2,
+        "unit": "tbsp",
+        "kind": "lemon"
+      }
+    ],
+    "steps": [
+      {
+        "title": "Dice and prepare",
+        "instruction": "Dice onion and pepper, mince garlic and measure the spices.",
+        "minutes": 6,
+        "tip": "Slice vegetables evenly so they soften together."
+      },
+      {
+        "title": "Soften the vegetables",
+        "instruction": "Warm oil in a wide lidded skillet. Cook onion and pepper over medium heat until tender.",
+        "minutes": 7,
+        "tip": "Keep the heat moderate to avoid browning the onion."
+      },
+      {
+        "title": "Bloom the spices",
+        "instruction": "Add garlic, paprika and cumin. Stir for about a minute until fragrant.",
+        "minutes": 2,
+        "tip": "Spices should smell warm, not scorched."
+      },
+      {
+        "title": "Simmer the tomatoes",
+        "instruction": "Add chopped tomatoes, season lightly and simmer uncovered until thickened.",
+        "minutes": 10,
+        "tip": "Create a thick sauce so the eggs stay nestled."
+      },
+      {
+        "title": "Poach the eggs",
+        "instruction": "Make four wells, crack an egg into each, cover and cook gently until the whites are set.",
+        "minutes": 8,
+        "tip": "Eggs should be cooked to your preferred safe doneness; use pasteurized eggs if needed."
+      },
+      {
+        "title": "Bring to the table",
+        "instruction": "Sprinkle with herbs if available and serve in the pan with warm bread.",
+        "minutes": 2,
+        "tip": "The skillet remains hot: protect the table and handle with care."
+      }
+    ]
+  },
+  {
+    "id": "bibimbap",
+    "name": "Rainbow bibimbap bowl",
+    "subtitle": "Mix a little of everything",
+    "country": "South Korea",
+    "region": "Asia",
+    "minutes": 40,
+    "difficulty": "Medium",
+    "servings": 2,
+    "image": "https://images.pexels.com/photos/5773960/pexels-photo-5773960.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    "accent": "#bdd8a3",
+    "tags": [
+      "Rice",
+      "Colorful",
+      "Vegetables"
+    ],
+    "story": "A vegetable-forward home version inspired by Korean bibimbap, with seasoned rice, crisp vegetables and a punchy gochujang finish.",
+    "ingredients": [
+      {
+        "id": "rice",
+        "name": "Short-grain rice",
+        "amount": 160,
+        "unit": "g",
+        "kind": "herb"
+      },
+      {
+        "id": "carrots",
+        "name": "Carrots",
+        "amount": 2,
+        "unit": "whole",
+        "kind": "carrot"
+      },
+      {
+        "id": "spinach",
+        "name": "Spinach",
+        "amount": 120,
+        "unit": "g",
+        "kind": "herb"
+      },
+      {
+        "id": "mushrooms",
+        "name": "Mushrooms",
+        "amount": 120,
+        "unit": "g",
+        "kind": "mushroom"
+      },
+      {
+        "id": "cucumber",
+        "name": "Cucumber",
+        "amount": 1,
+        "unit": "small",
+        "kind": "herb"
+      },
+      {
+        "id": "eggs",
+        "name": "Eggs",
+        "amount": 2,
+        "unit": "whole",
+        "kind": "lemon"
+      },
+      {
+        "id": "gochujang",
+        "name": "Gochujang",
+        "amount": 2,
+        "unit": "tsp",
+        "kind": "chili"
+      },
+      {
+        "id": "sesame",
+        "name": "Sesame oil",
+        "amount": 1,
+        "unit": "tbsp",
+        "kind": "lemon"
+      }
+    ],
+    "steps": [
+      {
+        "title": "Cook the rice",
+        "instruction": "Rinse rice and cook according to the package until fluffy; keep warm.",
+        "minutes": 15,
+        "tip": "Short-grain rice gives the bowl a soft, slightly sticky base."
+      },
+      {
+        "title": "Prepare the colors",
+        "instruction": "Cut carrots into thin matchsticks, slice cucumber and mushrooms, and rinse spinach.",
+        "minutes": 6,
+        "tip": "Separate piles make a colorful final bowl."
+      },
+      {
+        "title": "Season vegetables",
+        "instruction": "Blanch spinach briefly, drain well and season with a few drops of sesame oil.",
+        "minutes": 4,
+        "tip": "Squeeze moisture from spinach gently."
+      },
+      {
+        "title": "Sauté in batches",
+        "instruction": "Sauté carrots and mushrooms separately over medium-high heat until tender and lightly golden.",
+        "minutes": 7,
+        "tip": "Avoid overcrowding the pan."
+      },
+      {
+        "title": "Cook the eggs",
+        "instruction": "Fry eggs to your preferred safe doneness.",
+        "minutes": 4,
+        "tip": "Use pasteurized eggs if serving undercooked yolks."
+      },
+      {
+        "title": "Build and mix",
+        "instruction": "Divide rice between bowls, arrange vegetables and egg, and serve with gochujang and sesame oil.",
+        "minutes": 4,
+        "tip": "Mix just before eating."
+      }
+    ]
+  },
+  {
+    "id": "jollof",
+    "name": "One-pot Ghana-inspired jollof",
+    "subtitle": "Deep tomato flavor, fragrant rice",
+    "country": "Ghana",
+    "region": "Africa",
+    "minutes": 65,
+    "difficulty": "A little project",
+    "servings": 4,
+    "image": "https://images.pexels.com/photos/5333327/pexels-photo-5333327.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    "accent": "#edb47a",
+    "tags": [
+      "One pot",
+      "Rice",
+      "West African inspired"
+    ],
+    "story": "A home-friendly, Ghana-inspired celebration of West African tomato rice. Jollof varies across families and countries; this is one approachable interpretation.",
+    "ingredients": [
+      {
+        "id": "rice",
+        "name": "Long-grain rice",
+        "amount": 350,
+        "unit": "g",
+        "kind": "herb"
+      },
+      {
+        "id": "tomatoes",
+        "name": "Chopped tomatoes",
+        "amount": 300,
+        "unit": "g",
+        "kind": "tomato"
+      },
+      {
+        "id": "paste",
+        "name": "Tomato paste",
+        "amount": 2,
+        "unit": "tbsp",
+        "kind": "tomato"
+      },
+      {
+        "id": "pepper",
+        "name": "Red bell peppers",
+        "amount": 2,
+        "unit": "whole",
+        "kind": "tomato"
+      },
+      {
+        "id": "onion",
+        "name": "Large onion",
+        "amount": 1,
+        "unit": "whole",
+        "kind": "onion"
+      },
+      {
+        "id": "garlic",
+        "name": "Garlic cloves",
+        "amount": 3,
+        "unit": "cloves",
+        "kind": "garlic"
+      },
+      {
+        "id": "stock",
+        "name": "Vegetable stock",
+        "amount": 600,
+        "unit": "ml",
+        "kind": "lemon"
+      },
+      {
+        "id": "oil",
+        "name": "Vegetable oil",
+        "amount": 3,
+        "unit": "tbsp",
+        "kind": "lemon"
+      },
+      {
+        "id": "thyme",
+        "name": "Dried thyme",
+        "amount": 1,
+        "unit": "tsp",
+        "kind": "herb"
+      }
+    ],
+    "steps": [
+      {
+        "title": "Blend the base",
+        "instruction": "Blend tomatoes, peppers, half the onion and garlic into a coarse purée.",
+        "minutes": 10,
+        "tip": "Keep the purée textured but evenly blended."
+      },
+      {
+        "title": "Build a deep stew",
+        "instruction": "Heat oil in a pot. Cook remaining diced onion, then fry tomato paste and thyme for several minutes.",
+        "minutes": 10,
+        "tip": "Tomato paste should darken without burning."
+      },
+      {
+        "title": "Reduce the tomato",
+        "instruction": "Add the purée and cook, stirring, until thick and the oil starts to separate.",
+        "minutes": 15,
+        "tip": "Reducing the base prevents watery rice."
+      },
+      {
+        "title": "Add stock and rice",
+        "instruction": "Rinse rice, stir into the tomato base and add stock. Bring to a simmer.",
+        "minutes": 8,
+        "tip": "Measure liquid carefully; different rice varieties need different amounts."
+      },
+      {
+        "title": "Steam gently",
+        "instruction": "Cover tightly and cook on very low heat until rice is tender, checking occasionally and adding small amounts of water only if necessary.",
+        "minutes": 18,
+        "tip": "A heavy pot and low heat prevent scorching."
+      },
+      {
+        "title": "Rest and fluff",
+        "instruction": "Turn off heat, leave covered briefly and fluff gently. Serve with a salad or protein of choice.",
+        "minutes": 4,
+        "tip": "Allow steam to finish cooking before opening."
+      }
+    ]
+  },
+  {
+    "id": "arepas",
+    "name": "Golden avocado arepas",
+    "subtitle": "Crisp corn pockets, fresh filling",
+    "country": "Venezuela",
+    "region": "Americas",
+    "minutes": 40,
+    "difficulty": "Medium",
+    "servings": 2,
+    "image": "https://images.pexels.com/photos/29496087/pexels-photo-29496087.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    "accent": "#eec783",
+    "tags": [
+      "Corn",
+      "Street food",
+      "Vegetarian"
+    ],
+    "story": "Inspired by Venezuelan arepas, golden griddled corn pockets filled here with avocado, beans and fresh lime.",
+    "ingredients": [
+      {
+        "id": "flour",
+        "name": "Precooked white cornmeal (masarepa)",
+        "amount": 200,
+        "unit": "g",
+        "kind": "herb"
+      },
+      {
+        "id": "water",
+        "name": "Warm water",
+        "amount": 290,
+        "unit": "ml",
+        "kind": "lemon"
+      },
+      {
+        "id": "salt",
+        "name": "Salt",
+        "amount": 0.5,
+        "unit": "tsp",
+        "kind": "garlic"
+      },
+      {
+        "id": "oil",
+        "name": "Vegetable oil",
+        "amount": 1,
+        "unit": "tbsp",
+        "kind": "lemon"
+      },
+      {
+        "id": "avocado",
+        "name": "Ripe avocado",
+        "amount": 1,
+        "unit": "whole",
+        "kind": "herb"
+      },
+      {
+        "id": "beans",
+        "name": "Cooked black beans",
+        "amount": 200,
+        "unit": "g",
+        "kind": "mushroom"
+      },
+      {
+        "id": "lime",
+        "name": "Lime",
+        "amount": 1,
+        "unit": "whole",
+        "kind": "lime"
+      },
+      {
+        "id": "cilantro",
+        "name": "Fresh coriander",
+        "amount": 10,
+        "unit": "g",
+        "kind": "herb"
+      }
+    ],
+    "steps": [
+      {
+        "title": "Mix the dough",
+        "instruction": "Combine masarepa, salt and warm water until a soft, cohesive dough forms.",
+        "minutes": 7,
+        "tip": "Use precooked masarepa, not ordinary cornmeal."
+      },
+      {
+        "title": "Shape the arepas",
+        "instruction": "Rest dough for a few minutes, then shape into four thick round discs.",
+        "minutes": 5,
+        "tip": "Smooth cracks with damp fingers."
+      },
+      {
+        "title": "Griddle until golden",
+        "instruction": "Heat a lightly oiled skillet over medium heat. Cook each side until a golden crust forms.",
+        "minutes": 14,
+        "tip": "Avoid moving them too often."
+      },
+      {
+        "title": "Finish cooking through",
+        "instruction": "Lower the heat, cover briefly and cook until the centers are hot and firm.",
+        "minutes": 6,
+        "tip": "Thicker arepas need extra time."
+      },
+      {
+        "title": "Prepare filling",
+        "instruction": "Mash avocado with lime juice and salt; warm beans and chop coriander.",
+        "minutes": 5,
+        "tip": "Lime prevents avocado browning."
+      },
+      {
+        "title": "Split and fill",
+        "instruction": "Carefully slice warm arepas open and fill with avocado, beans and coriander.",
+        "minutes": 3,
+        "tip": "Let cool slightly before cutting to avoid steam burns."
+      }
+    ]
   }
 ];

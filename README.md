@@ -109,3 +109,10 @@ The PWA precaches the quick kitchen for offline use, and deliberately excludes t
 - Rendering/physics input latency and GPU responsiveness must be confirmed in an actual desktop and mobile browser; build tests cannot establish smooth animation.
 
 This optimization is separate from the unmerged TanStack Redact experiment. Production and this branch both use React 19.
+
+## Next-phase release verification
+
+- Recipe card photo sources: [Shakshuka (Pexels #35672958)](https://www.pexels.com/photo/delicious-shakshuka-with-tomato-and-herbs-35672958/), [Bibimbap (Pexels #5773960)](https://www.pexels.com/photo/egg-on-top-of-a-bibimbap-5773960/), [Ghanaian jollof (Pexels #5333327)](https://www.pexels.com/photo/stainless-steel-fork-beside-a-plate-5333327/), [Arepas (Pexels #29496087)](https://www.pexels.com/photo/traditional-arepas-with-avocado-and-salsa-29496087/). These editorial images depict the dish family rather than the exact recipe plating; Pexels license and attribution details are on the linked source pages. Hero photo loading fails gracefully to Mise's local graphic.
+- Clicking **Add ingredients** again updates quantities for the new servings without duplicates while respecting checked-off items.
+- A saved countdown resumes **paused** after reload, and is reset only when switching steps or resetting the kitchen; it never starts counting down unattended after a reload.
+- `npm run verify:prerender` validates every emitted recipe document, canonical, JSON-LD and sitemap after the Vite build, even when external GitHub Actions runners cannot start. This is a build-level content check, not browser/gesture QA.

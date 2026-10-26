@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
-import { Html, OrbitControls, RoundedBox } from '@react-three/drei';
+import { OrbitControls, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Ingredient, IngredientKind } from '../data/recipes';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
@@ -70,7 +70,9 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
   ingredient: Ingredient; index: number; cooked: boolean; onAdd: (id: string) => void; onDraggingChange: (dragging: boolean) => void;
 }) {
   const body = useRef<THREE.Group>(null);
+  const target = useRef<THREE.Vector3 | null>(null);
   const dragging = useRef(false);
+  const reducedMotion = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const [hover, setHover] = useState(false);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.1), []);
   const point = useMemo(() => new THREE.Vector3(), []);
@@ -78,10 +80,23 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
   const z = -.35 + Math.floor(index / 4) * .76;
 
   useEffect(() => {
-    if (cooked && body.current) {
-      body.current.position.set(.65 + (index % 3) * .33, .48, -.14 + Math.floor(index / 3) * .3);
+    if (cooked) {
+      target.current = new THREE.Vector3(.65 + (index % 3) * .33, .48, -.14 + Math.floor(index / 3) * .3);
+      if (reducedMotion && body.current) body.current.position.copy(target.current);
+    } else {
+      target.current = null;
     }
-  }, [cooked, index]);
+  }, [cooked, index, reducedMotion]);
+
+  useFrame((_state, delta) => {
+    const group = body.current;
+    if (!group || !target.current || reducedMotion) return;
+    const eased = 1 - Math.exp(-9 * Math.min(delta, .1));
+    if (group.position.distanceToSquared(target.current) > .0002) {
+      group.position.lerp(target.current, eased);
+      group.rotation.y += delta * 1.25;
+    }
+  });
 
   const endDrag = (event: ThreeEvent<PointerEvent>) => {
     if (!dragging.current) return;
@@ -117,7 +132,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
       onPointerCancel={endDrag}
     >
       <IngredientModel kind={ingredient.kind} />
-      {hover && !cooked && <Html center distanceFactor={9} position={[0, .55, 0]} style={{ pointerEvents: 'none' }}><span className="ingredient-tooltip">{ingredient.name}</span></Html>}
+      {hover && !cooked && <mesh position={[0, .52, 0]}><ringGeometry args={[.20, .27, 24]} /><meshBasicMaterial color="#a7e063" side={THREE.DoubleSide} /></mesh>}
     </group>
   </group>;
 }
