@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "brand:assets": "node scripts/generate-brand-assets.mjs"
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "test:pwa": "vitest run tests/pwa.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",
@@ -32,6 +33,7 @@
     "vite": "^7.1.7",
     "vitest": "^5.0.5",
     "@playwright/test": "^1.56.0",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "vite-plugin-pwa": "^2.0.0"
   }
 }

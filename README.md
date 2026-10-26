@@ -80,3 +80,16 @@ Sources: `public/brand/mise-mark.svg`, `public/brand/mise-maskable.svg`, and `pu
 Homepage SEO includes canonical URL, Open Graph and Twitter/X social metadata, large preview PNG, WebSite and WebApplication JSON-LD, robots.txt, sitemap.xml and llms.txt. The sitemap lists the homepage only because the app is currently a client-side single-page experience with no individual crawlable recipe URLs. Recipe-specific indexing requires dedicated canonical recipe routes in a later phase.
 
 Production origin: https://mise-two-teal.vercel.app/ . If a custom domain replaces it, update the canonical, sitemap, social and JSON-LD origin together. Trademark availability for the name is not verified.
+
+
+## Native-feeling PWA (offline, install, theming)
+
+- Vite PWA and Workbox precache the application shell, recipe data code, deferred 3D kitchen, branded icons and iOS launch artwork. Offline browsing and simulated cooking work after a **successful initial online visit and service worker installation**. Photo availability is best-effort (viewed Unsplash photos may be cached; otherwise a local branded fallback is shown).
+- Installed-app shortcuts jump to Discover or Kitchen, with browser install prompts where supported and manual Add to Home Screen instructions for iOS.
+- Service worker update prompts are explicit: update only when ready, rather than silently reloading mid-recipe. In settings, check for updates at any time.
+- Settings include System, Light and Dark modes (stored on this device), install tips, native share sheet/fallback and connectivity feedback.
+- Theme preference is applied before React first paint. Browser theme color, top safe area, document background, dark-mode colors and loading UI match. Generated light/dark launch artwork covers selected iPhone and iPad portrait sizes; other devices use a browser or manifest fallback.
+- Browser-managed background work is not guaranteed: no promises of OS push notifications or permanent background execution. Local storage quotas can clear caches and cached photographs.
+- The manifest has a single light default background. Explicit dark-theme users may see system-controlled launch UI before the site can apply their preference.
+
+Run unit tests using npm run test. For real offline and theme Playwright tests against a built local preview rather than Vite dev, install Chromium and run npm run test:e2e. The large Three.js chunk is deliberately cached for offline cooking and may make the first install larger.

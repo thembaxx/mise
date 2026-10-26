@@ -1,8 +1,10 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import KitchenGateway from './components/KitchenGateway';
+import { useNativeApp, type NativeAppState } from './pwa/useNativeApp';
+import { NativeDialog, NativeHeaderActions, NativeNotices } from './components/NativeControls';
 import { recipes, regions } from './data/recipes';
 import type { Recipe, Region } from './data/recipes';
 
@@ -17,7 +19,7 @@ function Logo({ light = false }: { light?: boolean }) {
   return <a className={'logo ' + (light ? 'logo-light' : '')} href="#top" aria-label="Mise, back to top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}><img src="/brand/mise-mark.svg" width="38" height="38" alt="" aria-hidden="true" /><span className="logo-wordmark">Mise</span></a>;
 }
 
-function Header({ favoritesCount, onSaved }: { favoritesCount: number; onSaved: () => void }) {
+function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: number; onSaved: () => void; app: NativeAppState; onSettings: () => void }) {
   const [open, setOpen] = useState(false);
   const go = (id: string) => { setOpen(false); scrollToSection(id); };
   return <>
@@ -29,6 +31,7 @@ function Header({ favoritesCount, onSaved }: { favoritesCount: number; onSaved: 
         <button type="button" onClick={() => go('experience')}>Our philosophy</button>
       </nav>
       <div className="header-actions">
+        <NativeHeaderActions app={app} onSettings={onSettings} />
         <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} strokeWidth={1.8} /><span>{favoritesCount}</span></button>
         <button type="button" className="nav-cta" onClick={() => go('kitchen')}>Start cooking <ArrowUpRight size={17} /></button>
         <button type="button" className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <Menu size={23} />}</button>
@@ -56,7 +59,7 @@ function Hero() {
     </div>
     <div className="hero-visual">
       <div className="hero-image-wrap">
-        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=90" alt="Beautifully plated colorful food with fresh vegetables" fetchPriority="high" />
+        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=90" alt="Beautifully plated colorful food with fresh vegetables" fetchPriority="high" onError={event => { if (!event.currentTarget.src.includes('mise-social.svg')) event.currentTarget.src = '/brand/mise-social.svg'; }} />
         <div className="hero-image-wash" />
       </div>
       <div className="hero-photo-caption"><span>MADE TO BE SHARED</span><span>01 — ∞</span></div>
@@ -81,7 +84,7 @@ function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
 }) {
   return <article className={'recipe-card ' + (selected ? 'recipe-selected' : '')}>
     <div className="recipe-image">
-      <img src={recipe.image} alt={recipe.name + ' — ' + recipe.country + ' inspired dish'} loading="lazy" />
+      <img src={recipe.image} alt={recipe.name + ' — ' + recipe.country + ' inspired dish'} loading="lazy" onError={event => { if (!event.currentTarget.src.includes('mise-social.svg')) event.currentTarget.src = '/brand/mise-social.svg'; }} />
       <div className="recipe-image-top"><span>{recipe.country}</span><button type="button" className={'save-button ' + (saved ? 'saved' : '')} onClick={onSave} aria-label={(saved ? 'Remove ' : 'Save ') + recipe.name + (saved ? ' from saved recipes' : ' to saved recipes')} aria-pressed={saved}><Heart size={17} fill={saved ? 'currentColor' : 'none'} strokeWidth={1.8} /></button></div>
       <button type="button" className="recipe-image-action" onClick={onSelect} aria-label={'Cook ' + recipe.name}><ArrowUpRight size={22} /></button>
     </div>
@@ -175,6 +178,8 @@ function Footer() {
 }
 
 export default function App() {
+  const native = useNativeApp();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(recipes[0].id);
   const [saved, setSaved] = useState<string[]>(() => {
     try { const value = JSON.parse(localStorage.getItem('mise:saved') || '[]'); return Array.isArray(value) ? value.filter((id: unknown) => typeof id === 'string') : []; }
@@ -190,6 +195,15 @@ export default function App() {
       return next;
     });
   };
+
+  useEffect(() => {
+    const destination = new URLSearchParams(window.location.search).get('view');
+    if (destination !== 'kitchen' && destination !== 'discover') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(destination)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useLayoutEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -212,7 +226,7 @@ export default function App() {
   }, []);
 
   return <main id="top" className="site-wrap">
-    <Header favoritesCount={saved.length} onSaved={() => setSavedOnly(true)} />
+    <Header favoritesCount={saved.length} onSaved={() => setSavedOnly(true)} app={native} onSettings={() => setSettingsOpen(true)} />
     <Hero />
     <Marquee />
     <Discover selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
@@ -220,5 +234,7 @@ export default function App() {
     <Experience />
     <Footer />
     <div className="corner-credit" aria-hidden="true"><MousePointer2 size={12} /> MADE TO EXPLORE</div>
+    <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)} />
+    <NativeNotices app={native} />
   </main>;
 }

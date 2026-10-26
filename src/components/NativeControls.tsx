@@ -1,0 +1,68 @@
+import { useEffect } from 'react';
+import { ArrowDownToLine, Check, ChevronRight, CloudOff, Download, RefreshCcw, Settings2, Share2, Smartphone, Wifi, X } from 'lucide-react';
+import type { NativeAppState, ThemePreference } from '../pwa/useNativeApp';
+
+export function NativeHeaderActions({ app, onSettings }: { app: NativeAppState; onSettings: () => void }) {
+  return <>
+    {app.canInstall && <button className="native-top-button native-install-button" type="button" onClick={() => void app.install()} aria-label="Install Mise"><Download size={18} strokeWidth={1.8} /></button>}
+    <button className="native-top-button" type="button" onClick={onSettings} aria-label="Open app settings"><Settings2 size={19} strokeWidth={1.8} /></button>
+  </>;
+}
+
+export function NativeDialog({ app, open, close }: { app: NativeAppState; open: boolean; close: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const closeWithEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
+    window.addEventListener('keydown', closeWithEscape);
+    return () => window.removeEventListener('keydown', closeWithEscape);
+  }, [open, close]);
+
+  if (!open) return null;
+  return <div className="native-modal-backdrop" onClick={close}>
+    <section className="native-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="native-settings-title" onClick={event => event.stopPropagation()}>
+      <div className="native-modal-heading">
+        <div><span className="native-kicker">MAKE IT YOURS</span><h2 id="native-settings-title">App settings</h2></div>
+        <button type="button" className="native-close" onClick={close} aria-label="Close app settings"><X size={19}/></button>
+      </div>
+      <p className="native-panel-label">APPEARANCE</p>
+      <div className="theme-segments" role="group" aria-label="Choose display theme">
+        {(['system', 'light', 'dark'] as ThemePreference[]).map(pref => <button key={pref} type="button" aria-pressed={app.preference === pref} onClick={() => app.setPreference(pref)} className={app.preference === pref ? 'active' : ''}>{pref === 'system' ? 'System' : pref === 'light' ? 'Light' : 'Dark'}</button>)}
+      </div>
+      <p className="native-panel-helper">Use your device theme or keep Mise light or dark. Browser colors follow your choice where supported.</p>
+      <p className="native-panel-label">ON YOUR DEVICE</p>
+      <div className="native-settings-actions">
+        {!app.isInstalled && <button type="button" onClick={() => void app.install()}><span className="native-action-icon"><ArrowDownToLine size={18} /></span><span><strong>Install Mise</strong><small>Add the kitchen to your home screen</small></span><ChevronRight size={17}/></button>}
+        <button type="button" onClick={() => void app.share()}><span className="native-action-icon"><Share2 size={18}/></span><span><strong>Share Mise</strong><small>Send your kitchen to a friend</small></span><ChevronRight size={17}/></button>
+        <button type="button" onClick={() => void app.checkForUpdates()}><span className="native-action-icon"><RefreshCcw size={18}/></span><span><strong>Check for updates</strong><small>Get the newest experience</small></span><ChevronRight size={17}/></button>
+      </div>
+      <div className="native-connectivity">
+        {app.online ? <Wifi size={16}/> : <CloudOff size={16}/>}
+        <span>{!app.online ? 'You are offline' : app.offlineReady ? 'Offline kitchen ready' : 'Online · preparing offline access'}</span>
+        {app.offlineReady && app.online && <Check size={15}/>}
+      </div>
+      <p className="native-footnote">Recipes, built-in controls and kitchen code are available offline after the app finishes caching. Previously unseen online recipe photos may not be available. Some browser features vary by device.</p>
+    </section>
+  </div>;
+}
+
+export function NativeNotices({ app }: { app: NativeAppState }) {
+  return <>
+    {!app.online && <div className="native-network-banner" role="status"><CloudOff size={16}/> Offline mode — your saved kitchen experience is still here.</div>}
+    {app.needRefresh && <div className="native-update-banner" role="status">
+      <span><RefreshCcw size={17}/><strong>A fresher Mise is ready.</strong><small>Update when you've finished cooking.</small></span>
+      <div><button type="button" onClick={app.dismissRefresh} className="native-update-later">Later</button><button type="button" onClick={app.activateUpdate} className="native-update-now">Update now</button></div>
+    </div>}
+    {app.message && <div className="native-feedback" role="status"><span>{app.message}</span><button type="button" aria-label="Dismiss notice" onClick={() => app.setMessage('')}><X size={17}/></button></div>}
+    {app.installHelp && <div className="native-modal-backdrop" onClick={() => app.setInstallHelp(false)}>
+      <section role="dialog" aria-modal="true" aria-labelledby="native-install-title" className="native-install-help" onClick={e => e.stopPropagation()}>
+        <div className="native-modal-heading"><div><span className="native-kicker">ONE TAP AWAY</span><h2 id="native-install-title">Take Mise with you</h2></div><button type="button" className="native-close" aria-label="Close install guide" onClick={() => app.setInstallHelp(false)}><X size={19}/></button></div>
+        <div className="native-install-art"><img src="/brand/mise-mark.svg" alt="" /><strong>Mise</strong><small>The world, on your table.</small></div>
+        <div className="native-install-instructions">
+          <span><Smartphone size={20}/></span>
+          <p>{app.isIOS ? <>On iPhone or iPad, tap your browser's <strong>Share</strong> button, then choose <strong>Add to Home Screen</strong>. On newer versions it may appear under <strong>More</strong> or <strong>Open in Safari</strong>.</> : <>Open your browser menu and choose <strong>Install app</strong> or <strong>Add to Home Screen</strong>, when available.</>}</p>
+        </div>
+        <button className="native-install-done" type="button" onClick={() => app.setInstallHelp(false)}>Got it <Check size={17}/></button>
+      </section>
+    </div>}
+  </>;
+}
