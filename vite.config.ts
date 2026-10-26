@@ -1,10 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { redact } from '@tanstack/redact/vite';
 
-export default defineConfig({
+// In the isolated experiment branch, default to Redact. Use --mode react for a native React control build.
+// This Vite config is NOT used by Mise's production main branch.
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    ...(mode === 'react' ? [] : [redact()]),
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
@@ -50,4 +54,4 @@ export default defineConfig({
   ],
   build: { target: 'es2022', chunkSizeWarningLimit: 1400 },
   server: { host: '0.0.0.0' },
-});
+}));

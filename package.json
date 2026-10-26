@@ -12,7 +12,11 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "brand:assets": "node scripts/generate-brand-assets.mjs",
-    "test:pwa": "vitest run tests/pwa.test.ts"
+    "test:pwa": "vitest run tests/pwa.test.ts",
+    "build:react": "npm run brand:assets && npm run test && tsc -b && vite build --mode react",
+    "build:redact": "npm run build",
+    "test:redact:e2e": "playwright test e2e/redact.e2e.ts",
+    "test:redact:e2e:mobile": "playwright test e2e/redact.e2e.ts --project=mobile-chromium"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",
@@ -34,6 +38,7 @@
     "vitest": "^5.0.5",
     "@playwright/test": "^1.56.0",
     "sharp": "^0.35.5",
-    "vite-plugin-pwa": "^2.0.0"
+    "vite-plugin-pwa": "^2.0.0",
+    "@tanstack/redact": "0.1.4"
   }
 }
