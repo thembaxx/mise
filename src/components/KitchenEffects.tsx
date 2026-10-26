@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Html, RoundedBox } from '@react-three/drei';
+import { RoundedBox } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
@@ -48,13 +48,11 @@ function InteractiveUtensils({ pulse, onAction }: Pick<Props, 'pulse' | 'onActio
       <mesh position={[.02, -.05, 0]} castShadow><boxGeometry args={[.11, .6, .07]} /><meshStandardMaterial color="#a5afb0" metalness={.8} roughness={.23} /></mesh>
       <mesh position={[.02, -.31, 0]} castShadow><coneGeometry args={[.06, .14, 4]} /><meshStandardMaterial color="#c7c9c5" metalness={.72} roughness={.23} /></mesh>
       <RoundedBox args={[.18, .37, .17]} radius={.035} position={[.02, .37, 0]} castShadow><meshStandardMaterial color="#684635" roughness={.73} /></RoundedBox>
-      <Html position={[.23, .62, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}><span className="kitchen-tool-tag">Tap to chop</span></Html>
     </group>
 
     <group ref={spoon} position={[1.18, .62, .22]} rotation={[.38, 0, -.5]} onClick={event => { event.stopPropagation(); onAction('stir'); }}>
       <mesh position={[0, .31, 0]} castShadow><cylinderGeometry args={[.052, .063, .93, 12]} /><meshStandardMaterial color="#ba854f" roughness={.73} /></mesh>
       <mesh position={[0, -.19, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow scale={[1, 1.35, .32]}><sphereGeometry args={[.18, 20, 12]} /><meshStandardMaterial color="#b7814f" roughness={.73} /></mesh>
-      <Html position={[.24, .75, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}><span className="kitchen-tool-tag">Tap to stir</span></Html>
     </group>
 
     <group ref={bottle} position={[-.65, .58, -1.02]} onClick={event => { event.stopPropagation(); onAction('pour'); }}>
@@ -62,7 +60,6 @@ function InteractiveUtensils({ pulse, onAction }: Pick<Props, 'pulse' | 'onActio
       <mesh position={[0, .31, 0]}><cylinderGeometry args={[.06, .08, .2, 12]} /><meshStandardMaterial color="#5f7b4f" roughness={.4} /></mesh>
       <mesh position={[0, .4, 0]}><cylinderGeometry args={[.075, .075, .075, 12]} /><meshStandardMaterial color="#ba9467" metalness={.35} roughness={.47} /></mesh>
       <mesh position={[0, -.06, .157]}><boxGeometry args={[.19, .24, .008]} /><meshBasicMaterial color="#ede1b3" /></mesh>
-      <Html position={[.23, .45, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}><span className="kitchen-tool-tag">Tap to pour</span></Html>
     </group>
   </>;
 }
@@ -117,7 +114,6 @@ function FinishedPlate() {
         <sphereGeometry args={[.17, 12, 9]}/><meshStandardMaterial color={i % 3 === 0 ? '#dd663f' : i % 3 === 1 ? '#e8bb5d' : '#769a5b'} roughness={.62}/>
       </mesh>;
     })}
-    <Html center position={[0, .52, 0]} distanceFactor={7} style={{ pointerEvents: 'none' }}><span className="kitchen-finished-tag">Bon appétit!</span></Html>
   </group>;
 }
 
