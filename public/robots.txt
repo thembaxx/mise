@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mise-two-teal.vercel.app/sitemap.xml

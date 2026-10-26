@@ -61,3 +61,16 @@
 @media(min-width:761px) and (max-width:1050px){.cooking-tools,.cooking-action-feedback{grid-column:2}.cooking-tools{grid-row:15;margin-top:22px}.cooking-action-feedback{grid-row:16}}
 @media(max-width:540px){.cooking-tools{padding:18px 14px;border-radius:16px}.tool-kicker{font-size:9px}.cooking-tools h4{font-size:23px}.tool-intro{font-size:12px}.tool-button{min-height:83px}.tool-button strong{font-size:12px}.sound-toggle{font-size:10px;padding:8px}.cooking-goal{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.tool-button,.plate-button,.cooking-meter>span{transition:none!important}}
+
+
+/* Mise identity: refined editorial wordmark and vibrant app mark. */
+:root{--mise-charcoal:#111111;--mise-cream:#F7EED7;--mise-pistachio:#A7E063;--mise-tomato:#FF5A3C;--mise-saffron:#FFC629}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:'Playfair Display',Georgia,serif;font-size:34px;font-weight:600;letter-spacing:-.075em;line-height:1.05;white-space:nowrap}
+.logo img{width:38px;height:38px;display:block;border-radius:10px;flex:none}
+.logo-wordmark{display:block;padding-bottom:3px}
+.logo-light{color:#F7EED7}
+.eyebrow-dot,.hero-overline-mark{background:var(--mise-tomato)}
+.logo:hover img{transform:rotate(-6deg) scale(1.035)}
+.logo img{transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+@media(max-width:540px){.logo{font-size:29px;gap:8px}.logo img{height:34px;width:34px}}
+@media(prefers-reduced-motion:reduce){.logo img{transition:none}}

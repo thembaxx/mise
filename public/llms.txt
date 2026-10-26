@@ -1,0 +1,9 @@
+# Mise
+
+> Mise is a free interactive food discovery website and virtual cooking studio.
+
+Website: https://mise-two-teal.vercel.app/
+
+Mise helps people explore eight globally inspired recipes, follow ingredient lists and detailed steps, set cooking timers, and play with a stylized 3D kitchen. Mouse and touch controls are supported where available. Cooking visuals are simulations and should not be treated as evidence of real-world cooking safety.
+
+The experience is available without creating an account. Favorites are stored in the current browser. Recipes are editorial adaptations, not definitive claims of regional authenticity.

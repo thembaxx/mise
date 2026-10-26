@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">Mise</title><desc id="desc">Cream ribbon M topped with a green leaf on tomato orange.</desc>
+<defs>
+<linearGradient id="tile" x1=".04" y1="0" x2="1" y2="1"><stop stop-color="#FF7141"/><stop offset=".54" stop-color="#FF4C2A"/><stop offset="1" stop-color="#F33120"/></linearGradient>
+<linearGradient id="cream" x1=".2" y1="0" x2=".82" y2="1"><stop stop-color="#FFFDF1"/><stop offset=".6" stop-color="#FFF2D9"/><stop offset="1" stop-color="#FFD9B4"/></linearGradient>
+<linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#D1F79B"/><stop offset=".6" stop-color="#8DDF53"/><stop offset="1" stop-color="#56AC3B"/></linearGradient>
+<linearGradient id="fold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFE7CE"/><stop offset="1" stop-color="#FFB997"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="116" fill="url(#tile)"/>
+<path d="M115 384V238c0-51 30-82 77-82 48 0 79 29 93 76 8 25 10 64 10 96v56c-39-10-57-31-57-70v-58c0-27-9-49-26-59-10-6-23-7-34-4v131c0 40-21 61-63 60Z" fill="url(#cream)"/>
+<path d="M191 160c44-21 91 0 113 39 20 34 21 76 21 123v62c-39-9-57-30-57-70v-58c0-52-23-84-77-96Z" fill="url(#fold)" opacity=".83"/>
+<path d="M260 201c25-28 61-40 95-30 36 12 54 44 54 90v123c-40-9-60-30-60-71v-59c0-28-8-47-27-53-17-6-33-4-49 11Z" fill="url(#cream)"/>
+<path d="M258 204c5-46 30-86 68-109 25-16 54-23 87-23-1 45-19 82-46 106-27 23-62 33-109 26Z" fill="url(#leaf)"/>
+<path d="M264 201c36-46 78-78 135-109" stroke="#459D42" stroke-width="7" stroke-linecap="round" fill="none" opacity=".75"/>
+<path d="M260 204c-18-36-33-52-61-60-7 27 8 50 61 60Z" fill="#CF3B22" opacity=".76"/>
+</svg>
