@@ -12,11 +12,23 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,txt,xml,woff2}'],
+        // The full Rapier mode is optional: don't download its heavy JS while
+        // preparing the offline quick kitchen. Cache it on first activation.
+        globIgnores: ['**/KitchenScene-*.js'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/_vercel\//],
         runtimeCaching: [
+          {
+            urlPattern: /\/assets\/KitchenScene-[^/]+\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'mise-opt-in-physics-v1',
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 3, maxAgeSeconds: 30 * 24 * 60 * 60, purgeOnQuotaError: true },
+            },
+          },
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\//,
             handler: 'CacheFirst',

@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Flame, Minus, Pause, Play, Plus, RotateCcw, Timer, UtensilsCrossed } from 'lucide-react';
 import CookingControls from './CookingControls';
 import type { KitchenPulse } from './KitchenEffects';
 import { applyCookingAction, getCookingRequirements, initialKitchenProgress, isReadyToPlate, type CookingAction } from '../lib/cooking';
 import { playCookingCue, cookingHaptic } from '../lib/cooking-sound';
-import KitchenScene from './KitchenScene';
+import LiteKitchenScene from './LiteKitchenScene';
+// Rapier/physics are intentionally loaded only after the visitor enables the simulation.
+const PhysicsKitchenScene = lazy(() => import('./KitchenScene'));
 import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
 import { recipes } from '../data/recipes';
@@ -14,6 +16,7 @@ const formatTime = (seconds: number) => [Math.floor(seconds / 60), seconds % 60]
 const formatAmount = (amount: number) => Number.isInteger(amount) ? String(amount) : amount.toFixed(1).replace(/\.0$/, '');
 
 export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
+  const [physicsEnabled, setPhysicsEnabled] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [added, setAdded] = useState<string[]>([]);
   const [heat, setHeat] = useState(.35);
@@ -125,10 +128,17 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           <span className="scene-live"><span /> LIVE INTERACTIVE KITCHEN</span>
           <div className="scene-actions">
             <span className="local-clock"><Clock3 size={15} strokeWidth={1.8} /> {clockText}</span>
+            <button type="button" className="physics-mode-toggle" aria-pressed={physicsEnabled} onClick={() => setPhysicsEnabled(enabled => !enabled)} title={physicsEnabled ? 'Use quick lightweight 3D kitchen' : 'Load full Rapier physics simulation'}>
+              {physicsEnabled ? 'Physics on' : 'Quick 3D'} <span aria-hidden="true">●</span>
+            </button>
             <button className="scene-icon-button" type="button" onClick={resetKitchen} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><RotateCcw size={16} /></button>
           </div>
         </div>
-        <SceneErrorBoundary><SupportsWebGL><KitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></SupportsWebGL></SceneErrorBoundary>
+        <SceneErrorBoundary><SupportsWebGL>
+          {physicsEnabled
+            ? <Suspense fallback={<><LiteKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /><p className="physics-loader" role="status">Loading physics simulation…</p></>}><PhysicsKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            : <LiteKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+        </SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">
             <span className="gesture-symbol"><UtensilsCrossed size={17} strokeWidth={1.6} /></span>
@@ -139,7 +149,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <input id="burner-heat" aria-label="Burner heat" type="range" min="0" max="1" step=".05" value={heat} onChange={e => setHeat(Number(e.target.value))} style={{ '--heat': (heat * 100) + '%' } as React.CSSProperties} />
           </div>
         </div>
-        <div className="scene-footnote"><span>01 / PLAY WITH YOUR FOOD</span><span>Built with WebGL + real-time physics</span></div>
+        <div className="scene-footnote"><span>01 / PLAY WITH YOUR FOOD</span><span>{physicsEnabled ? 'WebGL + Rapier physics' : 'WebGL · quick-start kitchen'}</span></div>
       </div>
 
       <aside className="studio-panel" aria-label="Guided recipe and cooking controls">
