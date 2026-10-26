@@ -2,8 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#FF5A3C" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#F7F6F1" />
+    <style>
+      :root{color-scheme:light;background:#f7f6f1}
+      :root[data-theme="dark"]{color-scheme:dark;background:#111b17}
+      html,body{margin:0;min-height:100%;background:inherit}
+      #root{min-height:100svh}
+      .mise-boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px;min-height:100svh;background:inherit;color:#263226;font:600 21px system-ui,sans-serif;letter-spacing:-.035em}
+      [data-theme="dark"] .mise-boot{color:#f7eed7}
+      .mise-boot img{width:82px;height:82px;border-radius:22px;box-shadow:0 16px 50px #00000015}
+      .mise-boot p{font:400 12px system-ui,sans-serif;letter-spacing:.08em;opacity:.62;margin:0}
+    </style>
+    <script>
+      (function(){
+        try {
+          var pref=localStorage.getItem('mise:theme')||'system';
+          var dark=pref==='dark'||(pref!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches);
+          document.documentElement.dataset.theme=dark?'dark':'light';
+          document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#111B17':'#F7F6F1');
+        } catch (e) {
+          document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+        }
+      })();
+    </script>
     <meta name="description" content="Explore recipes from around the world and cook in Mise’s playful 3D virtual kitchen. Discover global food, follow detailed recipes and interact with ingredients." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="application-name" content="Mise" />
@@ -15,6 +40,16 @@
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-startup-image" href="/splash-1170x2532-light.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" />
+    <link rel="apple-touch-startup-image" href="/splash-1170x2532-dark.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" />
+    <link rel="apple-touch-startup-image" href="/splash-1179x2556-light.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" />
+    <link rel="apple-touch-startup-image" href="/splash-1179x2556-dark.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" />
+    <link rel="apple-touch-startup-image" href="/splash-1290x2796-light.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" />
+    <link rel="apple-touch-startup-image" href="/splash-1290x2796-dark.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" />
+    <link rel="apple-touch-startup-image" href="/splash-1320x2868-light.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" />
+    <link rel="apple-touch-startup-image" href="/splash-1320x2868-dark.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" />
+    <link rel="apple-touch-startup-image" href="/splash-1668x2388-light.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" />
+    <link rel="apple-touch-startup-image" href="/splash-1668x2388-dark.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Mise" />
     <meta property="og:locale" content="en_US" />
@@ -38,7 +73,7 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Mise","url":"https://mise-two-teal.vercel.app/","description":"Explore globally inspired recipes and a playful 3D virtual kitchen.","inLanguage":"en"},{"@type":"WebApplication","name":"Mise","url":"https://mise-two-teal.vercel.app/","image":"https://mise-two-teal.vercel.app/og-mise.png","applicationCategory":"LifestyleApplication","operatingSystem":"Any","isAccessibleForFree":true,"description":"A free interactive food discovery and virtual cooking studio with recipes, timers, tactile 3D ingredients, and guided cooking."}]}</script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="mise-boot" role="status" aria-label="Opening Mise"><img src="/brand/mise-mark.svg" width="82" height="82" alt="" /><strong>Mise</strong><p>Preparing your world of flavor…</p></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
