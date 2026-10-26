@@ -1,0 +1,224 @@
+import { useLayoutEffect, useMemo, useState } from 'react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import KitchenStudio from './components/KitchenStudio';
+import { recipes, regions } from './data/recipes';
+import type { Recipe, Region } from './data/recipes';
+
+gsap.registerPlugin(ScrollTrigger);
+type Filter = 'All' | Region;
+
+function scrollToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+}
+
+function Logo({ light = false }: { light?: boolean }) {
+  return <a className={'logo ' + (light ? 'logo-light' : '')} href="#top" aria-label="Mise, back to top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>mise<span className="logo-spark">✳</span></a>;
+}
+
+function Header({ favoritesCount, onSaved }: { favoritesCount: number; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const go = (id: string) => { setOpen(false); scrollToSection(id); };
+  return <>
+    <header className="site-header">
+      <Logo />
+      <nav className="desktop-nav" aria-label="Main navigation">
+        <button type="button" onClick={() => go('discover')}>Discover</button>
+        <button type="button" onClick={() => go('kitchen')}>The kitchen</button>
+        <button type="button" onClick={() => go('experience')}>Our philosophy</button>
+      </nav>
+      <div className="header-actions">
+        <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} strokeWidth={1.8} /><span>{favoritesCount}</span></button>
+        <button type="button" className="nav-cta" onClick={() => go('kitchen')}>Start cooking <ArrowUpRight size={17} /></button>
+        <button type="button" className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <Menu size={23} />}</button>
+      </div>
+    </header>
+    {open && <div className="mobile-menu">
+      <button type="button" onClick={() => go('discover')}>Discover recipes <ArrowUpRight /></button>
+      <button type="button" onClick={() => go('kitchen')}>The kitchen <ArrowUpRight /></button>
+      <button type="button" onClick={() => go('experience')}>Our philosophy <ArrowUpRight /></button>
+    </div>}
+  </>;
+}
+
+function Hero() {
+  return <section className="hero" aria-labelledby="hero-title">
+    <div className="hero-copy">
+      <p className="hero-overline"><span className="hero-overline-mark" /> A NEW WAY TO EXPERIENCE FOOD</p>
+      <h1 id="hero-title">The world,<br /><em>on your table.</em></h1>
+      <p className="hero-description">Curious about what the world is cooking? Discover extraordinary recipes, get a little messy, and make every meal a story worth sharing.</p>
+      <div className="hero-buttons">
+        <button type="button" className="button-dark" onClick={() => scrollToSection('kitchen')}>Step into the kitchen <span><ArrowUpRight size={19} strokeWidth={1.8} /></span></button>
+        <button type="button" className="button-text" onClick={() => scrollToSection('discover')}>Explore recipes <ArrowRight size={19} strokeWidth={1.7} /></button>
+      </div>
+      <div className="hero-bottom"><span className="hero-bottom-line" /><span>GOOD FOOD. GOOD STORIES. GOOD COMPANY.</span></div>
+    </div>
+    <div className="hero-visual">
+      <div className="hero-image-wrap">
+        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=90" alt="Beautifully plated colorful food with fresh vegetables" fetchPriority="high" />
+        <div className="hero-image-wash" />
+      </div>
+      <div className="hero-photo-caption"><span>MADE TO BE SHARED</span><span>01 — ∞</span></div>
+      <div className="hero-float-card">
+        <div className="float-card-icon"><Sparkles size={19} strokeWidth={1.6} /></div>
+        <span>TODAY'S LITTLE REMINDER</span>
+        <strong>Life's too short<br />for boring food.</strong>
+        <div className="float-card-footer"><span>With love, Mise</span><ArrowUpRight size={18} /></div>
+      </div>
+      <div className="hero-orbit"><span>GOOD TASTE IS A JOURNEY · </span></div>
+    </div>
+  </section>;
+}
+
+function Marquee() {
+  const items = ['TOKYO', 'NAPLES', 'JOHANNESBURG', 'MEXICO CITY', 'MARRAKECH', 'BANGKOK', 'ATHENS'];
+  return <div className="marquee-strip" aria-label="Inspired by kitchens around the world"><div className="marquee-track" aria-hidden="true">{[...items, ...items].map((item, index) => <span key={index}>{item}<span className="marquee-flower">✳</span></span>)}</div></div>;
+}
+
+function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
+  recipe: Recipe; selected: boolean; saved: boolean; onSelect: () => void; onSave: () => void;
+}) {
+  return <article className={'recipe-card ' + (selected ? 'recipe-selected' : '')}>
+    <div className="recipe-image">
+      <img src={recipe.image} alt={recipe.name + ' — ' + recipe.country + ' inspired dish'} loading="lazy" />
+      <div className="recipe-image-top"><span>{recipe.country}</span><button type="button" className={'save-button ' + (saved ? 'saved' : '')} onClick={onSave} aria-label={(saved ? 'Remove ' : 'Save ') + recipe.name + (saved ? ' from saved recipes' : ' to saved recipes')} aria-pressed={saved}><Heart size={17} fill={saved ? 'currentColor' : 'none'} strokeWidth={1.8} /></button></div>
+      <button type="button" className="recipe-image-action" onClick={onSelect} aria-label={'Cook ' + recipe.name}><ArrowUpRight size={22} /></button>
+    </div>
+    <div className="recipe-details">
+      <div className="recipe-meta"><span>{recipe.region}</span><span className="meta-divider" /><span>{recipe.difficulty}</span></div>
+      <button type="button" className="recipe-name" onClick={onSelect}>{recipe.name}</button>
+      <div className="recipe-bottom"><span>{recipe.subtitle}</span><span><Clock3 size={14} strokeWidth={1.6} /> {recipe.minutes} min</span></div>
+    </div>
+  </article>;
+}
+
+function Discover({ selectedId, onSelect, saved, onToggleSave, savedOnly, setSavedOnly }: {
+  selectedId: string; onSelect: (id: string) => void; saved: string[]; onToggleSave: (id: string) => void;
+  savedOnly: boolean; setSavedOnly: (value: boolean) => void;
+}) {
+  const [filter, setFilter] = useState<Filter>('All');
+  const [search, setSearch] = useState('');
+  const filtered = useMemo(() => recipes.filter(recipe =>
+    (filter === 'All' || recipe.region === filter) &&
+    (!savedOnly || saved.includes(recipe.id)) &&
+    (recipe.name + ' ' + recipe.country + ' ' + recipe.tags.join(' ')).toLowerCase().includes(search.trim().toLowerCase())
+  ), [filter, search, saved, savedOnly]);
+
+  return <section className="discover-section" id="discover">
+    <div className="discover-layout">
+      <div className="discover-intro" id="discover-intro">
+        <p className="eyebrow"><span className="eyebrow-dot" /> THE DISCOVERY TABLE</p>
+        <h2>Where to<br /><em>today?</em></h2>
+        <p>From street food to Sunday feasts. Find something that speaks to your appetite, then make it your own.</p>
+        <div className="search-wrap"><Search size={19} strokeWidth={1.7} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search a dish, a place..." type="search" /></div>
+        <div className="filter-list" role="group" aria-label="Filter recipes by region">
+          {regions.map(region => <button key={region} type="button" className={filter === region ? 'filter-active' : ''} onClick={() => setFilter(region)} aria-pressed={filter === region}><span>{region}</span><ArrowUpRight size={15} strokeWidth={1.6} /></button>)}
+        </div>
+        <button type="button" className={'saved-filter ' + (savedOnly ? 'is-active' : '')} onClick={() => setSavedOnly(!savedOnly)} aria-pressed={savedOnly}><Heart size={17} fill={savedOnly ? 'currentColor' : 'none'} /> {savedOnly ? 'Showing saved recipes' : 'Only show my saved recipes'} <span>{saved.length}</span></button>
+      </div>
+      <div className="recipes-content">
+        <div className="recipes-topline"><span>THE MENU</span><span>{String(filtered.length).padStart(2, '0')} DISHES TO DISCOVER</span></div>
+        {filtered.length ? <div className="recipe-grid">
+          {filtered.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} selected={selectedId === recipe.id} saved={saved.includes(recipe.id)} onSelect={() => { onSelect(recipe.id); scrollToSection('kitchen'); }} onSave={() => onToggleSave(recipe.id)} />)}
+        </div> : <div className="empty-recipes"><Search size={29} strokeWidth={1.2} /><h3>No dishes on this table.</h3><p>Try another region or search term. There's always something good to cook.</p><button type="button" onClick={() => { setSearch(''); setFilter('All'); setSavedOnly(false); }}>Show all recipes <ArrowRight size={17} /></button></div>}
+        <div className="recipes-end"><span>MORE STORIES ARE ALWAYS COOKING</span><span>SCROLL TO THE KITCHEN <ArrowDown size={16} /></span></div>
+      </div>
+    </div>
+  </section>;
+}
+
+function Experience() {
+  return <section className="experience-section" id="experience">
+    <div className="experience-heading">
+      <p className="eyebrow"><span className="eyebrow-dot" /> NOT YOUR ORDINARY COOKBOOK</p>
+      <h2>More than a recipe.<br /><em>It's a feeling.</em></h2>
+      <p>Because cooking is not just about following instructions. It's about the joy of figuring things out, getting your hands involved, and tasting somewhere new.</p>
+    </div>
+    <div className="feature-grid">
+      <div className="feature-card feature-photo">
+        <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?w=1200&q=85" alt="A welcoming kitchen filled with ingredients" loading="lazy" />
+        <div className="feature-photo-overlay"><span>FOR THE CURIOUS COOK</span><h3>Make a little<br /><em>magic.</em></h3><span className="feature-round"><ArrowUpRight size={20} /></span></div>
+      </div>
+      <div className="feature-card feature-3d">
+        <div className="feature-3d-art"><div className="art-ring ring-one" /><div className="art-ring ring-two" /><div className="art-tomato"><span /></div><div className="art-leaf" /></div>
+        <span className="feature-kicker">FEEL EVERY INGREDIENT</span><h3>Go ahead.<br />Play with your food.</h3><p>Reach into a tactile 3D kitchen. Pick things up, move them around, and cook your way.</p>
+      </div>
+      <div className="feature-card feature-time">
+        <div className="feature-icon"><Clock3 size={25} strokeWidth={1.4} /></div>
+        <div className="feature-timer-graphic"><span>00</span><i>:</i><span>35</span></div>
+        <h3>Your time.<br />Your pace.</h3><p>Step-by-step guidance and a timer that stays right beside you.</p>
+      </div>
+      <div className="feature-card feature-world">
+        <div className="feature-icon"><Globe2 size={25} strokeWidth={1.4} /></div>
+        <div className="world-lines"><span>JAPAN</span><span>ITALY</span><span>SOUTH AFRICA</span><span>MEXICO</span></div>
+        <h3>One world.<br />Infinite flavor.</h3><p>Recipes inspired by kitchens and cultures across the globe.</p>
+      </div>
+      <div className="feature-card feature-love">
+        <div className="feature-icon"><Heart size={25} strokeWidth={1.4} /></div>
+        <div className="love-graphic"><Heart size={96} strokeWidth={1} fill="currentColor" /></div>
+        <h3>Keep what<br />you love.</h3><p>Save your favorites. Come back whenever inspiration strikes.</p>
+      </div>
+    </div>
+  </section>;
+}
+
+function Footer() {
+  return <footer className="footer">
+    <div className="footer-main">
+      <p className="eyebrow"><span className="eyebrow-dot" /> PULL UP A CHAIR</p>
+      <h2>Something good<br />is <em>cooking.</em></h2>
+      <button type="button" className="footer-button" onClick={() => scrollToSection('kitchen')}>Let's make something <span><ArrowUpRight size={22} /></span></button>
+    </div>
+    <div className="footer-bottom"><Logo light /><p>Made for the curious, the hungry, and everyone in between.</p><a href="#top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>Back to top <ArrowUpRight size={16} /></a></div>
+  </footer>;
+}
+
+export default function App() {
+  const [selectedId, setSelectedId] = useState(recipes[0].id);
+  const [saved, setSaved] = useState<string[]>(() => {
+    try { const value = JSON.parse(localStorage.getItem('mise:saved') || '[]'); return Array.isArray(value) ? value.filter((id: unknown) => typeof id === 'string') : []; }
+    catch { return []; }
+  });
+  const [savedOnly, setSavedOnly] = useState(false);
+  const selectedRecipe = recipes.find(recipe => recipe.id === selectedId) || recipes[0];
+
+  const toggleSaved = (id: string) => {
+    setSaved(current => {
+      const next = current.includes(id) ? current.filter(item => item !== id) : [...current, id];
+      try { localStorage.setItem('mise:saved', JSON.stringify(next)); } catch { /* Storage can be unavailable. */ }
+      return next;
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo('.hero-copy > *', { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 1.05, ease: 'power3.out', stagger: .11, delay: .08 });
+      gsap.fromTo('.hero-visual', { y: 35, scale: .94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1.45, ease: 'power3.out', delay: .18 });
+      gsap.utils.toArray<HTMLElement>('.recipe-card').forEach((card, i) => {
+        gsap.fromTo(card, { y: 45, opacity: .35, scale: .95 }, { y: 0, opacity: 1, scale: 1, ease: 'none', scrollTrigger: { trigger: card, start: 'top 97%', end: 'top 62%', scrub: .65 }, delay: i % 2 * .05 });
+      });
+      gsap.utils.toArray<HTMLElement>('.feature-card').forEach(card => {
+        gsap.fromTo(card, { y: 65, opacity: .5 }, { y: 0, opacity: 1, ease: 'power2.out', scrollTrigger: { trigger: card, start: 'top 92%', end: 'top 62%', scrub: .7 } });
+      });
+      ScrollTrigger.matchMedia({
+        '(min-width: 1100px)': () => {
+          ScrollTrigger.create({ trigger: '#discover', start: 'top top+=115', end: 'bottom bottom-=120', pin: '#discover-intro', pinSpacing: false });
+        }
+      });
+    });
+    return () => ctx.revert();
+  }, []);
+
+  return <main id="top" className="site-wrap">
+    <Header favoritesCount={saved.length} onSaved={() => setSavedOnly(true)} />
+    <Hero />
+    <Marquee />
+    <Discover selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
+    <KitchenStudio recipe={selectedRecipe} onRecipeChange={setSelectedId} />
+    <Experience />
+    <Footer />
+    <div className="corner-credit" aria-hidden="true"><MousePointer2 size={12} /> MADE TO EXPLORE</div>
+  </main>;
+}
