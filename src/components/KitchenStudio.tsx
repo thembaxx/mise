@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Flame, Minus, Pause, Play, Plus, RotateCcw, Timer, UtensilsCrossed } from 'lucide-react';
+import CookingControls from './CookingControls';
+import type { KitchenPulse } from './KitchenEffects';
+import { applyCookingAction, getCookingRequirements, initialKitchenProgress, isReadyToPlate, type CookingAction } from '../lib/cooking';
+import { playCookingCue, cookingHaptic } from '../lib/cooking-sound';
 import KitchenScene from './KitchenScene';
 import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
@@ -20,12 +24,19 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [resetCount, setResetCount] = useState(0);
   const [time, setTime] = useState(() => new Date());
   const [timerNotice, setTimerNotice] = useState('');
+  const [progress, setProgress] = useState(initialKitchenProgress);
+  const [pulse, setPulse] = useState<KitchenPulse>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState('Try chopping an ingredient to begin.');
 
   useEffect(() => {
     setStepIndex(0);
     setAdded([]);
     setHeat(.35);
     setServings(2);
+    setProgress(initialKitchenProgress());
+    setPulse(null);
+    setActionFeedback('Try chopping an ingredient to begin.');
     setResetCount(count => count + 1);
   }, [recipe.id]);
 
@@ -60,6 +71,39 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   }, []);
 
   const addIngredient = useCallback((id: string) => setAdded(current => current.includes(id) ? current : [...current, id]), []);
+  const requirements = getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length);
+  const cookingAction = useCallback((action: CookingAction) => {
+    if (progress.plated) return;
+    if (action === 'plate' && !isReadyToPlate(getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length))) return;
+    if (action === 'stir' && (heat <= 0 || added.length === 0)) {
+      setActionFeedback('Turn up the heat and add ingredients before stirring.');
+      return;
+    }
+    const next = applyCookingAction(progress, action);
+    if (next === progress || (action !== 'plate' && next.chops === progress.chops && next.pours === progress.pours && next.stirs === progress.stirs)) return;
+    setProgress(next);
+    setPulse(previous => ({ action, id: (previous?.id || 0) + 1 }));
+    if (action === 'plate') { setRunning(false); setHeat(0); }
+    setActionFeedback({
+      chop: 'Freshly chopped! Your ingredients are ready for the pan.',
+      pour: 'A silky pour. Watch the pan come alive.',
+      stir: 'Beautifully stirred. Keep the flavor moving.',
+      plate: 'Bon appétit! Your virtual creation is served.',
+    }[action]);
+    playCookingCue(action, soundEnabled);
+    cookingHaptic();
+  }, [progress, added.length, recipe.ingredients.length, recipe.steps.length, heat, stepIndex, soundEnabled]);
+  const resetKitchen = () => {
+    setAdded([]);
+    setHeat(.35);
+    setProgress(initialKitchenProgress());
+    setPulse(null);
+    setStepIndex(0);
+    setRunning(false);
+    setSeconds(recipe.steps[0].minutes * 60);
+    setActionFeedback('A fresh start. Pick an ingredient and get cooking.');
+    setResetCount(count => count + 1);
+  };
   const step = recipe.steps[stepIndex];
   const stepProgress = (stepIndex + 1) / recipe.steps.length;
   const timerTotal = Math.max(1, step.minutes * 60);
@@ -81,14 +125,14 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           <span className="scene-live"><span /> LIVE INTERACTIVE KITCHEN</span>
           <div className="scene-actions">
             <span className="local-clock"><Clock3 size={15} strokeWidth={1.8} /> {clockText}</span>
-            <button className="scene-icon-button" type="button" onClick={() => { setAdded([]); setHeat(.35); setResetCount(count => count + 1); }} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><RotateCcw size={16} /></button>
+            <button className="scene-icon-button" type="button" onClick={resetKitchen} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><RotateCcw size={16} /></button>
           </div>
         </div>
-        <SceneErrorBoundary><SupportsWebGL><KitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} /></SupportsWebGL></SceneErrorBoundary>
+        <SceneErrorBoundary><SupportsWebGL><KitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">
             <span className="gesture-symbol"><UtensilsCrossed size={17} strokeWidth={1.6} /></span>
-            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan · Drag to orbit · Pinch to zoom</small></div>
+            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan · Tap utensils · Orbit to explore · Pinch to zoom</small></div>
           </div>
           <div className="heat-control">
             <label htmlFor="burner-heat"><Flame size={16} strokeWidth={1.7} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
@@ -162,6 +206,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             </div>;
           })}
         </div>
+        <CookingControls progress={progress} requirements={requirements} ingredientCount={recipe.ingredients.length} addedCount={added.length} heat={heat} sound={soundEnabled} onSoundChange={setSoundEnabled} onAction={cookingAction} />
+        <p className="cooking-action-feedback" role="status" aria-live="polite">{actionFeedback}</p>
         <p className="ingredient-disclaimer">The 3D ingredients are playful representations. Follow the written recipe and cook food safely in your real kitchen.</p>
       </aside>
     </div>

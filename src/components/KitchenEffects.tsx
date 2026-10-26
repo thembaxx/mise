@@ -1,0 +1,135 @@
+import { useEffect, useRef } from 'react';
+import { Html, RoundedBox } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+import type { CookingAction, KitchenProgress } from '../lib/cooking';
+
+export type KitchenPulse = { action: CookingAction; id: number } | null;
+
+interface Props {
+  progress: KitchenProgress;
+  addedCount: number;
+  heat: number;
+  pulse: KitchenPulse;
+  onAction: (action: CookingAction) => void;
+}
+
+/** Lightweight procedural utensils: the same actions can always be triggered using accessible HTML controls. */
+function InteractiveUtensils({ pulse, onAction }: Pick<Props, 'pulse' | 'onAction'>) {
+  const knife = useRef<THREE.Group>(null);
+  const spoon = useRef<THREE.Group>(null);
+  const bottle = useRef<THREE.Group>(null);
+  const clock = useRef(0);
+  const pulseAt = useRef(0);
+  useEffect(() => { pulseAt.current = clock.current; }, [pulse]);
+  useFrame(({ clock: sceneClock }) => {
+    clock.current = sceneClock.elapsedTime;
+    const elapsed = sceneClock.elapsedTime - pulseAt.current;
+    const t = Math.max(0, elapsed);
+    const envelope = t < .72 ? Math.sin(t / .72 * Math.PI) : 0;
+    if (knife.current) {
+      const move = pulse?.action === 'chop' ? Math.abs(Math.sin(t * 21)) * envelope : 0;
+      knife.current.position.y = .47 - move * .23;
+      knife.current.rotation.z = -.3 - move * .2;
+    }
+    if (spoon.current) {
+      const move = pulse?.action === 'stir' ? envelope : 0;
+      spoon.current.rotation.y = move * Math.sin(t * 17) * .55;
+      spoon.current.rotation.x = .38 + move * Math.sin(t * 14) * .2;
+    }
+    if (bottle.current) {
+      const move = pulse?.action === 'pour' ? envelope : 0;
+      bottle.current.rotation.z = move * -1.1;
+      bottle.current.position.y = .58 + move * .17;
+    }
+  });
+  return <>
+    <group ref={knife} position={[-1.75, .47, -.52]} rotation={[0, 0, -.3]} onClick={event => { event.stopPropagation(); onAction('chop'); }}>
+      <mesh position={[.02, -.05, 0]} castShadow><boxGeometry args={[.11, .6, .07]} /><meshStandardMaterial color="#a5afb0" metalness={.8} roughness={.23} /></mesh>
+      <mesh position={[.02, -.31, 0]} castShadow><coneGeometry args={[.06, .14, 4]} /><meshStandardMaterial color="#c7c9c5" metalness={.72} roughness={.23} /></mesh>
+      <RoundedBox args={[.18, .37, .17]} radius={.035} position={[.02, .37, 0]} castShadow><meshStandardMaterial color="#684635" roughness={.73} /></RoundedBox>
+      <Html position={[.23, .62, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}><span className="kitchen-tool-tag">Tap to chop</span></Html>
+    </group>
+
+    <group ref={spoon} position={[1.18, .62, .22]} rotation={[.38, 0, -.5]} onClick={event => { event.stopPropagation(); onAction('stir'); }}>
+      <mesh position={[0, .31, 0]} castShadow><cylinderGeometry args={[.052, .063, .93, 12]} /><meshStandardMaterial color="#ba854f" roughness={.73} /></mesh>
+      <mesh position={[0, -.19, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow scale={[1, 1.35, .32]}><sphereGeometry args={[.18, 20, 12]} /><meshStandardMaterial color="#b7814f" roughness={.73} /></mesh>
+      <Html position={[.24, .75, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}><span className="kitchen-tool-tag">Tap to stir</span></Html>
+    </group>
+
+    <group ref={bottle} position={[-.65, .58, -1.02]} onClick={event => { event.stopPropagation(); onAction('pour'); }}>
+      <mesh castShadow><cylinderGeometry args={[.15, .21, .54, 18]} /><meshStandardMaterial color="#789158" roughness={.25} transparent opacity={.8} /></mesh>
+      <mesh position={[0, .31, 0]}><cylinderGeometry args={[.06, .08, .2, 12]} /><meshStandardMaterial color="#5f7b4f" roughness={.4} /></mesh>
+      <mesh position={[0, .4, 0]}><cylinderGeometry args={[.075, .075, .075, 12]} /><meshStandardMaterial color="#ba9467" metalness={.35} roughness={.47} /></mesh>
+      <mesh position={[0, -.06, .157]}><boxGeometry args={[.19, .24, .008]} /><meshBasicMaterial color="#ede1b3" /></mesh>
+      <Html position={[.23, .45, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}><span className="kitchen-tool-tag">Tap to pour</span></Html>
+    </group>
+  </>;
+}
+
+const STEAM_COUNT = 12;
+
+function Steam({ heat, addedCount }: Pick<Props, 'heat' | 'addedCount'>) {
+  const spheres = useRef<(THREE.Mesh | null)[]>([]);
+  useFrame(({ clock }) => {
+    const intensity = heat > .05 && addedCount > 0 ? heat : 0;
+    spheres.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const speed = .25 + heat * .38;
+      const phase = (clock.elapsedTime * speed + i * .18) % 1;
+      const angle = i * 2.4;
+      mesh.position.set(1.16 + Math.sin(angle) * .36 + Math.sin(clock.elapsedTime * .8 + i) * .06, .5 + phase * 1.4, .15 + Math.cos(angle) * .28);
+      mesh.scale.setScalar(.4 + phase * 1.4);
+      (mesh.material as THREE.MeshBasicMaterial).opacity = intensity * Math.sin(phase * Math.PI) * .19;
+      mesh.visible = intensity > 0;
+    });
+  });
+  return <group>
+    {Array.from({ length: STEAM_COUNT }, (_, i) => <mesh key={i} ref={mesh => { spheres.current[i] = mesh; }}>
+      <sphereGeometry args={[.095, 9, 7]} />
+      <meshBasicMaterial transparent depthWrite={false} color="#fff7e7" opacity={0} />
+    </mesh>)}
+  </group>;
+}
+
+function ChoppedFood({ chops }: { chops: number }) {
+  if (!chops) return null;
+  return <group position={[-2.08, .12, .55]}>
+    {Array.from({ length: Math.min(chops * 3, 12) }, (_, i) => {
+      const x = (i % 4) * .18;
+      const z = Math.floor(i / 4) * .18;
+      return <mesh key={i} position={[x, .017, z]} rotation={[-Math.PI / 2, 0, i * 1.2]} castShadow>
+        <cylinderGeometry args={[.065, .065, .025, 5]} />
+        <meshStandardMaterial color={i % 3 === 0 ? '#cb5937' : i % 3 === 1 ? '#e6a04e' : '#77a45c'} roughness={.8}/>
+      </mesh>;
+    })}
+  </group>;
+}
+
+function FinishedPlate() {
+  return <group position={[-1.5, .25, .23]}>
+    <mesh castShadow><cylinderGeometry args={[.68, .64, .09, 48]} /><meshStandardMaterial color="#f6f1dc" roughness={.46}/></mesh>
+    <mesh position={[0, .065, 0]}><torusGeometry args={[.55, .035, 10, 48]} /><meshStandardMaterial color="#d5cfad" /></mesh>
+    {Array.from({ length: 9 }, (_, i) => {
+      const a = i * 2.399;
+      const r = .13 + .034 * i;
+      return <mesh key={i} position={[Math.cos(a) * r, .105, Math.sin(a) * r]} castShadow scale={[.65, .4, .65]}>
+        <sphereGeometry args={[.17, 12, 9]}/><meshStandardMaterial color={i % 3 === 0 ? '#dd663f' : i % 3 === 1 ? '#e8bb5d' : '#769a5b'} roughness={.62}/>
+      </mesh>;
+    })}
+    <Html center position={[0, .52, 0]} distanceFactor={7} style={{ pointerEvents: 'none' }}><span className="kitchen-finished-tag">Bon appétit!</span></Html>
+  </group>;
+}
+
+export default function KitchenEffects({ progress, addedCount, heat, pulse, onAction }: Props) {
+  return <>
+    <InteractiveUtensils pulse={pulse} onAction={onAction}/>
+    {!progress.plated && <ChoppedFood chops={progress.chops}/>}
+    <Steam heat={heat} addedCount={addedCount}/>
+    {progress.pours > 0 && <mesh position={[1.16, .286, .15]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[.67, 48]} />
+      <meshStandardMaterial color="#927543" transparent opacity={Math.min(progress.pours * .14, .38)} depthWrite={false} metalness={.42} roughness={.3}/>
+    </mesh>}
+    {progress.plated && <FinishedPlate />}
+  </>;
+}

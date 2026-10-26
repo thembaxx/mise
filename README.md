@@ -8,7 +8,10 @@ A cinematic, touch-friendly food discovery app with a hands-on, real-time 3D kit
 - Search by dish, country or ingredient theme; filter by region; save favorites in browser storage.
 - Open a recipe in the kitchen, change serving quantities, follow six detailed steps and cook at your own pace.
 - Drag and drop 3D ingredients into a pan using mouse, touch or trackpad; rotate and zoom the kitchen; use the accessible ingredient checklist as an alternative.
-- Change burner heat and see a real-time GLSL glow, plus use a countdown timer and live local clock.
+- Change burner heat and see a real-time GLSL glow, steam particles and heat-driven lighting, plus use an accurate countdown timer and local clock.
+- Tap the procedural knife, pouring bottle and stirring spoon to animate ingredients, or operate the matching accessible controls in the recipe panel.
+- Finish an optional six-part cooking challenge, prepare a plated virtual dish, and opt in to synthesized sound/haptic feedback.
+- Respect low-power devices with deferred 3D loading, WebGL fallback and capped rendering resolution.
 - Enjoy GSAP-powered entrance, scroll and card animations with reduced-motion support.
 
 ## Stack
@@ -43,6 +46,14 @@ All 3D geometry is created procedurally in source; no third-party models are cop
 This is a playable cooking experience, not a physical cooking simulator: food preparation steps are guidance, the 3D ingredients are illustrative, and the stove's heat is visual rather than a thermodynamic simulation. Cook real food using appropriate food-safety practices, including checking poultry temperature with a thermometer.
 
 Recipes are editorial adaptations inspired by regional cuisines, not claims of definitive authenticity. Cooking times and quantities are approximate. Favorites persist only in the current browser.
+
+## Current cooking simulation limitations
+
+The chopping/slicing and pouring interactions animate illustrative geometry rather than modifying the exact chemistry or volume of every ingredient. Steam and heat are shader/particle effects, not food safety indicators. Spoken voice control, advanced procedural mesh cutting, real ingredient thermodynamics and full browser automation are future milestones.
+
+## Testing
+
+The Vercel build runs Vitest and TypeScript checks before production bundling. The interactive flows are also operable from ordinary HTML buttons when WebGL is unavailable. Run npm test locally to verify the rules for cooking progression and recipes.
 
 ## Future enhancements
 
