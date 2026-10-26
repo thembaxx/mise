@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, ClipboardList, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import KitchenGateway from './components/KitchenGateway';
@@ -31,6 +31,7 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
         <button type="button" onClick={() => go('experience')}>Our philosophy</button>
       </nav>
       <div className="header-actions">
+        <a className="shopping-header-link" href="/shopping/" aria-label="Open shopping list" title="Shopping list"><ClipboardList size={19} strokeWidth={1.8}/></a>
         <NativeHeaderActions app={app} onSettings={onSettings} />
         <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} strokeWidth={1.8} /><span>{favoritesCount}</span></button>
         <button type="button" className="nav-cta" onClick={() => go('kitchen')}>Start cooking <ArrowUpRight size={17} /></button>
@@ -92,6 +93,7 @@ function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
       <div className="recipe-meta"><span>{recipe.region}</span><span className="meta-divider" /><span>{recipe.difficulty}</span></div>
       <button type="button" className="recipe-name" onClick={onSelect}>{recipe.name}</button>
       <div className="recipe-bottom"><span>{recipe.subtitle}</span><span><Clock3 size={14} strokeWidth={1.6} /> {recipe.minutes} min</span></div>
+      <a className="recipe-view-link" href={'/recipes/' + encodeURIComponent(recipe.id) + '/'} aria-label={'View full recipe for ' + recipe.name}>View recipe and ingredients <ArrowUpRight size={16}/></a>
     </div>
   </article>;
 }
@@ -105,7 +107,7 @@ function Discover({ selectedId, onSelect, saved, onToggleSave, savedOnly, setSav
   const filtered = useMemo(() => recipes.filter(recipe =>
     (filter === 'All' || recipe.region === filter) &&
     (!savedOnly || saved.includes(recipe.id)) &&
-    (recipe.name + ' ' + recipe.country + ' ' + recipe.tags.join(' ')).toLowerCase().includes(search.trim().toLowerCase())
+    (recipe.name + ' ' + recipe.country + ' ' + recipe.region + ' ' + recipe.tags.join(' ') + ' ' + recipe.story).toLowerCase().includes(search.trim().toLowerCase())
   ), [filter, search, saved, savedOnly]);
 
   return <section className="discover-section" id="discover">
@@ -180,7 +182,10 @@ function Footer() {
 export default function App() {
   const native = useNativeApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(recipes[0].id);
+  const [selectedId, setSelectedId] = useState(() => {
+    const id = new URLSearchParams(window.location.search).get('recipe');
+    return recipes.find(recipe => recipe.id === id)?.id || recipes[0].id;
+  });
   const [saved, setSaved] = useState<string[]>(() => {
     try { const value = JSON.parse(localStorage.getItem('mise:saved') || '[]'); return Array.isArray(value) ? value.filter((id: unknown) => typeof id === 'string') : []; }
     catch { return []; }
@@ -230,7 +235,7 @@ export default function App() {
     <Hero />
     <Marquee />
     <Discover selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
-    <KitchenGateway recipe={selectedRecipe} onRecipeChange={setSelectedId} />
+    <KitchenGateway key={selectedRecipe.id} recipe={selectedRecipe} onRecipeChange={setSelectedId} />
     <Experience />
     <Footer />
     <div className="corner-credit" aria-hidden="true"><MousePointer2 size={12} /> MADE TO EXPLORE</div>
