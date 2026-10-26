@@ -58,3 +58,15 @@ The Vercel build runs Vitest and TypeScript checks before production bundling. T
 ## Future enhancements
 
 Licensed optimized GLB kitchen props, mesh-based slicing, ingredient-specific cooking states, multilingual recipe catalog, pantry matching, collaborative sessions, accessibility audit and end-to-end interaction tests.
+
+## Browser interaction tests
+
+The source includes Playwright desktop (1440 × 900) and touch-mobile (390 × 844) journeys covering recipe search, saved recipes, non-WebGL fallback, chopping, pouring, stirring and plating. These browser tests are opt-in and are not part of the Vercel production build, so deployment does not require installing Chromium.
+
+Run locally:
+
+    npm install
+    npx playwright install chromium
+    npm run test:e2e
+
+Preview deployment protection requires a Vercel account or authorized share link for browser QA. Do not mistake a passing production build for verified on-device gestures.
