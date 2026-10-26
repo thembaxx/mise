@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import KitchenStudio from './components/KitchenStudio';
+import KitchenGateway from './components/KitchenGateway';
 import { recipes, regions } from './data/recipes';
 import type { Recipe, Region } from './data/recipes';
 
@@ -216,7 +216,7 @@ export default function App() {
     <Hero />
     <Marquee />
     <Discover selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
-    <KitchenStudio recipe={selectedRecipe} onRecipeChange={setSelectedId} />
+    <KitchenGateway recipe={selectedRecipe} onRecipeChange={setSelectedId} />
     <Experience />
     <Footer />
     <div className="corner-credit" aria-hidden="true"><MousePointer2 size={12} /> MADE TO EXPLORE</div>

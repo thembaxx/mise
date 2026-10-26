@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Flame, Minus, Pause, Play, Plus, RotateCcw, Timer, UtensilsCrossed } from 'lucide-react';
 import KitchenScene from './KitchenScene';
 import type { Recipe } from '../data/recipes';
@@ -15,6 +15,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [servings, setServings] = useState(2);
   const [seconds, setSeconds] = useState(recipe.steps[0].minutes * 60);
   const [running, setRunning] = useState(false);
+  const timerDeadline = useRef<number | null>(null);
   const [resetCount, setResetCount] = useState(0);
   const [time, setTime] = useState(() => new Date());
   const [timerNotice, setTimerNotice] = useState('');
@@ -35,8 +36,14 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
 
   useEffect(() => {
     if (!running) return;
-    const interval = window.setInterval(() => setSeconds(current => Math.max(0, current - 1)), 1000);
-    return () => window.clearInterval(interval);
+    timerDeadline.current = Date.now() + seconds * 1000;
+    const interval = window.setInterval(() => {
+      const deadline = timerDeadline.current;
+      if (deadline !== null) setSeconds(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    }, 250);
+    return () => { window.clearInterval(interval); timerDeadline.current = null; };
+    // Only restart the deadline when the timer is toggled, not on each tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   useEffect(() => {
@@ -58,7 +65,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const timerProgress = Math.max(0, Math.min(1, seconds / timerTotal));
   const clockText = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  return <section className="studio-section" id="kitchen">
+  return <section className="studio-section" id="cooking-studio">
     <div className="section-head studio-heading">
       <div>
         <p className="eyebrow"><span className="eyebrow-dot" /> YOUR CREATIVE SPACE</p>
@@ -131,7 +138,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <div className="timer-buttons">
               <button type="button" className="timer-play" onClick={() => { if (seconds === 0) setSeconds(timerTotal); setTimerNotice(''); setRunning(value => !value); }} aria-label={running ? 'Pause timer' : 'Start timer'}>{running ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}{running ? 'Pause' : 'Start'}</button>
               <button type="button" className="timer-small" onClick={() => { setRunning(false); setSeconds(timerTotal); setTimerNotice(''); }} aria-label="Reset timer"><RotateCcw size={15} /></button>
-              <button type="button" className="timer-small" onClick={() => setSeconds(value => value + 60)} aria-label="Add one minute"><Plus size={15} /></button>
+              <button type="button" className="timer-small" onClick={() => { if (timerDeadline.current !== null) timerDeadline.current += 60000; setSeconds(value => value + 60); }} aria-label="Add one minute"><Plus size={15} /></button>
             </div>
           </div>
         </div>
