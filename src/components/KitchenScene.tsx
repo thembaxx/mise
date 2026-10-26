@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
-import { ContactShadows, Html, OrbitControls, RoundedBox } from '@react-three/drei';
+import { ContactShadows, OrbitControls, RoundedBox } from '@react-three/drei';
 import { CuboidCollider, Physics, RigidBody, RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import type { Ingredient, IngredientKind } from '../data/recipes';
@@ -120,7 +120,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
       onPointerCancel={endDrag}
     >
       <IngredientModel kind={ingredient.kind} />
-      {hover && !cooked && <Html center distanceFactor={9} position={[0, .55, 0]} style={{ pointerEvents: 'none' }}><span className="ingredient-tooltip">{ingredient.name}</span></Html>}
+      {hover && !cooked && <mesh position={[0, .52, 0]}><ringGeometry args={[.20, .27, 24]} /><meshBasicMaterial color="#a7e063" side={THREE.DoubleSide} /></mesh>}
     </group>
   </RigidBody>;
 }

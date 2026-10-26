@@ -15,11 +15,14 @@ test('native chrome respects saved theme preferences before paint', async ({ pag
 
 test('installed service worker loads the app while offline after a successful visit', async ({ page, context }) => {
   await page.goto('/');
-  await page.waitForFunction(() => navigator.serviceWorker?.controller !== null, { timeout: 30000 }).catch(async () => {
-    await page.waitForFunction(() => navigator.serviceWorker?.ready, { timeout: 30000 });
-    await page.reload();
-  });
-  await page.waitForFunction(() => Boolean(navigator.serviceWorker?.controller), { timeout: 30000 });
+  // First visits often activate a worker without controlling the current page.
+  // Wait for activation, then navigate once under service-worker control.
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(
+    () => page.evaluate(() => Boolean(navigator.serviceWorker?.controller)),
+    { timeout: 12000 },
+  ).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole('heading', { name: /the world/i })).toBeVisible();

@@ -215,9 +215,12 @@ export default function App() {
     const ctx = gsap.context(() => {
       gsap.fromTo('.hero-copy > *', { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 1.05, ease: 'power3.out', stagger: .11, delay: .08 });
       gsap.fromTo('.hero-visual', { y: 35, scale: .94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1.45, ease: 'power3.out', delay: .18 });
+      // Avoid scroll-linked transforms fighting touch interactions on narrow screens.
+      if (window.matchMedia('(min-width: 761px) and (pointer: fine)').matches) {
       gsap.utils.toArray<HTMLElement>('.recipe-card').forEach((card, i) => {
         gsap.fromTo(card, { y: 45, opacity: .35, scale: .95 }, { y: 0, opacity: 1, scale: 1, ease: 'none', scrollTrigger: { trigger: card, start: 'top 97%', end: 'top 62%', scrub: .65 }, delay: i % 2 * .05 });
       });
+      }
       gsap.utils.toArray<HTMLElement>('.feature-card').forEach(card => {
         gsap.fromTo(card, { y: 65, opacity: .5 }, { y: 0, opacity: 1, ease: 'power2.out', scrollTrigger: { trigger: card, start: 'top 92%', end: 'top 62%', scrub: .7 } });
       });
