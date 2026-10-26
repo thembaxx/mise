@@ -14,7 +14,7 @@ function scrollToSection(id: string) {
 }
 
 function Logo({ light = false }: { light?: boolean }) {
-  return <a className={'logo ' + (light ? 'logo-light' : '')} href="#top" aria-label="Mise, back to top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>mise<span className="logo-spark">✳</span></a>;
+  return <a className={'logo ' + (light ? 'logo-light' : '')} href="#top" aria-label="Mise, back to top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}><img src="/brand/mise-mark.svg" width="38" height="38" alt="" aria-hidden="true" /><span className="logo-wordmark">Mise</span></a>;
 }
 
 function Header({ favoritesCount, onSaved }: { favoritesCount: number; onSaved: () => void }) {

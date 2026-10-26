@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101715"/><stop offset="1" stop-color="#151F1B"/></linearGradient>
+<linearGradient id="tomato" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFAB6B"/><stop offset="1" stop-color="#F74C2D"/></linearGradient>
+<linearGradient id="bowl" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#FFFDF2"/><stop offset="1" stop-color="#EFCBA1"/></linearGradient>
+<linearGradient id="earth" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#176F57"/><stop offset="1" stop-color="#092D29"/></linearGradient>
+<filter id="shadow"><feGaussianBlur stdDeviation="16"/></filter>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<circle cx="954" cy="259" r="214" fill="url(#earth)" opacity=".89"/>
+<path d="M825 133c45-48 95-62 136-60l-25 35 24 22-45 20-21 43-44-16-32 24Z" fill="#174B39"/>
+<path d="M971 78c43-8 94 3 125 30l-9 39-49 20-37-27-31-18Z" fill="#195C48"/>
+<path d="M953 223c31-23 72-18 102 3l-3 55-27 47-21 4-36-57Z" fill="#1A5744"/>
+<path d="M760 333c30-33 74-44 124-36l30 16-17 38-49 35-69-15Z" fill="#1A5744"/>
+<path d="M661 366c145 28 332 22 492-14-42 142-135 220-257 221-112 1-201-71-235-207Z" fill="url(#bowl)"/>
+<path d="M658 360c152 20 335 25 497-12" stroke="#FFF7E9" stroke-width="20" fill="none" stroke-linecap="round"/>
+<ellipse cx="911" cy="590" rx="222" ry="12" fill="#000" opacity=".25" filter="url(#shadow)"/>
+<!-- vegetables in lively motion -->
+<path d="M873 298c-52-46-66-91-44-125 35 8 62 29 74 62Z" fill="#FF5A3C"/>
+<path d="M850 176c-15 38 0 75 43 116" stroke="#F3C28E" stroke-width="5" fill="none"/>
+<path d="M884 223q-28-63 14-113q65 39 36 95Z" fill="#A7E063"/>
+<path d="M895 203q7-36 21-69" stroke="#528B44" stroke-width="4" fill="none"/>
+<path d="M982 319c-35-54-16-103 19-122 44 42 53 89 28 131Z" fill="url(#tomato)"/>
+<path d="M1001 203c7 39 11 74 5 112" stroke="#FFC7A2" stroke-width="4" fill="none"/>
+<path d="M1029 177c24-53 51-66 91-57-11 45-31 76-78 81Z" fill="#A7E063"/>
+<path d="M1038 194c21-32 45-50 75-62" stroke="#548E44" stroke-width="4" fill="none"/>
+<path d="M754 333l72-107 99 111Z" fill="#FF5A3C" transform="rotate(-16 839 290)"/>
+<path d="M800 251l39 50 39-28" stroke="#FFD09C" stroke-width="8" fill="none"/>
+<path d="M1111 318q-62-59-17-105q35-26 59-17q-19 80-42 122Z" fill="#FEC629"/>
+<path d="M1104 288l46-87" stroke="#FFF0BF" stroke-width="6" fill="none"/>
+<path d="M703 236q62-19 91 43q-58 24-91-43Z" fill="#A7E063"/>
+<path d="M677 202q-45-25-18-61q58 0 69 55Z" fill="#EAC89D"/>
+<path d="M728 163q-9-52 38-69q25 32-9 72Z" fill="#7BAD58"/>
+<path d="M912 112l10-28 10 28 28 10-28 10-10 28-10-28-28-10Z" fill="#FFC629"/>
+<circle cx="763" cy="333" r="9" fill="#FFC629"/><circle cx="1047" cy="366" r="9" fill="#FF5A3C"/><circle cx="1087" cy="290" r="8" fill="#FFC629"/><circle cx="795" cy="149" r="9" fill="#FF5A3C"/>
+<!-- primary lockup -->
+<rect x="72" y="150" width="116" height="116" rx="25" fill="#FF5A3C"/>
+<path d="M99 240v-46c0-19 9-28 23-28 15 0 24 9 28 23 3 9 3 19 3 29v22c-12-3-17-9-17-21v-18c0-12-4-16-13-17v36c0 13-7 20-24 20Z" fill="#FFF6E7"/>
+<path d="M145 181c8-10 20-14 28-7 10 6 12 17 12 28v38c-12-3-18-9-18-22v-17c0-8-2-15-12-16Z" fill="#FFF6E7"/>
+<path d="M146 181c5-21 19-36 41-37-2 21-15 34-41 37Z" fill="#A7E063"/>
+<text x="218" y="242" fill="#FFF3E0" font-family="Georgia, serif" font-size="112" font-weight="700" letter-spacing="-6">Mise</text>
+<text x="73" y="357" fill="#FFF3E0" font-family="Georgia, serif" font-size="45" letter-spacing="-1">The world, on your table.</text>
+<text x="75" y="415" fill="#CFD4CC" font-family="Arial, sans-serif" font-size="21">Discover global recipes in a playful 3D kitchen.</text>
+<rect x="75" y="459" width="312" height="48" rx="24" fill="#A7E063"/>
+<text x="109" y="490" fill="#172019" font-family="Arial, sans-serif" font-size="18" font-weight="700">DISCOVER. COOK. EXPLORE.</text>
+<path d="M75 545h410" stroke="#56675B" stroke-width="2"/>
+<text x="75" y="575" fill="#BAC5B4" font-family="Arial, sans-serif" font-size="15" letter-spacing="3">MISE · INTERACTIVE FOOD DISCOVERY</text>
+</svg>

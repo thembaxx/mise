@@ -1,0 +1,35 @@
+{
+  "name": "Mise — The world, on your table",
+  "short_name": "Mise",
+  "description": "Discover recipes from around the world and explore a playful interactive 3D kitchen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F6F1",
+  "theme_color": "#FF5A3C",
+  "lang": "en",
+  "categories": [
+    "food",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

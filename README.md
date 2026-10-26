@@ -70,3 +70,13 @@ Run locally:
     npm run test:e2e
 
 Preview deployment protection requires a Vercel account or authorized share link for browser QA. Do not mistake a passing production build for verified on-device gestures.
+
+## Brand identity and discoverability
+
+**Mise — The world, on your table.** The primary logo combines a tomato-orange rounded-square icon, a cream folded-ribbon M, a green leaf, and an editorial Playfair Display wordmark. Brand tokens: charcoal `#111111`, cream `#F7EED7`, pistachio `#A7E063`, tomato `#FF5A3C`, saffron `#FFC629`.
+
+Sources: `public/brand/mise-mark.svg`, `public/brand/mise-maskable.svg`, and `public/brand/mise-social.svg`. All are original editable SVG assets. `npm run brand:assets` rasterizes them with Sharp to create favicon, Apple touch icon, 192/512 PWA icons, maskable icon and 1200×630 Open Graph image. Generated PNGs are intentionally not committed; the production build generates them before Vite copies public assets.
+
+Homepage SEO includes canonical URL, Open Graph and Twitter/X social metadata, large preview PNG, WebSite and WebApplication JSON-LD, robots.txt, sitemap.xml and llms.txt. The sitemap lists the homepage only because the app is currently a client-side single-page experience with no individual crawlable recipe URLs. Recipe-specific indexing requires dedicated canonical recipe routes in a later phase.
+
+Production origin: https://mise-two-teal.vercel.app/ . If a custom domain replaces it, update the canonical, sitemap, social and JSON-LD origin together. Trademark availability for the name is not verified.
