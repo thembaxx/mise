@@ -148,6 +148,7 @@ export function applyCookbookRestore(plan:RestorePlan): void {
   const fresh=previewCookbookRestore(JSON.stringify(plan.incoming),plan.mode);
   const next=[JSON.stringify(fresh.recipes),JSON.stringify(fresh.collections),JSON.stringify(fresh.favourites)];
   const previous=KEYS.map(key=>localStorage.getItem(key));
+  const beforeRecipes=loadPersonalRecipes();
   try {
     KEYS.forEach((key,index)=>localStorage.setItem(key,next[index]));
   }catch{
@@ -158,7 +159,8 @@ export function applyCookbookRestore(plan:RestorePlan): void {
   // Never restore running timers, cooking steps, or stale shopping entries from an older backup.
   if(plan.mode==='replace'){
     const incomingIds=new Set(fresh.recipes.map(row=>row.id));
-    const changedIds=new Set(loadPersonalRecipes().filter(row=>!incomingIds.has(row.id)).map(row=>row.id));
+    const incomingById=new Map(fresh.recipes.map(row=>[row.id,row]));
+    const changedIds=new Set(beforeRecipes.filter(row=>!incomingIds.has(row.id) || fingerprint(row)!==fingerprint(incomingById.get(row.id)!)).map(row=>row.id));
     // Shopping list is a separate user document. Keep built-in recipes; prune only
     // personal recipe entries absent after replacement.
     saveShoppingItems(getShoppingItems().filter(item=>!item.recipeId.startsWith('personal-') || incomingIds.has(item.recipeId)));
