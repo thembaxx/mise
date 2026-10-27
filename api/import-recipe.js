@@ -52,7 +52,7 @@ export async function downloadRecipePage(url){
   const address=answers[0].address;
   return await new Promise((resolve,reject)=>{
     const request=https.request(url,{
-      method:'GET',servername:url.hostname,timeout:7000,agent:false,
+      method:'GET',servername:url.hostname,timeout:7000,signal:AbortSignal.timeout(7500),agent:false,
       // Pin the validated address to prevent DNS rebinding between lookup and connect.
       lookup:(_host,_opts,cb)=>cb(null,address,4),
       headers:{Accept:'text/html, application/ld+json;q=0.9','Accept-Encoding':'identity','User-Agent':'MiseRecipeImport/2.1'},
