@@ -453,3 +453,43 @@ body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area
 @media(max-width:900px){.cookbook-browser{grid-template-columns:1fr;gap:30px}.cookbook-sidebar{position:static}.cookbook-collection-links{display:flex;flex-wrap:wrap}.cookbook-collection-links button{width:auto}.cookbook-add-collection{max-width:320px}.cookbook-hero{align-items:flex-start}.cookbook-main{padding:35px 5% 80px}}
 @media(max-width:600px){.cookbook-hero{flex-direction:column;gap:23px}.cookbook-hero-action{display:flex;align-items:center;flex-wrap:wrap}.cookbook-hero-action strong{font-size:39px}.cookbook-form-row{grid-template-columns:1fr}.cookbook-grid{grid-template-columns:1fr}.cookbook-results-header{flex-direction:column;align-items:stretch}.cookbook-search input{width:100%}.cookbook-main .recipe-back{margin-bottom:22px}.cookbook-editor-tabs button{flex:1}.cookbook-hero h1{font-size:56px}}
 @media(prefers-reduced-motion:reduce){.cookbook-item,.cookbook-item *{animation:none!important;transition:none!important}}
+
+
+/* Mise 2.1 — private cookbook portability */
+.cookbook-backup{margin:0 0 56px;border:1px solid #dfe4d8;background:#edf2e5;border-radius:22px;padding:clamp(23px,4vw,40px);color:#2b3b2d}
+.cookbook-backup-intro{display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.cookbook-backup h2{font-size:clamp(24px,3vw,38px);letter-spacing:-.055em;margin:0 0 12px}
+.cookbook-backup .eyebrow{margin-bottom:12px}
+.cookbook-backup p{font-size:13px;line-height:1.65;max-width:600px;color:#5c7257;margin:0}
+.cookbook-backup-actions{display:flex;gap:10px;flex-wrap:wrap}
+.cookbook-backup-actions button,.cookbook-preview-button,.cookbook-confirm-restore{border:0;background:#233627;color:#fff;border-radius:999px;padding:13px 18px;min-height:47px;display:inline-flex;gap:9px;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+.cookbook-backup-actions .cookbook-backup-secondary{background:#fff;color:#2a402e;border:1px solid #cfddca}
+.cookbook-backup .cookbook-backup-notice{max-width:none;padding:12px 15px;margin:22px 0 0;border-radius:10px;background:#fff;color:#2e4b31;font-weight:600}
+.cookbook-restore-panel{background:#fff;border-radius:18px;margin-top:25px;padding:clamp(17px,3vw,32px)}
+.cookbook-restore-heading{display:flex;justify-content:space-between;align-items:start;gap:14px;margin-bottom:25px}
+.cookbook-restore-heading h3{font-size:23px;letter-spacing:-.035em;margin:0 0 9px}
+.cookbook-restore-heading>button{flex:none;width:40px;height:40px;display:grid;place-items:center;border:1px solid #d7ddd2;border-radius:50%;background:transparent}
+.cookbook-file-input{display:flex;align-items:center;justify-content:center;gap:10px;padding:22px;border:2px dashed #b5c6ab;border-radius:14px;background:#f8faf4;color:#355439;font-size:14px;font-weight:700;cursor:pointer;flex-wrap:wrap}
+.cookbook-file-input input{width:100%;max-width:260px;font-size:12px}
+.cookbook-backup .cookbook-file-name{margin:10px 0 0;overflow-wrap:anywhere}
+.cookbook-restore-modes{display:grid;gap:11px;border:0;padding:0;margin:26px 0 20px}
+.cookbook-restore-modes legend{font-weight:700;margin-bottom:12px}
+.cookbook-restore-modes label{display:flex;align-items:flex-start;gap:12px;border:1px solid #dce5d8;padding:16px;border-radius:12px;cursor:pointer}
+.cookbook-restore-modes input,.cookbook-confirm-replace input{width:19px;height:19px;accent-color:#526f3e;flex:none}
+.cookbook-restore-modes strong{display:block;margin-bottom:6px}
+.cookbook-restore-modes small{display:block;font-size:12px;color:#6a7a65;line-height:1.55}
+.cookbook-restore-preview{padding:22px;border-radius:15px;background:#f4f7ee;margin-top:25px}
+.cookbook-restore-preview h4{font-size:20px;margin:0 0 18px}
+.cookbook-restore-preview dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 24px}
+.cookbook-restore-preview dl>div{padding:12px;background:white;border-radius:9px}
+.cookbook-restore-preview dt{font-size:12px;color:#697c63}
+.cookbook-restore-preview dd{font-size:23px;font-weight:700;margin:5px 0 0}
+.cookbook-confirm-replace{display:flex;gap:12px;align-items:flex-start;margin-bottom:20px;line-height:1.5;color:#794336;font-size:13px}
+.cookbook-confirm-restore:disabled{opacity:.4}
+.cookbook-backup .cookbook-restore-privacy{border-top:1px solid #e1e6dc;margin-top:26px;padding-top:18px;max-width:none}
+[data-theme=dark] .cookbook-backup{background:#283a2b;border-color:#425b47;color:#f0f5e9}
+[data-theme=dark] .cookbook-backup p{color:#b7cdb7}
+[data-theme=dark] .cookbook-restore-panel{background:#283429;color:#eff6ed}
+[data-theme=dark] .cookbook-backup-actions .cookbook-backup-secondary,[data-theme=dark] .cookbook-restore-preview,[data-theme=dark] .cookbook-restore-preview dl>div,[data-theme=dark] .cookbook-restore-modes label{background:#38503b;color:#f2f4e8;border-color:#516b50}
+[data-theme=dark] .cookbook-restore-modes small,[data-theme=dark] .cookbook-restore-preview dt{color:#c1d2bf}
+@media(max-width:600px){.cookbook-backup-actions,.cookbook-backup-actions button{width:100%}.cookbook-restore-preview dl{grid-template-columns:1fr}.cookbook-file-input input{max-width:100%}}
