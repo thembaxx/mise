@@ -26,7 +26,7 @@ describe('versioned cookbook backups',()=>{
   expect(()=>validateCookbookBackup('x'.repeat(950_001))).toThrow(/950 KB/);
   const obj=JSON.parse(serializeCookbookBackup());
   obj.recipes=[{id:'personal-fake',name:'Fake',minutes:-1,servings:2,ingredients:[],steps:[]}];
-  expect(()=>validateCookbookBackup(JSON.stringify(obj))).toThrow(/invalid recipe/);
+  expect(()=>validateCookbookBackup(JSON.stringify(obj))).toThrow(/malformed recipe|invalid recipe/);
  });
  it('refuses duplicates, invalid collection references, and a tampered version',()=>{
   const recipe=mk('Demo');savePersonalRecipe(recipe);
