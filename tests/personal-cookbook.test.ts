@@ -43,6 +43,19 @@ describe('personal cookbook validation and storage',()=>{
   expect(deletePersonalRecipe(a.id)).toBe(true);
   expect(savedRecipeIds()).not.toContain(a.id);
   expect(loadCollections()[0].recipeIds).toEqual([]);
+  expect(findRecipe(a.id)).toBeUndefined();
+ });
+ it('clears outdated prep, timers and shopping items after ingredient edits',()=>{
+  const recipe=draftToRecipe(draft);savePersonalRecipe(recipe);
+  savePrep(recipe,[recipe.ingredients[0].id]);
+  saveTimers(recipe.id,[createTimer('beans',5,'x')!]);
+  addRecipeToShoppingList(recipe);
+  const revised=draftToRecipe({...recipeToDraft(recipe),ingredients:'2 carrots\n400 g spinach'});
+  expect(savePersonalRecipe(revised)).toBe(true);
+  expect(loadPrep(revised)).toEqual([]);
+  expect(loadTimers(revised.id)).toEqual([]);
+  expect(loadKitchenSnapshot(revised).added).toEqual([]);
+  expect(addRecipeToShoppingList(revised)).toBe(2);
  });
  it('rejects empty instructions, massive ingredient values and corrupt storage',()=>{
   expect(()=>draftToRecipe({...draft,steps:''})).toThrow();
