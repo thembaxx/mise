@@ -14,7 +14,8 @@
     "brand:assets": "node scripts/generate-brand-assets.mjs",
     "test:pwa": "vitest run tests/pwa.test.ts",
     "prerender:recipes": "node scripts/prerender-recipes.mjs",
-    "verify:prerender": "node scripts/verify-prerender.mjs"
+    "verify:prerender": "node scripts/verify-prerender.mjs",
+    "assets:check": "node scripts/validate-3d-assets.mjs public/models && node --test scripts/validate-3d-assets.selfcheck.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
