@@ -5,6 +5,7 @@ test('recipe results remain legible after rapid filtering, search and preference
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/?view=discover');
   const cards = page.locator('.recipe-card');
+  await expect(cards.first()).toBeVisible();
   const count = await cards.count();
   const filters = page.getByRole('group', { name: 'Filter recipes by region' });
   await filters.getByRole('button', { name: 'Asia', exact: true }).click();

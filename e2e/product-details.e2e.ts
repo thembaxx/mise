@@ -55,6 +55,7 @@ test('shopping removal and clear can be undone while preserving later checks', a
   await page.getByRole('button', { name: 'Add ingredients', exact: true }).click();
   await page.getByRole('link', { name: 'View list', exact: true }).click();
   const rows = page.locator('.shopping-items li');
+  await expect(rows.first()).toBeVisible();
   const count = await rows.count();
   const firstName = await rows.first().locator('strong').innerText();
   await rows.first().getByRole('button', { name: /^Remove / }).click();
