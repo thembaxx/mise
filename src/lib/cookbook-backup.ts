@@ -191,19 +191,24 @@ export function applyRestore(text:string,mode:RestoreMode):RestorePlan {
   }
   if(mode==='replace'){
     const remaining=new Set(plan.recipes.map(item=>item.id));
-    for(const item of loadPersonalRecipes()){
-      // The previous identifiers are captured from old storage values below.
-      void item;
-    }
     try{
       const before=previous[0] ? JSON.parse(previous[0]) as PersonalRecipe[] : [];
       for(const item of before){
-        if(!remaining.has(item.id)){
+        const replacement=plan.recipes.find(recipe=>recipe.id===item.id);
+        if(!replacement||fingerprint(replacement)!==fingerprint(item)){
           for(const prefix of ['mise:prep:v1:','mise:progress:v1:','mise:timers:v1:'])localStorage.removeItem(prefix+item.id);
         }
       }
     }catch{/* Nonessential prior per-recipe data cleanup. */}
-    saveShoppingItems(getShoppingItems().filter(item=>!item.recipeId.startsWith('personal-')||remaining.has(item.recipeId)));
+    let updatedIds=new Set<string>();
+    try{
+      const before=previous[0] ? JSON.parse(previous[0]) as PersonalRecipe[] : [];
+      updatedIds=new Set(before.filter(old=>{
+        const replacement=plan.recipes.find(recipe=>recipe.id===old.id);
+        return !replacement||fingerprint(replacement)!==fingerprint(old);
+      }).map(old=>old.id));
+    }catch{/* Invalid previous local data must not affect a validated restore. */}
+    saveShoppingItems(getShoppingItems().filter(item=>!updatedIds.has(item.recipeId)&&(!item.recipeId.startsWith('personal-')||remaining.has(item.recipeId))));
   }
   if(typeof window!=='undefined')window.dispatchEvent(new Event('mise:cookbook:updated'));
   return plan;
