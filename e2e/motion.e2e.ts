@@ -16,7 +16,7 @@ test('recipe results remain legible after rapid filtering, search and preference
   await page.getByRole('searchbox').fill('shakshuka');
   await expect(cards).toHaveCount(1);
   await page.getByRole('searchbox').fill('no-such-dish');
-  await expect(page.getByText('No dishes on this table.')).toBeVisible();
+  await expect(page.getByText('No recipes found.')).toBeVisible();
   await page.getByRole('button', { name: 'Show all recipes' }).click();
   await expect(cards).toHaveCount(count);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -88,6 +88,13 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await next.press('Enter');
   await expect(progress).toHaveAttribute('aria-valuenow', '3');
+  const content = dialog.locator('.cook-mode-step-content');
+  expect(await content.evaluate(element => element.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
+  await dialog.getByRole('button', { name: 'Previous', exact: true }).click();
+  await expect(dialog.getByRole('heading', { name: 'Soften the vegetables' })).toBeVisible();
+  await expect(content).toHaveAttribute('data-direction', 'backward');
+  await dialog.getByRole('button', { name: 'Add one minute in cook mode' }).click();
+  await expect(content).toHaveAttribute('data-direction', 'backward');
   await page.keyboard.press('Escape');
   await expect(page.locator('.cook-mode')).toHaveCount(0);
   expect(await page.locator('.method-card').evaluate(element => getComputedStyle(element).opacity)).toBe('1');

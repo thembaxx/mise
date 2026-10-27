@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
 import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
-import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
 import type { Recipe } from '../data/recipes';
 
 const KitchenStudio = lazy(() => import('./KitchenStudio'));
@@ -12,9 +11,9 @@ function KitchenLoading({ onEnter }: { onEnter?: () => void }) {
   return (
     <section className="studio-preload" aria-label="3D cooking studio">
       <div className="studio-preload-copy">
-        <p className="eyebrow"><span className="eyebrow-dot" /> YOUR CREATIVE SPACE</p>
-        <h2>Pull up a chair.<br /><em>Let's cook.</em></h2>
-        <p>Fresh ingredients, a proper pan and a whole world of flavors. Your interactive kitchen is just around the corner.</p>
+        <p className="eyebrow"><span className="eyebrow-dot" /> Your kitchen</p>
+        <h2>Set out your<br /><em>ingredients.</em></h2>
+        <p>Follow the recipe, check off ingredients and use the step timer as you cook.</p>
         {onEnter ? (
           <button type="button" onClick={onEnter} className="button-dark">Enter the kitchen <span><ArrowUpRight size={20} /></span></button>
         ) : (
@@ -27,7 +26,6 @@ function KitchenLoading({ onEnter }: { onEnter?: () => void }) {
           <span className="studio-food-leaf second" />
           <span className="studio-food-dot" />
         </div>
-        <Sparkle size={28} />
       </div>
     </section>
   );

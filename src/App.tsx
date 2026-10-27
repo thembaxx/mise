@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
 import { Clock } from '@phosphor-icons/react/dist/csr/Clock';
-import { GlobeHemisphereWest } from '@phosphor-icons/react/dist/csr/GlobeHemisphereWest';
 import { Heart } from '@phosphor-icons/react/dist/csr/Heart';
 import { ClipboardText } from '@phosphor-icons/react/dist/csr/ClipboardText';
 import { BookOpen } from '@phosphor-icons/react/dist/csr/BookOpen';
 import { List } from '@phosphor-icons/react/dist/csr/List';
-import { Cursor } from '@phosphor-icons/react/dist/csr/Cursor';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
 import { X } from '@phosphor-icons/react/dist/csr/X';
 import { usePageMotion, useRecipeReveal } from './motion/usePageMotion';
 import { isKeyboardInteraction } from './motion/preferences';
+import { ActionFeedback, useActionFeedback } from './components/ActionFeedback';
 import KitchenGateway from './components/KitchenGateway';
 import { useNativeApp, type NativeAppState } from './pwa/useNativeApp';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './components/NativeControls';
@@ -34,13 +31,18 @@ function Logo({ light = false }: { light?: boolean }) {
 function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: number; onSaved: () => void; app: NativeAppState; onSettings: () => void }) {
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { setOpen(false); menuButton.current?.focus(); }
     };
+    const onOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !menu.current?.contains(event.target) && !menuButton.current?.contains(event.target)) setOpen(false);
+    };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onOutside);
+    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onOutside); };
   }, [open]);
   const go = (id: string) => { setOpen(false); scrollToSection(id); };
   return <>
@@ -50,10 +52,8 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
         <button type="button" onClick={() => go('discover')}>Discover</button>
         <a href="/cookbook/">My cookbook</a>
         <button type="button" onClick={() => go('kitchen')}>The kitchen</button>
-        <button type="button" onClick={() => go('experience')}>Our philosophy</button>
       </nav>
       <div className="header-actions">
-        <a className="shopping-header-link" href="/cookbook/" aria-label="Open personal cookbook" title="My cookbook"><BookOpen size={19}/></a>
         <a className="shopping-header-link" href="/shopping/" aria-label="Open shopping list" title="Shopping list"><ClipboardText size={19}/></a>
         <NativeHeaderActions app={app} onSettings={onSettings} />
         <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} /><span>{favoritesCount}</span></button>
@@ -61,48 +61,37 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
         <button type="button" ref={menuButton} className="mobile-menu-button" aria-controls="mobile-navigation" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <List size={23} />}</button>
       </div>
     </header>
-    <div id="mobile-navigation" className="mobile-menu" hidden={!open} inert={!open}>
+    <div ref={menu} id="mobile-navigation" className="mobile-menu" hidden={!open} inert={!open}>
       <button type="button" onClick={() => go('discover')}>Discover recipes <ArrowUpRight /></button>
       <a href="/cookbook/" className="mobile-cookbook-link">My cookbook <BookOpen size={18}/></a>
       <a href="/shopping/" className="mobile-cookbook-link">Shopping list <ClipboardText size={18}/></a>
       <button type="button" onClick={() => go('kitchen')}>The kitchen <ArrowUpRight /></button>
-      <button type="button" onClick={() => go('experience')}>Our philosophy <ArrowUpRight /></button>
     </div>
   </>;
 }
 
 function Hero() {
+  const featured = recipes.find(recipe => recipe.id === 'butter-chicken') || recipes[0];
   return <section className="hero" aria-labelledby="hero-title">
     <div className="hero-copy">
-      <p className="hero-overline"><span className="hero-overline-mark" /> A NEW WAY TO EXPERIENCE FOOD</p>
+      <p className="hero-overline">A recipe for tonight</p>
       <h1 id="hero-title">The world,<br /><em>on your table.</em></h1>
-      <p className="hero-description">Curious about what the world is cooking? Discover extraordinary recipes, get a little messy, and make every meal a story worth sharing.</p>
+      <p className="hero-description">Find a dish you want to make. Save it for later, gather your ingredients, and cook one step at a time.</p>
       <div className="hero-buttons">
         <button type="button" className="button-dark" onClick={() => scrollToSection('kitchen')}>Step into the kitchen <span><ArrowUpRight size={19} /></span></button>
         <button type="button" className="button-text" onClick={() => scrollToSection('discover')}>Explore recipes <ArrowRight size={19} /></button>
       </div>
-      <div className="hero-bottom"><span className="hero-bottom-line" /><span>GOOD FOOD. GOOD STORIES. GOOD COMPANY.</span></div>
+      <a className="hero-cookbook-note" href="/cookbook/"><BookOpen size={17}/> Your recipes, saved on this device <ArrowRight size={15}/></a>
     </div>
     <div className="hero-visual">
-      <div className="hero-image-wrap">
-        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=90" alt="Beautifully plated colorful food with fresh vegetables" fetchPriority="high" onError={event => { if (!event.currentTarget.src.includes('mise-social.svg')) event.currentTarget.src = '/brand/mise-social.svg'; }} />
-        <div className="hero-image-wash" />
-      </div>
-      <div className="hero-photo-caption"><span>MADE TO BE SHARED</span><span>01 — ∞</span></div>
-      <div className="hero-float-card">
-        <div className="float-card-icon"><Sparkle size={19} /></div>
-        <span>TODAY'S LITTLE REMINDER</span>
-        <strong>Life's too short<br />for boring food.</strong>
-        <div className="float-card-footer"><span>With love, Mise</span><ArrowUpRight size={18} /></div>
-      </div>
-      <div className="hero-orbit"><span>GOOD TASTE IS A JOURNEY · </span></div>
+      <a className="hero-image-wrap" href={'/recipes/' + featured.id + '/'} aria-label={'View recipe for ' + featured.name}>
+        <img src={featured.image} alt={featured.name} fetchPriority="high" onError={event => { if (!event.currentTarget.src.includes('mise-social.svg')) event.currentTarget.src = '/brand/mise-social.svg'; }} />
+      </a>
+      <a className="hero-recipe-caption" href={'/recipes/' + featured.id + '/'}>
+        <span><small>{featured.country} · {featured.minutes} min</small><strong>{featured.name}</strong></span><ArrowUpRight size={25}/>
+      </a>
     </div>
   </section>;
-}
-
-function Marquee() {
-  const items = ['TOKYO', 'NAPLES', 'JOHANNESBURG', 'MEXICO CITY', 'MARRAKECH', 'BANGKOK', 'ATHENS'];
-  return <div className="marquee-strip" aria-label="Inspired by kitchens around the world"><div className="marquee-track" aria-hidden="true">{[...items, ...items].map((item, index) => <span key={index}>{item}<span className="marquee-flower" /></span>)}</div></div>;
 }
 
 function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
@@ -111,13 +100,13 @@ function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
   return <article className={'recipe-card ' + (selected ? 'recipe-selected' : '')}>
     <div className="recipe-image">
       <img src={recipe.image} alt={recipe.name + ' — ' + recipe.country + ' inspired dish'} loading="lazy" onError={event => { if (!event.currentTarget.src.includes('mise-social.svg')) event.currentTarget.src = '/brand/mise-social.svg'; }} />
-      <div className="recipe-image-top"><span>{recipe.country}</span><button type="button" className={'save-button ' + (saved ? 'saved' : '')} onClick={onSave} aria-label={(saved ? 'Remove ' : 'Save ') + recipe.name + (saved ? ' from saved recipes' : ' to saved recipes')} aria-pressed={saved}><Heart size={17} weight={saved ? 'fill' : 'regular'} /></button></div>
+      <div className="recipe-image-top"><span>{recipe.country}</span><button type="button" id={'save-' + recipe.id} className={'save-button ' + (saved ? 'saved' : '')} onClick={onSave} aria-label={(saved ? 'Remove ' : 'Save ') + recipe.name + (saved ? ' from saved recipes' : ' to saved recipes')} title={saved ? 'Saved to your cookbook' : 'Save recipe'} aria-pressed={saved}><span className="save-heart"><Heart size={17} weight={saved ? 'fill' : 'regular'} /></span></button></div>
       <button type="button" className="recipe-image-action" onClick={onSelect} aria-label={'Cook ' + recipe.name}><ArrowUpRight size={22} /></button>
     </div>
     <div className="recipe-details">
       <div className="recipe-meta"><span>{recipe.region}</span><span className="meta-divider" /><span>{recipe.difficulty}</span></div>
-      <button type="button" className="recipe-name" onClick={onSelect}>{recipe.name}</button>
-      <div className="recipe-bottom"><span>{recipe.subtitle}</span><span><Clock size={14} /> {recipe.minutes} min</span></div>
+      <a className="recipe-name" href={'/recipes/' + recipe.id + '/'}>{recipe.name}</a>
+      <div className="recipe-bottom"><span>{recipe.ingredients.length} ingredients</span><span><Clock size={14} /> {recipe.minutes} min</span></div>
       <a className="recipe-view-link" href={'/recipes/' + encodeURIComponent(recipe.id) + '/'} aria-label={'View full recipe for ' + recipe.name}>View recipe and ingredients <ArrowUpRight size={16}/></a>
     </div>
   </article>;
@@ -131,80 +120,56 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
   const resultsRoot = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<Filter>('All');
   const [search, setSearch] = useState('');
-  const filtered = useMemo(() => catalog.filter(recipe =>
-    (filter === 'All' || recipe.region === filter) &&
+  const matching = useMemo(() => catalog.filter(recipe =>
     (!savedOnly || saved.includes(recipe.id)) &&
     (recipe.name + ' ' + recipe.country + ' ' + recipe.region + ' ' + recipe.tags.join(' ') + ' ' + recipe.story).toLowerCase().includes(search.trim().toLowerCase())
-  ), [catalog, filter, search, saved, savedOnly]);
+  ), [catalog, search, saved, savedOnly]);
+  const filtered = useMemo(() => matching.filter(recipe => filter === 'All' || recipe.region === filter), [matching, filter]);
+
+  const resetFilters = () => {
+    setSearch(''); setFilter('All'); setSavedOnly(false);
+    document.getElementById('recipe-search')?.focus({ preventScroll: true });
+  };
 
   useRecipeReveal(resultsRoot, filtered.map(recipe => recipe.id).join(','));
 
   return <section className="discover-section" id="discover">
     <div className="discover-layout">
       <div className="discover-intro" id="discover-intro">
-        <p className="eyebrow"><span className="eyebrow-dot" /> THE DISCOVERY TABLE</p>
-        <h2>Where to<br /><em>today?</em></h2>
-        <p>From street food to Sunday feasts. Find something that speaks to your appetite, then make it your own.</p>
-        <div className="search-wrap"><MagnifyingGlass size={19} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search a dish, a place..." type="search" /></div>
+        <p className="eyebrow">Find your next meal</p>
+        <h2>What sounds<br /><em>good?</em></h2>
+        <p>Search by dish, ingredient or country. Every recipe includes quantities, timings and step-by-step instructions.</p>
+        <div className="search-wrap"><MagnifyingGlass size={19} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Try noodles, tomato, Japan…" type="search" />{search && <button className="search-clear" type="button" aria-label="Clear recipe search" onClick={() => { setSearch(''); document.getElementById('recipe-search')?.focus(); }}><X size={17}/></button>}</div>
         <div className="filter-list" role="group" aria-label="Filter recipes by region">
-          {regions.map(region => <button key={region} type="button" className={filter === region ? 'filter-active' : ''} onClick={() => setFilter(region)} aria-pressed={filter === region}><span>{region}</span><ArrowUpRight size={15} /></button>)}
+          {regions.map(region => <button key={region} type="button" className={filter === region ? 'filter-active' : ''} onClick={() => setFilter(region)} aria-label={region} aria-pressed={filter === region}><span>{region}</span><small className="filter-count" aria-hidden="true">{matching.filter(recipe => region === 'All' || recipe.region === region).length}</small></button>)}
         </div>
         <button type="button" className={'saved-filter ' + (savedOnly ? 'is-active' : '')} onClick={() => setSavedOnly(!savedOnly)} aria-pressed={savedOnly}><Heart size={17} weight={savedOnly ? 'fill' : 'regular'} /> {savedOnly ? 'Showing saved recipes' : 'Only show my saved recipes'} <span>{saved.length}</span></button>
       </div>
       <div className="recipes-content" ref={resultsRoot}>
-        <div className="recipes-topline"><span>THE MENU</span><span>{String(filtered.length).padStart(2, '0')} DISHES TO DISCOVER</span></div>
+        <div className="recipes-topline"><span role="status" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'recipe' : 'recipes'}{savedOnly ? ' saved' : ''}{filter !== 'All' ? ' · ' + filter : ''}</span>{(search || filter !== 'All' || savedOnly) && <button type="button" onClick={resetFilters}>Reset filters <X size={13}/></button>}</div>
         {filtered.length ? <div className="recipe-grid">
           {filtered.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} selected={selectedId === recipe.id} saved={saved.includes(recipe.id)} onSelect={() => { onSelect(recipe.id); scrollToSection('kitchen'); }} onSave={() => onToggleSave(recipe.id)} />)}
-        </div> : <div className="empty-recipes"><MagnifyingGlass size={29} /><h3>No dishes on this table.</h3><p>Try another region or search term. There's always something good to cook.</p><button type="button" onClick={() => { setSearch(''); setFilter('All'); setSavedOnly(false); }}>Show all recipes <ArrowRight size={17} /></button></div>}
-        <div className="recipes-end"><span>MORE STORIES ARE ALWAYS COOKING</span><span>SCROLL TO THE KITCHEN <ArrowDown size={16} /></span></div>
+        </div> : <div className="empty-recipes"><MagnifyingGlass size={29} /><h3>{savedOnly && !saved.length ? 'Your saved recipes will appear here.' : 'No recipes found.'}</h3><p>{savedOnly && !saved.length ? 'Tap the heart on a recipe to keep it in your cookbook.' : 'Try a different search or reset your filters.'}</p><button type="button" onClick={resetFilters}>Show all recipes <ArrowRight size={17} /></button></div>}
+        <div className="recipes-end"><span>Found something you like?</span><button type="button" onClick={() => scrollToSection('kitchen')}>Open the kitchen <ArrowRight size={16}/></button></div>
       </div>
     </div>
   </section>;
 }
 
-function Experience() {
-  return <section className="experience-section" id="experience">
-    <div className="experience-heading">
-      <p className="eyebrow"><span className="eyebrow-dot" /> NOT YOUR ORDINARY COOKBOOK</p>
-      <h2>More than a recipe.<br /><em>It's a feeling.</em></h2>
-      <p>Because cooking is not just about following instructions. It's about the joy of figuring things out, getting your hands involved, and tasting somewhere new.</p>
-    </div>
-    <div className="feature-grid">
-      <div className="feature-card feature-photo">
-        <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?w=1200&q=85" alt="A welcoming kitchen filled with ingredients" loading="lazy" />
-        <div className="feature-photo-overlay"><span>FOR THE CURIOUS COOK</span><h3>Make a little<br /><em>magic.</em></h3><span className="feature-round"><ArrowUpRight size={20} /></span></div>
-      </div>
-      <div className="feature-card feature-3d">
-        <div className="feature-3d-art"><div className="art-ring ring-one" /><div className="art-ring ring-two" /><div className="art-tomato"><span /></div><div className="art-leaf" /></div>
-        <span className="feature-kicker">FEEL EVERY INGREDIENT</span><h3>Go ahead.<br />Play with your food.</h3><p>Reach into a tactile 3D kitchen. Pick things up, move them around, and cook your way.</p>
-      </div>
-      <div className="feature-card feature-time">
-        <div className="feature-icon"><Clock size={25} /></div>
-        <div className="feature-timer-graphic"><span>00</span><i>:</i><span>35</span></div>
-        <h3>Your time.<br />Your pace.</h3><p>Step-by-step guidance and a timer that stays right beside you.</p>
-      </div>
-      <div className="feature-card feature-world">
-        <div className="feature-icon"><GlobeHemisphereWest size={25} /></div>
-        <div className="world-lines"><span>JAPAN</span><span>ITALY</span><span>SOUTH AFRICA</span><span>MEXICO</span></div>
-        <h3>One world.<br />Infinite flavor.</h3><p>Recipes inspired by kitchens and cultures across the globe.</p>
-      </div>
-      <div className="feature-card feature-love">
-        <div className="feature-icon"><Heart size={25} /></div>
-        <div className="love-graphic"><Heart size={96} weight="fill" /></div>
-        <h3>Keep what<br />you love.</h3><p>Save your favorites. Come back whenever inspiration strikes.</p>
-      </div>
+function Experience({ recipe }: { recipe: Recipe }) {
+  return <section className="experience-section product-help" id="experience" aria-label="Cooking with Mise">
+    <div className="product-help-intro"><h2>A place for<br /><em>your recipes.</em></h2><p>From the first ingredient to the last step.</p></div>
+    <div className="product-help-links">
+      <a href={'/?view=cook&recipe=' + recipe.id}><Clock size={23}/><span><strong>Keep your place at the stove</strong><small>Large instructions, step timers and optional read-aloud.</small></span><ArrowRight size={20}/></a>
+      <a href="/cookbook/"><BookOpen size={23}/><span><strong>Make a cookbook of your own</strong><small>Keep favorites, add your recipes and organize collections.</small></span><ArrowRight size={20}/></a>
+      <a href="/shopping/"><ClipboardText size={23}/><span><strong>Take your ingredients with you</strong><small>Build a shopping list from any recipe. Check things off as you go.</small></span><ArrowRight size={20}/></a>
     </div>
   </section>;
 }
 
 function Footer() {
   return <footer className="footer">
-    <div className="footer-main">
-      <p className="eyebrow"><span className="eyebrow-dot" /> PULL UP A CHAIR</p>
-      <h2>Something good<br />is <em>cooking.</em></h2>
-      <button type="button" className="footer-button" onClick={() => scrollToSection('kitchen')}>Let's make something <span><ArrowUpRight size={22} /></span></button>
-    </div>
-    <div className="footer-bottom"><Logo light /><p>Made for the curious, the hungry, and everyone in between.</p><a href="#top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>Back to top <ArrowUpRight size={16} /></a></div>
+    <div className="footer-bottom"><Logo light /><p>A cookbook to make your own.</p><a href="#top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>Back to top <ArrowUpRight size={16} /></a></div>
   </footer>;
 }
 
@@ -212,6 +177,7 @@ export default function App() {
   const root = useRef<HTMLElement>(null);
   usePageMotion(root);
   const native = useNativeApp();
+  const feedback = useActionFeedback();
   const [catalog, setCatalog] = useState<Recipe[]>(() => allRecipes());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(() => {
@@ -229,9 +195,14 @@ export default function App() {
   const selectedRecipe = catalog.find(recipe => recipe.id === selectedId) || recipes[0];
 
   const toggleSaved = (id: string) => {
-    // Persist outside React's state updater: persistence broadcasts a cookbook event
-    // that may synchronously notify mounted components.
-    if (setRecipeSaved(id,!saved.includes(id))) setSaved(savedRecipeIds());
+    const wasSaved = savedRecipeIds().includes(id);
+    const name = catalog.find(recipe => recipe.id === id)?.name || 'Recipe';
+    if (!setRecipeSaved(id, !wasSaved)) { feedback.show('Recipe could not be saved on this device.', undefined, true); return; }
+    setSaved(savedRecipeIds());
+    feedback.show(wasSaved ? name + ' removed from saved recipes.' : name + ' saved to your cookbook.', () => {
+      if (!setRecipeSaved(id, wasSaved)) { feedback.show('Could not undo. Check device storage.', undefined, true); return; }
+      setSaved(savedRecipeIds());
+    });
   };
 
   useEffect(() => {
@@ -246,12 +217,11 @@ export default function App() {
   return <main id="top" className="site-wrap" ref={root}>
     <Header favoritesCount={saved.length} onSaved={() => setSavedOnly(true)} app={native} onSettings={() => setSettingsOpen(true)} />
     <Hero />
-    <Marquee />
     <Discover catalog={catalog} selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
     <KitchenGateway key={selectedRecipe.id} recipe={selectedRecipe} onRecipeChange={setSelectedId} />
-    <Experience />
+    <Experience recipe={selectedRecipe} />
     <Footer />
-    <div className="corner-credit" aria-hidden="true"><Cursor size={12} /> MADE TO EXPLORE</div>
+    <ActionFeedback notice={feedback.notice} dismiss={feedback.dismiss} />
     <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)} />
     <NativeNotices app={native} />
   </main>;

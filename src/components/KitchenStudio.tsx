@@ -1,3 +1,4 @@
+import { useStepDirection } from '../motion/useStepDirection';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
@@ -134,10 +135,10 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     setPulse(previous => ({ action, id: (previous?.id || 0) + 1 }));
     if (action === 'plate') { setRunning(false); setHeat(0); }
     setActionFeedback({
-      chop: 'Freshly chopped! Your ingredients are ready for the pan.',
-      pour: 'A silky pour. Watch the pan come alive.',
-      stir: 'Beautifully stirred. Keep the flavor moving.',
-      plate: 'Bon appétit! Your virtual creation is served.',
+      chop: 'Freshly chopped · ' + next.chops + ' of 4 cuts.',
+      pour: 'Poured into the pan · ' + next.pours + ' of 3 pours.',
+      stir: 'Pan stirred · ' + next.stirs + ' of 6 stirs.',
+      plate: 'Ready to serve. Bon appétit!',
     }[action]);
     playCookingCue(action, soundEnabled, heat);
     cookingHaptic(action);
@@ -152,9 +153,10 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     setStepIndex(0);
     setRunning(false);
     setSeconds(recipe.steps[0].minutes * 60);
-    setActionFeedback('A fresh start. Pick an ingredient and get cooking.');
+    setActionFeedback('Kitchen reset. Your recipe is ready to start again.');
     setResetCount(count => count + 1);
   };
+  const direction = useStepDirection(stepIndex);
   const step = recipe.steps[stepIndex];
   const stepProgress = (stepIndex + 1) / recipe.steps.length;
   const timerTotal = Math.max(1, step.minutes * 60);
@@ -167,19 +169,19 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   return <section className="studio-section" id="cooking-studio">
     <div className="section-head studio-heading">
       <div>
-        <p className="eyebrow"><span className="eyebrow-dot" /> YOUR CREATIVE SPACE</p>
-        <h2>Come on in.<br /><em>The kitchen's yours.</em></h2>
+        <p className="eyebrow"><span className="eyebrow-dot" /> Your kitchen</p>
+        <h2>Set out your<br /><em>ingredients.</em></h2>
       </div>
-      <p>Turn a recipe into a little adventure. Pick up an ingredient, drop it in the pan, and find your own rhythm.</p>
+      <p>Try the recipe in the interactive kitchen, or open Cook Mode for large instructions and a step timer.</p>
     </div>
 
     <div className="studio-shell">
       <div className="studio-visual">
         <div className="scene-topbar">
-          <span className="scene-live"><span /> LIVE INTERACTIVE KITCHEN</span>
+          <span className="scene-live"><span /> Interactive kitchen</span>
           <span className="local-clock"><Clock size={15} /> {clockText}</span>
           <div className="scene-actions">
-            <button type="button" className="physics-mode-toggle" aria-pressed={physicsEnabled} onClick={() => setPhysicsEnabled(enabled => !enabled)} title={physicsEnabled ? 'Use quick lightweight 3D kitchen' : 'Load full Rapier physics simulation'}>
+            <button type="button" className="physics-mode-toggle" aria-pressed={physicsEnabled} onClick={() => setPhysicsEnabled(enabled => !enabled)} title={physicsEnabled ? 'Switch to the lighter kitchen' : 'Let ingredients tumble and settle naturally'}>
               {physicsEnabled ? 'Physics on' : 'Quick 3D'} <span className="physics-status-dot" aria-hidden="true" />
             </button>
             <label className="graphics-mode-control" title="3D graphics quality"><Gauge size={14}/><span className="visually-hidden">Graphics quality</span><select aria-label="Graphics quality" value={graphics} onChange={event => setGraphics(event.target.value as 'eco'|'balanced'|'high')}><option value="eco">Eco</option><option value="balanced">Balanced</option><option value="high">High</option></select></label>
@@ -189,7 +191,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         <SceneErrorBoundary><SupportsWebGL>
           <div className="kitchen-scene-outer">
           {physicsEnabled
-            ? <Suspense fallback={<p className="physics-loader" role="status">Loading physics simulation…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
             : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
             {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
           </div>
@@ -204,12 +206,11 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <input id="burner-heat" aria-label="Burner heat" type="range" min="0" max="1" step=".05" value={heat} onChange={e => setHeat(Number(e.target.value))} style={{ '--heat': (heat * 100) + '%' } as React.CSSProperties} />
           </div>
         </div>
-        <div className="scene-footnote"><span>01 / PLAY WITH YOUR FOOD</span><span>{physicsEnabled ? 'WebGL + Rapier physics' : 'WebGL · quick-start kitchen'}</span></div>
       </div>
 
       <aside className="studio-panel" aria-label="Guided recipe and cooking controls">
         <div className="panel-menu-label">
-          <span>WHAT'S COOKING</span>
+          <span>Recipe</span>
           <ChefHat size={18} />
         </div>
         <label className="visually-hidden" htmlFor="recipe-switch">Choose recipe</label>
@@ -222,11 +223,11 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         <button className="cook-mode-launch" type="button" onClick={() => setCookModeOpen(true)}><CornersOut size={19}/> <span><strong>Enter Cook Mode</strong><small>Large steps, timer and optional voice guidance</small></span><ArrowRight size={19}/></button>
         <div className="panel-rule" />
 
-        <div className="method-topline"><span>LET'S MAKE IT</span><span>{String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span></div>
+        <div className="method-topline"><span>Method</span><span>{String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span></div>
         <div className="step-progress" aria-label={'Step ' + (stepIndex + 1) + ' of ' + recipe.steps.length}>
           {recipe.steps.map((_, i) => <button key={i} type="button" aria-label={'Go to step ' + (i + 1)} aria-current={i === stepIndex ? 'step' : undefined} className={i <= stepIndex ? 'is-complete' : ''} onClick={() => setStepIndex(i)} />)}
         </div>
-        <div className="method-card" key={recipe.id + stepIndex}>
+        <div className="method-card" key={recipe.id + stepIndex} data-direction={direction}>
           <span className="step-number">STEP {String(stepIndex + 1).padStart(2, '0')}</span>
           <h4>{step.title}</h4>
           <p>{step.instruction}</p>
@@ -255,7 +256,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
 
         <div className="ingredients-heading">
-          <div><span>YOUR INGREDIENTS</span><small>{added.length} of {recipe.ingredients.length} in the pan</small></div>
+          <div><span>Ingredients</span><small>{added.length} of {recipe.ingredients.length} in the pan</small></div>
           <div className="serving-controls" aria-label="Adjust servings">
             <button type="button" onClick={() => setServings(value => Math.max(1, value - 1))} aria-label="Fewer servings"><Minus size={13} /></button>
             <span>{servings} {servings === 1 ? 'serving' : 'servings'}</span>

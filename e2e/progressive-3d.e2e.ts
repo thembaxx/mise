@@ -29,6 +29,6 @@ test('physics is explicitly activated and full scene still loads', async ({ page
   await expect(page.locator('.kitchen-canvas canvas')).toBeVisible({ timeout: 30000 });
   await expect(page.getByText(/3D graphics couldn't start/i)).toHaveCount(0);
   await page.getByRole('button', { name: /pour ingredients/i }).click();
-  await expect(page.getByText(/A silky pour/)).toBeVisible();
+  await expect(page.getByText(/Poured into the pan/)).toBeVisible();
   expect(errors).toEqual([]);
 });

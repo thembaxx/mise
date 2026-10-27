@@ -40,9 +40,9 @@ export function usePageMotion(root: RefObject<HTMLElement | null>) {
       const scheduleRefresh = () => {
         if (!frame) frame = requestAnimationFrame(refresh);
       };
-      gsap.fromTo('.feature-photo img', { scale: 1.08 }, {
-        scale: 1, ease: 'none',
-        scrollTrigger: { trigger: '.feature-photo', start: 'top bottom', end: 'bottom top', scrub: true },
+      gsap.fromTo('.hero-image-wrap img', { scale: 1 }, {
+        scale: 1.06, ease: 'none',
+        scrollTrigger: { trigger: '.hero-visual', start: 'top top', end: 'bottom top', scrub: true },
       });
       // Filtering and lazy kitchen content both change downstream trigger positions.
       const observer = new ResizeObserver(scheduleRefresh);
