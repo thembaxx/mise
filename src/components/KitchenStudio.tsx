@@ -10,7 +10,7 @@ const PhysicsKitchenScene = lazy(() => import('./KitchenScene'));
 const CookMode = lazy(() => import('./CookMode'));
 import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
-import { recipes } from '../data/recipes';
+import { allRecipes } from '../lib/personal-cookbook';
 import { addRecipeToShoppingList, loadKitchenSnapshot, saveKitchenSnapshot, clearKitchenSnapshot } from '../lib/kitchen-storage';
 import { ClipboardList, Focus, Gauge } from 'lucide-react';
 
@@ -189,7 +189,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
         <label className="visually-hidden" htmlFor="recipe-switch">Choose recipe</label>
         <select id="recipe-switch" className="recipe-switch" value={recipe.id} onChange={e => onRecipeChange(e.target.value)}>
-          {recipes.map(item => <option key={item.id} value={item.id}>{item.name} — {item.country}</option>)}
+          {allRecipes().map(item => <option key={item.id} value={item.id}>{item.name} — {item.country}</option>)}
         </select>
         <h3>{recipe.name}</h3>
         <p className="panel-story">{recipe.story}</p>
