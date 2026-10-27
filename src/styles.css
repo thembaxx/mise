@@ -493,3 +493,16 @@ body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area
 [data-theme=dark] .cookbook-backup-actions .cookbook-backup-secondary,[data-theme=dark] .cookbook-restore-preview,[data-theme=dark] .cookbook-restore-preview dl>div,[data-theme=dark] .cookbook-restore-modes label{background:#38503b;color:#f2f4e8;border-color:#516b50}
 [data-theme=dark] .cookbook-restore-modes small,[data-theme=dark] .cookbook-restore-preview dt{color:#c1d2bf}
 @media(max-width:600px){.cookbook-backup-actions,.cookbook-backup-actions button{width:100%}.cookbook-restore-preview dl{grid-template-columns:1fr}.cookbook-file-input input{max-width:100%}}
+
+
+/* Touch-sized step targets: keep the slim progress bar without a 5px tap area. */
+.studio-panel .step-progress{gap:5px;margin-top:-14px;margin-bottom:7px}
+.studio-panel .step-progress button{position:relative;height:44px;min-width:26px;touch-action:manipulation;background:transparent!important;border-radius:10px}
+.studio-panel .step-progress button::before{content:"";position:absolute;inset:19px 0 auto;height:6px;border-radius:8px;background:#d7dace;pointer-events:none;transition:background .2s}
+.studio-panel .step-progress button.is-complete::before{background:#a5c66f}
+.studio-panel .step-progress button[aria-current=step]::before{background:#374c35}
+.studio-panel .step-progress button:focus-visible{outline:3px solid #ec9b5f;outline-offset:0}
+.kitchen-scene-paused{min-height:560px;background:linear-gradient(160deg,#cdd8bc,#e1ded0);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#52664a;font-size:13px;font-weight:650;text-align:center;padding:35px}
+.kitchen-scene-paused svg{color:#6b8954}
+@media(max-width:760px){.kitchen-scene-paused{min-height:360px}.studio-panel .step-progress button{min-width:20px}}
+@media(prefers-reduced-motion:reduce){.studio-panel .step-progress button::before{transition:none}}
