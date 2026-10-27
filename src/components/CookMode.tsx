@@ -184,7 +184,7 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
         <main className="cook-mode-main">
           <p className="cook-mode-kicker">{recipe.country} · {recipe.name} · {servings} {servings === 1 ? 'serving' : 'servings'}</p>
           <div className="cook-mode-stepcount"><span>STEP {String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span><span>{Math.round((stepIndex + 1) / recipe.steps.length * 100)}% through the recipe</span></div>
-          <div className="cook-mode-progress" role="progressbar" aria-label="Recipe step progress" aria-valuemin={0} aria-valuemax={recipe.steps.length} aria-valuenow={stepIndex + 1}><span style={{width:((stepIndex+1)/recipe.steps.length * 100)+'%'}}/></div>
+          <div className="cook-mode-progress" role="progressbar" aria-label="Recipe step progress" aria-valuemin={0} aria-valuemax={recipe.steps.length} aria-valuenow={stepIndex + 1}><span style={{transform: `scaleX(${(stepIndex + 1) / recipe.steps.length})`}}/></div>
           <h2 id="cook-mode-title" key={recipe.id + ':' + stepIndex}>{step.title}</h2>
           <p id="cook-mode-description" className="cook-mode-instruction">{step.instruction}</p>
           <aside className="cook-mode-tip"><span>CHEF'S NOTE</span><p>{step.tip}</p></aside>

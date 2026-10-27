@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { RoundedBox } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useReducedMotion } from '../motion/preferences';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
 
 export type KitchenPulse = { action: CookingAction; id: number } | null;
@@ -16,6 +17,7 @@ interface Props {
 
 /** Lightweight procedural utensils: the same actions can always be triggered using accessible HTML controls. */
 function InteractiveUtensils({ pulse, onAction }: Pick<Props, 'pulse' | 'onAction'>) {
+  const reducedMotion = useReducedMotion();
   const knife = useRef<THREE.Group>(null);
   const spoon = useRef<THREE.Group>(null);
   const bottle = useRef<THREE.Group>(null);
@@ -26,7 +28,7 @@ function InteractiveUtensils({ pulse, onAction }: Pick<Props, 'pulse' | 'onActio
     clock.current = sceneClock.elapsedTime;
     const elapsed = sceneClock.elapsedTime - pulseAt.current;
     const t = Math.max(0, elapsed);
-    const envelope = t < .72 ? Math.sin(t / .72 * Math.PI) : 0;
+    const envelope = !reducedMotion && t < .72 ? Math.sin(t / .72 * Math.PI) : 0;
     if (knife.current) {
       const move = pulse?.action === 'chop' ? Math.abs(Math.sin(t * 21)) * envelope : 0;
       knife.current.position.y = .47 - move * .23;
@@ -165,12 +167,15 @@ function PourArc({ pulse }: { pulse: KitchenPulse }) {
 }
 
 export default function KitchenEffects({ progress, addedCount, heat, pulse, onAction }: Props) {
+  const reducedMotion = useReducedMotion();
   return <>
     <InteractiveUtensils pulse={pulse} onAction={onAction}/>
     {!progress.plated && <ChoppedFood chops={progress.chops}/>}
-    <Steam heat={heat} addedCount={addedCount}/>
-    <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours}/>
-    <PourArc pulse={pulse}/>
+    {!reducedMotion && <>
+      <Steam heat={heat} addedCount={addedCount}/>
+      <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours}/>
+      <PourArc pulse={pulse}/>
+    </>}
     {progress.pours > 0 && <mesh position={[1.16, .286, .15]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[.67, 48]} />
       <meshStandardMaterial color="#927543" transparent opacity={Math.min(progress.pours * .14, .38)} depthWrite={false} metalness={.42} roughness={.3}/>

@@ -1,3 +1,4 @@
+import { useReducedMotion } from '../motion/preferences';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
 import { ContactShadows, OrbitControls, RoundedBox } from '@react-three/drei';
@@ -126,10 +127,11 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
 }
 
 function Burner({ heat }: { heat: number }) {
+  const reducedMotion = useReducedMotion();
   const shader = useRef<THREE.ShaderMaterial>(null);
   useFrame(({ clock }) => {
     if (shader.current) {
-      shader.current.uniforms.uTime.value = clock.elapsedTime;
+      shader.current.uniforms.uTime.value = reducedMotion ? 0 : clock.elapsedTime;
       shader.current.uniforms.uHeat.value = heat;
     }
   });

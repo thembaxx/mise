@@ -39,8 +39,7 @@ export function NativeDialog({ app, open, close }: { app: NativeAppState; open: 
     return () => {window.removeEventListener('keydown', onKey);document.body.style.overflow=originalOverflow;originalFocus?.focus();};
   }, [open, close]);
 
-  if (!open) return null;
-  return <div className="native-modal-backdrop" onClick={close}>
+  return <div className="native-modal-backdrop native-settings-backdrop" hidden={!open} inert={!open} onClick={close}>
     <section ref={sheetRef} className="native-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="native-settings-title" onClick={event => event.stopPropagation()}>
       <div className="native-modal-heading">
         <div><span className="native-kicker">MAKE IT YOURS</span><h2 id="native-settings-title">App settings</h2></div>
