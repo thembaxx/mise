@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, BookOpen, Check, ClipboardList, Download, Heart, Link2, Pencil, Plus, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
+import { ArrowLeft } from '@phosphor-icons/react/dist/csr/ArrowLeft';
+import { BookOpen } from '@phosphor-icons/react/dist/csr/BookOpen';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { ClipboardText } from '@phosphor-icons/react/dist/csr/ClipboardText';
+import { DownloadSimple } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import { Heart } from '@phosphor-icons/react/dist/csr/Heart';
+import { Link } from '@phosphor-icons/react/dist/csr/Link';
+import { Pencil } from '@phosphor-icons/react/dist/csr/Pencil';
+import { Plus } from '@phosphor-icons/react/dist/csr/Plus';
+import { MagnifyingGlass } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
+import { ShieldCheck } from '@phosphor-icons/react/dist/csr/ShieldCheck';
+import { Trash } from '@phosphor-icons/react/dist/csr/Trash';
+import { Upload } from '@phosphor-icons/react/dist/csr/Upload';
+import { X } from '@phosphor-icons/react/dist/csr/X';
 import { applyRestore, exportCookbook, MAX_BACKUP_BYTES, previewRestore, type RestoreMode, type RestorePlan } from '../lib/cookbook-backup';
 import { addRecipeToShoppingList, recipePath } from '../lib/kitchen-storage';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './NativeControls';
@@ -138,7 +151,7 @@ export default function CookbookPage() {
   return <main className="recipe-page cookbook-page" id="top">
     <header className="recipe-page-header">
       <a href="/" className="recipe-wordmark"><img src="/brand/mise-mark.svg" width="36" height="36" alt=""/> Mise</a>
-      <nav aria-label="Cookbook navigation"><a href="/#discover">Discover</a><a href="/shopping/"><ClipboardList size={16}/> Shopping list</a><NativeHeaderActions app={native} onSettings={()=>setSettingsOpen(true)}/></nav>
+      <nav aria-label="Cookbook navigation"><a href="/#discover">Discover</a><a href="/shopping/"><ClipboardText size={16}/> Shopping list</a><NativeHeaderActions app={native} onSettings={()=>setSettingsOpen(true)}/></nav>
     </header>
     <div className="cookbook-main">
       <a href="/#discover" className="recipe-back"><ArrowLeft size={16}/> Back to recipes</a>
@@ -158,7 +171,7 @@ export default function CookbookPage() {
             {editor==='url' ? <div className="cookbook-import-field">
               <label htmlFor="import-url">Recipe webpage URL</label>
               <input id="import-url" type="url" inputMode="url" value={url} placeholder="https://example.com/recipe" onChange={event=>setUrl(event.target.value)}/>
-              <button type="button" disabled={busy || !url.trim() || !native.online} onClick={()=>void importFromUrl()}><Link2 size={16}/>{busy?'Importing…':'Import recipe'}</button>
+              <button type="button" disabled={busy || !url.trim() || !native.online} onClick={()=>void importFromUrl()}><Link size={16}/>{busy?'Importing…':'Import recipe'}</button>
               <p>Import tries browser access first, then a protected, rate-limited server fetch for selected recipe publishers if CORS blocks it. Unsupported websites require Paste recipe. Review all ingredients, quantities and allergens before saving. The website URL is sent to Mise only when you tap Import.</p>
             </div> : editor==='paste' ? <div className="cookbook-import-field">
               <label htmlFor="import-paste">Recipe text, HTML or JSON-LD</label>
@@ -186,7 +199,7 @@ export default function CookbookPage() {
           <div className="cookbook-backup-content">
             <div><h2>Take your cookbook with you.</h2>
               <p>Export a versioned JSON backup of your personal recipes, collections and favourites. Only you receive the file; there is no cloud sync or upload to Mise.</p>
-              <button type="button" className="cookbook-save" onClick={downloadBackup}><Download size={17}/> Download cookbook backup</button>
+              <button type="button" className="cookbook-save" onClick={downloadBackup}><DownloadSimple size={17}/> Download cookbook backup</button>
             </div>
             <div className="cookbook-restore">
               <h3>Restore a backup</h3>
@@ -223,18 +236,18 @@ export default function CookbookPage() {
           </form>
           {collectionId.startsWith('collection-') && <button className="cookbook-delete-collection" type="button" onClick={()=>{
             if(window.confirm('Delete this collection? Recipes will be kept.') && deleteCollection(collectionId)){setCollectionId('all');refresh();}
-          }}><Trash2 size={14}/> Delete collection</button>}
+          }}><Trash size={14}/> Delete collection</button>}
         </aside>
         <section className="cookbook-results" aria-label="Cookbook recipes">
           <div className="cookbook-results-header"><div><p className="eyebrow">YOUR RECIPES, YOUR WAY</p><h2>{collectionId==='saved'?'Favourites':collectionId==='personal'?'My recipes':collections.find(c=>c.id===collectionId)?.name || 'All recipes'}</h2><small>{visible.length} recipes</small></div>
-            <label className="cookbook-search"><Search size={17}/><span className="visually-hidden">Search cookbook</span><input type="search" value={search} placeholder="Search recipes" onChange={event=>setSearch(event.target.value)}/></label></div>
+            <label className="cookbook-search"><MagnifyingGlass size={17}/><span className="visually-hidden">Search cookbook</span><input type="search" value={search} placeholder="Search recipes" onChange={event=>setSearch(event.target.value)}/></label></div>
           {visible.length ? <div className="cookbook-grid">{visible.map(recipe=><article className="cookbook-item" key={recipe.id}>
             <a className="cookbook-item-photo" href={recipePath(recipe.id)}><img loading="lazy" src={recipe.image} alt="" onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/brand/mise-social.svg';}}/></a>
             <div className="cookbook-item-body"><span>{isPersonalRecipe(recipe.id)?'MY RECIPE':recipe.country.toUpperCase()} · {recipe.minutes} MIN</span>
               <h3><a href={recipePath(recipe.id)}>{recipe.name}</a></h3><p>{recipe.subtitle}</p>
               <div className="cookbook-item-actions">
-                <button type="button" aria-label={(saved.includes(recipe.id)?'Remove ':'Save ')+recipe.name+' favourite'} aria-pressed={saved.includes(recipe.id)} onClick={()=>toggleFavourite(recipe.id)}><Heart size={17} fill={saved.includes(recipe.id)?'currentColor':'none'}/></button>
-                {isPersonalRecipe(recipe.id) && <><button type="button" aria-label={'Edit '+recipe.name} onClick={()=>editRecipe(recipe)}><Pencil size={17}/></button><button type="button" aria-label={'Delete '+recipe.name} onClick={()=>remove(recipe)}><Trash2 size={17}/></button></>}
+                <button type="button" aria-label={(saved.includes(recipe.id)?'Remove ':'Save ')+recipe.name+' favourite'} aria-pressed={saved.includes(recipe.id)} onClick={()=>toggleFavourite(recipe.id)}><Heart size={17} weight={saved.includes(recipe.id)?'fill':'regular'}/></button>
+                {isPersonalRecipe(recipe.id) && <><button type="button" aria-label={'Edit '+recipe.name} onClick={()=>editRecipe(recipe)}><Pencil size={17}/></button><button type="button" aria-label={'Delete '+recipe.name} onClick={()=>remove(recipe)}><Trash size={17}/></button></>}
                 <a href={'/?view=cook&recipe='+encodeURIComponent(recipe.id)}>Cook</a>
               </div>
               {collections.length>0 && <details className="cookbook-collection-edit"><summary>Organise in collections</summary>{collections.map(collection=>

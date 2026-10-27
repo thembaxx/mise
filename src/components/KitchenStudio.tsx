@@ -1,5 +1,17 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Flame, Minus, Pause, Play, Plus, RotateCcw, Timer, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft } from '@phosphor-icons/react/dist/csr/ArrowLeft';
+import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
+import { Clock } from '@phosphor-icons/react/dist/csr/Clock';
+import { Fire } from '@phosphor-icons/react/dist/csr/Fire';
+import { Minus } from '@phosphor-icons/react/dist/csr/Minus';
+import { Pause } from '@phosphor-icons/react/dist/csr/Pause';
+import { Play } from '@phosphor-icons/react/dist/csr/Play';
+import { Plus } from '@phosphor-icons/react/dist/csr/Plus';
+import { ArrowCounterClockwise } from '@phosphor-icons/react/dist/csr/ArrowCounterClockwise';
+import { Timer } from '@phosphor-icons/react/dist/csr/Timer';
+import { ForkKnife } from '@phosphor-icons/react/dist/csr/ForkKnife';
 import CookingControls from './CookingControls';
 import type { KitchenPulse } from './KitchenEffects';
 import { applyCookingAction, getCookingRequirements, initialKitchenProgress, isReadyToPlate, type CookingAction } from '../lib/cooking';
@@ -12,7 +24,9 @@ import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
 import { allRecipes } from '../lib/personal-cookbook';
 import { addRecipeToShoppingList, loadKitchenSnapshot, saveKitchenSnapshot, clearKitchenSnapshot } from '../lib/kitchen-storage';
-import { ClipboardList, Focus, Gauge } from 'lucide-react';
+import { ClipboardText } from '@phosphor-icons/react/dist/csr/ClipboardText';
+import { CornersOut } from '@phosphor-icons/react/dist/csr/CornersOut';
+import { Gauge } from '@phosphor-icons/react/dist/csr/Gauge';
 
 type Props = { recipe: Recipe; onRecipeChange: (id: string) => void };
 const formatTime = (seconds: number) => [Math.floor(seconds / 60), seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
@@ -163,13 +177,13 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
       <div className="studio-visual">
         <div className="scene-topbar">
           <span className="scene-live"><span /> LIVE INTERACTIVE KITCHEN</span>
+          <span className="local-clock"><Clock size={15} /> {clockText}</span>
           <div className="scene-actions">
-            <span className="local-clock"><Clock3 size={15} strokeWidth={1.8} /> {clockText}</span>
             <button type="button" className="physics-mode-toggle" aria-pressed={physicsEnabled} onClick={() => setPhysicsEnabled(enabled => !enabled)} title={physicsEnabled ? 'Use quick lightweight 3D kitchen' : 'Load full Rapier physics simulation'}>
-              {physicsEnabled ? 'Physics on' : 'Quick 3D'} <span aria-hidden="true">●</span>
+              {physicsEnabled ? 'Physics on' : 'Quick 3D'} <span className="physics-status-dot" aria-hidden="true" />
             </button>
             <label className="graphics-mode-control" title="3D graphics quality"><Gauge size={14}/><span className="visually-hidden">Graphics quality</span><select aria-label="Graphics quality" value={graphics} onChange={event => setGraphics(event.target.value as 'eco'|'balanced'|'high')}><option value="eco">Eco</option><option value="balanced">Balanced</option><option value="high">High</option></select></label>
-            <button className="scene-icon-button" type="button" onClick={resetKitchen} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><RotateCcw size={16} /></button>
+            <button className="scene-icon-button" type="button" onClick={resetKitchen} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><ArrowCounterClockwise size={16} /></button>
           </div>
         </div>
         <SceneErrorBoundary><SupportsWebGL>
@@ -182,11 +196,11 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">
-            <span className="gesture-symbol"><UtensilsCrossed size={17} strokeWidth={1.6} /></span>
-            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan · Tap utensils · Orbit to explore · Pinch to zoom. Prefer a keyboard? Use the controls on the right.</small></div>
+            <span className="gesture-symbol"><ForkKnife size={17} /></span>
+            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan. Tap utensils, drag the worktop to look around, or pinch to zoom. You can also use the recipe controls.</small></div>
           </div>
           <div className="heat-control">
-            <label htmlFor="burner-heat"><Flame size={16} strokeWidth={1.7} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
+            <label htmlFor="burner-heat"><Fire size={16} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
             <input id="burner-heat" aria-label="Burner heat" type="range" min="0" max="1" step=".05" value={heat} onChange={e => setHeat(Number(e.target.value))} style={{ '--heat': (heat * 100) + '%' } as React.CSSProperties} />
           </div>
         </div>
@@ -196,7 +210,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
       <aside className="studio-panel" aria-label="Guided recipe and cooking controls">
         <div className="panel-menu-label">
           <span>WHAT'S COOKING</span>
-          <ChefHat size={18} strokeWidth={1.6} />
+          <ChefHat size={18} />
         </div>
         <label className="visually-hidden" htmlFor="recipe-switch">Choose recipe</label>
         <select id="recipe-switch" className="recipe-switch" value={recipe.id} onChange={e => onRecipeChange(e.target.value)}>
@@ -204,8 +218,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </select>
         <h3>{recipe.name}</h3>
         <p className="panel-story">{recipe.story}</p>
-        <div className="panel-facts"><span><Clock3 size={14} /> {recipe.minutes} min</span><span>{recipe.country}</span><span>{recipe.difficulty}</span></div>
-        <button className="cook-mode-launch" type="button" onClick={() => setCookModeOpen(true)}><Focus size={19}/> <span><strong>Enter Cook Mode</strong><small>Large steps, timer and optional voice guidance</small></span><ArrowRight size={19}/></button>
+        <div className="panel-facts"><span><Clock size={14} /> {recipe.minutes} min</span><span>{recipe.country}</span><span>{recipe.difficulty}</span></div>
+        <button className="cook-mode-launch" type="button" onClick={() => setCookModeOpen(true)}><CornersOut size={19}/> <span><strong>Enter Cook Mode</strong><small>Large steps, timer and optional voice guidance</small></span><ArrowRight size={19}/></button>
         <div className="panel-rule" />
 
         <div className="method-topline"><span>LET'S MAKE IT</span><span>{String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span></div>
@@ -226,15 +240,15 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
 
         <div className="timer-card">
           <div className="timer-face" style={{ '--timer-progress': (timerProgress * 100) + '%' } as React.CSSProperties}>
-            <div><Timer size={15} strokeWidth={1.7} /><strong>{formatTime(seconds)}</strong></div>
+            <div><Timer size={15} /><strong>{formatTime(seconds)}</strong></div>
           </div>
           <div className="timer-info">
             <span>STEP TIMER</span>
             <strong>Good things take time.</strong>
             <small aria-live="polite">{timerNotice || (running ? 'Counting down...' : 'Ready when you are')}</small>
             <div className="timer-buttons">
-              <button type="button" className="timer-play" onClick={toggleTimer} aria-label={running ? 'Pause timer' : 'Start timer'}>{running ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}{running ? 'Pause' : 'Start'}</button>
-              <button type="button" className="timer-small" onClick={resetTimer} aria-label="Reset timer"><RotateCcw size={15} /></button>
+              <button type="button" className="timer-play" onClick={toggleTimer} aria-label={running ? 'Pause timer' : 'Start timer'}>{running ? <Pause size={15} weight="fill" /> : <Play size={15} weight="fill" />}{running ? 'Pause' : 'Start'}</button>
+              <button type="button" className="timer-small" onClick={resetTimer} aria-label="Reset timer"><ArrowCounterClockwise size={15} /></button>
               <button type="button" className="timer-small" onClick={addMinute} aria-label="Add one minute"><Plus size={15} /></button>
             </div>
           </div>
@@ -252,14 +266,14 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           {recipe.ingredients.map(ingredient => {
             const isAdded = added.includes(ingredient.id);
             return <div className={'ingredient-row ' + (isAdded ? 'ingredient-added' : '')} key={ingredient.id}>
-              <button type="button" className="ingredient-check" aria-label={(isAdded ? 'Added ' : 'Add ') + ingredient.name + ' to pan'} onClick={() => addIngredient(ingredient.id)} aria-pressed={isAdded}><Check size={14} strokeWidth={2.4} /></button>
+              <button type="button" className="ingredient-check" aria-label={(isAdded ? 'Added ' : 'Add ') + ingredient.name + ' to pan'} onClick={() => addIngredient(ingredient.id)} aria-pressed={isAdded}><Check size={14} /></button>
               <span className="ingredient-name">{ingredient.name}</span>
               <span className="ingredient-amount">{formatAmount(ingredient.amount * servings / recipe.servings)} {ingredient.unit}</span>
             </div>;
           })}
         </div>
         <div className="studio-shopping">
-          <button type="button" onClick={() => { const count = addRecipeToShoppingList(recipe, servings); setShoppingNote(count < 0 ? 'Could not save list on this device.' : count ? count + ' ingredients added.' : 'These ingredients are already on your list.'); }}><ClipboardList size={17}/> Add ingredients to shopping list</button>
+          <button type="button" onClick={() => { const count = addRecipeToShoppingList(recipe, servings); setShoppingNote(count < 0 ? 'Could not save list on this device.' : count ? count + ' ingredients added.' : 'These ingredients are already on your list.'); }}><ClipboardText size={17}/> Add ingredients to shopping list</button>
           <a href="/shopping/">Open list <ArrowRight size={15}/></a>
         </div>
         {shoppingNote && <p className="studio-shopping-status" role="status">{shoppingNote}</p>}

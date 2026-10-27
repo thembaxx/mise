@@ -1,14 +1,15 @@
 import { Component, type ReactNode } from 'react';
-import { AlertCircle, ChefHat } from 'lucide-react';
+import { WarningCircle } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
 
 type Props = { children: ReactNode };
 type State = { unavailable: boolean };
 
 function Fallback() {
   return <div className="scene-unavailable" role="status">
-    <div className="scene-unavailable-plate" aria-hidden="true"><ChefHat size={44} strokeWidth={1.3} /></div>
+    <div className="scene-unavailable-plate" aria-hidden="true"><ChefHat size={44} /></div>
     <div>
-      <p className="scene-unavailable-overline"><AlertCircle size={15} /> LITE KITCHEN MODE</p>
+      <p className="scene-unavailable-overline"><WarningCircle size={15} /> LITE KITCHEN MODE</p>
       <h4>Your recipe is still ready.</h4>
       <p>3D graphics couldn't start on this device. No problem: follow the steps, use your timer, and tap ingredients in the checklist to cook along without WebGL.</p>
     </div>

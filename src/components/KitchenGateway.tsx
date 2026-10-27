@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, ChefHat, Sparkles } from 'lucide-react';
+import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
+import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
+import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
 import type { Recipe } from '../data/recipes';
 
 const KitchenStudio = lazy(() => import('./KitchenStudio'));
@@ -25,7 +27,7 @@ function KitchenLoading({ onEnter }: { onEnter?: () => void }) {
           <span className="studio-food-leaf second" />
           <span className="studio-food-dot" />
         </div>
-        <Sparkles size={28} />
+        <Sparkle size={28} />
       </div>
     </section>
   );
@@ -33,7 +35,10 @@ function KitchenLoading({ onEnter }: { onEnter?: () => void }) {
 
 export default function KitchenGateway({ recipe, onRecipeChange }: Props) {
   const root = useRef<HTMLDivElement>(null);
-  const [activated, setActivated] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
+  const [activated, setActivated] = useState(() => {
+    const view = new URLSearchParams(window.location.search).get('view');
+    return view === 'cook' || view === 'kitchen';
+  });
 
   useEffect(() => {
     if (activated) return;

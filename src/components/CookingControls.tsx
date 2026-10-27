@@ -1,4 +1,13 @@
-import { Check, ChefHat, CircleHelp, Droplets, Flame, Hand, Scissors, Soup, Volume2, VolumeX } from 'lucide-react';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
+import { Question } from '@phosphor-icons/react/dist/csr/Question';
+import { Drop } from '@phosphor-icons/react/dist/csr/Drop';
+import { Fire } from '@phosphor-icons/react/dist/csr/Fire';
+import { Hand } from '@phosphor-icons/react/dist/csr/Hand';
+import { Knife } from '@phosphor-icons/react/dist/csr/Knife';
+import { BowlSteam } from '@phosphor-icons/react/dist/csr/BowlSteam';
+import { SpeakerHigh } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
+import { SpeakerSlash } from '@phosphor-icons/react/dist/csr/SpeakerSlash';
 import type { CookingAction, CookingRequirement, KitchenProgress } from '../lib/cooking';
 import { isReadyToPlate } from '../lib/cooking';
 
@@ -25,19 +34,19 @@ export default function CookingControls({ progress, requirements, ingredientCoun
         <h4>Make it your own.</h4>
       </div>
       <button className="sound-toggle" type="button" aria-pressed={sound} onClick={() => onSoundChange(!sound)}>
-        {sound ? <Volume2 size={17} /> : <VolumeX size={17} />} Sound {sound ? 'on' : 'off'}
+        {sound ? <SpeakerHigh size={17} /> : <SpeakerSlash size={17} />} Sound {sound ? 'on' : 'off'}
       </button>
     </div>
     <p className="tool-intro">Tap a tool in the 3D kitchen or use these controls. Prepare, pour and stir as you follow the recipe.</p>
     <div className="tool-grid">
       <button type="button" className="tool-button" disabled={progress.plated || progress.chops >= 4} onClick={() => onAction('chop')} aria-label={'Chop ingredients, ' + Math.min(progress.chops, 4) + ' of 4 cuts'}>
-        <Scissors size={19} strokeWidth={1.7}/><strong>Chop</strong><small>{progress.chops} cuts</small>
+        <Knife size={19}/><strong>Chop</strong><small>{progress.chops} cuts</small>
       </button>
       <button type="button" className="tool-button" disabled={progress.plated || progress.pours >= 3} onClick={() => onAction('pour')} aria-label={'Pour ingredients, ' + progress.pours + ' pours'}>
-        <Droplets size={19} strokeWidth={1.7}/><strong>Pour</strong><small>{progress.pours} pours</small>
+        <Drop size={19}/><strong>Pour</strong><small>{progress.pours} pours</small>
       </button>
       <button type="button" className="tool-button" disabled={progress.plated || heat <= 0 || addedCount === 0 || progress.stirs >= 6} onClick={() => onAction('stir')} aria-label={'Stir the pan, ' + progress.stirs + ' stirs'}>
-        <Soup size={19} strokeWidth={1.7}/><strong>Stir</strong><small>{progress.stirs} stirs</small>
+        <BowlSteam size={19}/><strong>Stir</strong><small>{progress.stirs} stirs</small>
       </button>
     </div>
     <div className="cooking-checklist-top">
@@ -48,7 +57,7 @@ export default function CookingControls({ progress, requirements, ingredientCoun
     </div>
     <div className="cooking-goals">
       {requirements.map(item => <div className={'cooking-goal ' + (item.complete ? 'met' : '')} key={item.id}>
-        <span className="goal-indicator">{item.complete ? <Check size={12} strokeWidth={3} /> : <span />}</span>
+        <span className="goal-indicator">{item.complete ? <Check size={12} /> : <span />}</span>
         <span>{item.title}</span>
       </div>)}
     </div>
@@ -56,9 +65,9 @@ export default function CookingControls({ progress, requirements, ingredientCoun
       <button className="plate-button" type="button" disabled={!ready} onClick={() => onAction('plate')}>
         <ChefHat size={18} /> Plate your masterpiece <span>{ready ? 'Ready' : complete + '/' + requirements.length}</span>
       </button>
-      <p className="plate-tip" aria-live="polite"><CircleHelp size={14} /> {ready ? 'All set. Plate your creation!' : 'To plate: ' + notReady.slice(0, 2).join(' · ') + (notReady.length > 2 ? ' · and ' + (notReady.length - 2) + ' more' : '')}</p>
+      <p className="plate-tip" aria-live="polite"><Question size={14} /> {ready ? 'All set. Plate your creation!' : 'To plate: ' + notReady.slice(0, 2).join(' · ') + (notReady.length > 2 ? ' · and ' + (notReady.length - 2) + ' more' : '')}</p>
     </> : <div className="plated-message" role="status">
-      <span><Flame size={17} /> BON APPÉTIT</span>
+      <span><Fire size={17} /> BON APPÉTIT</span>
       <strong>You made something wonderful.</strong>
       <p>Your virtual dish is ready to enjoy. Remember to follow real-world food safety guidance when cooking.</p>
     </div>}
