@@ -18,7 +18,8 @@ describe('Mise offline-first PWA', () => {
     expect(manifest.start_url).toBe('/');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
-    expect(manifest.shortcuts.map((shortcut: {url: string}) => shortcut.url)).toEqual(['/?view=discover','/?view=kitchen']);
+    expect(manifest.shortcuts.map((shortcut: {url: string}) => shortcut.url)).toEqual(['/?view=discover','/cookbook/','/?view=kitchen']);
+    expect(manifest.share_target).toEqual({action:'/cookbook/',method:'GET',enctype:'application/x-www-form-urlencoded',params:{title:'title',text:'text',url:'url'}});
     expect(manifest.background_color).toBe('#F7F6F1');
   });
   it('matches browser launch backgrounds across safe areas and first paint', () => {
