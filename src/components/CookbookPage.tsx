@@ -138,7 +138,7 @@ export default function CookbookPage() {
               <label>Story or notes (optional)<textarea rows={2} maxLength={1400} value={draft.story || ''} onChange={event=>setDraft(value=>({...value,story:event.target.value}))}/></label>
               <label>Ingredients — one per line<textarea required rows={6} value={draft.ingredients} onChange={event=>setDraft(value=>({...value,ingredients:event.target.value}))} placeholder={'400 g tomatoes\n2 tbsp olive oil\n1 onion'}/></label>
               <label>Instructions — one step per line<textarea required rows={6} value={draft.steps} onChange={event=>setDraft(value=>({...value,steps:event.target.value}))} placeholder={'Chop vegetables.\nHeat the oil in a pan.\nSimmer until tender.'}/></label>
-              <p>Use quantities like “400 g tomatoes” or “2 onions”. Unrecognised units stay as written; Mise never estimates ingredient density.</p>
+              <p>Use quantities like “400 g tomatoes” or “2 onions”. Unrecognised units stay as written; Mise never estimates ingredient density. Changing the ingredients or steps of an existing recipe resets its old cooking progress, timers and related shopping entries.</p>
               <button type="submit" className="cookbook-save"><Check size={18}/> {draft.id?'Save changes':'Save to my cookbook'}</button>
             </form>}
           </div>}
