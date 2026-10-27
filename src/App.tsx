@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
@@ -214,7 +214,6 @@ export default function App() {
   const native = useNativeApp();
   const [catalog, setCatalog] = useState<Recipe[]>(() => allRecipes());
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const closeSettings = useCallback(() => setSettingsOpen(false), []);
   const [selectedId, setSelectedId] = useState(() => {
     const id = new URLSearchParams(window.location.search).get('recipe');
     return findRecipe(id)?.id || recipes[0].id;
@@ -253,7 +252,7 @@ export default function App() {
     <Experience />
     <Footer />
     <div className="corner-credit" aria-hidden="true"><Cursor size={12} /> MADE TO EXPLORE</div>
-    <NativeDialog app={native} open={settingsOpen} close={closeSettings} />
+    <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)} />
     <NativeNotices app={native} />
   </main>;
 }

@@ -92,3 +92,21 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   await expect(page.locator('.cook-mode')).toHaveCount(0);
   expect(await page.locator('.method-card').evaluate(element => getComputedStyle(element).opacity)).toBe('1');
 });
+
+
+test('settings keep focus on the chosen theme across all page shells', async ({ page }) => {
+  for (const route of ['/', '/recipes/shakshuka/', '/cookbook/', '/shopping/']) {
+    await page.goto(route);
+    const trigger = page.getByRole('button', { name: 'Open app settings' });
+    await trigger.click();
+    const dialog = page.getByRole('dialog', { name: 'App settings' });
+    const light = dialog.getByRole('button', { name: 'Light', exact: true });
+    await light.click();
+    await expect(light).toBeFocused();
+    const dark = dialog.getByRole('button', { name: 'Dark', exact: true });
+    await dark.click();
+    await expect(dark).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(trigger).toBeFocused();
+  }
+});
