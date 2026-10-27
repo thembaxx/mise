@@ -11,3 +11,13 @@ test('cloud Blender authoring is opt-in and review-only', () => {
   expect(workflow).not.toMatch(/push:\s*|schedule:\s*/);
   expect(workflow).not.toMatch(/contents:\s*write/);
 });
+
+test('candidate review stays on-device and checks GLB bounds', () => {
+  const script = readFileSync(new URL('../public/3d-viewer.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../public/3d-preview.html', import.meta.url), 'utf8');
+  expect(html).toContain('id="candidate"');
+  expect(script).toContain('candidateInput.files?.[0]');
+  expect(script).toContain('file.arrayBuffer()');
+  expect(script).toContain('file.size>MAX_FILE');
+  expect(script).not.toContain('FormData(');
+});
