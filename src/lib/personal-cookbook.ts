@@ -62,7 +62,7 @@ export const setRecipeSaved = (id: string, enabled: boolean): boolean => {
   return write(FAVORITES_KEY,next);
 };
 
-function validateStoredRecipe(value: unknown): PersonalRecipe | null {
+export function validateStoredRecipe(value: unknown): PersonalRecipe | null {
   if (!value || typeof value !== 'object') return null;
   const row = value as Partial<PersonalRecipe>;
   if (!isPersonalRecipe(str(row.id,90)) || !str(row.name,120) ||
