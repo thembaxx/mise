@@ -1,4 +1,5 @@
 import { recipes, type Ingredient, type IngredientKind, type Recipe, type RecipeStep, type Region } from '../data/recipes';
+import { getShoppingItems, saveShoppingItems } from './kitchen-storage';
 
 const RECIPE_KEY = 'mise:personal-recipes:v1';
 const COLLECTION_KEY = 'mise:collections:v1';
@@ -104,13 +105,26 @@ export function savePersonalRecipe(recipe: PersonalRecipe): boolean {
   const current = loadPersonalRecipes();
   const existing = current.findIndex(item => item.id === validated.id);
   if (existing === -1 && current.length >= MAX_RECIPES) return false;
+  const former = existing >= 0 ? current[existing] : undefined;
+  const contentChanged = former && (JSON.stringify(former.ingredients) !== JSON.stringify(validated.ingredients) || JSON.stringify(former.steps) !== JSON.stringify(validated.steps));
   if (existing >= 0) current[existing] = validated;
   else current.push(validated);
-  return write(RECIPE_KEY,current);
+  if (!write(RECIPE_KEY,current)) return false;
+  if (contentChanged) clearCookingState(validated.id);
+  // Keep shopping labels accurate when the user renames an unchanged recipe.
+  if (former && former.name !== validated.name && !contentChanged) {
+    saveShoppingItems(getShoppingItems().map(item => item.recipeId === validated.id ? {...item,recipeName:validated.name} : item));
+  }
+  return true;
+}
+function clearCookingState(id: string): void {
+  try { for (const prefix of ['mise:progress:v1:','mise:prep:v1:','mise:timers:v1:']) localStorage.removeItem(prefix+id); } catch { /* optional device storage */ }
+  saveShoppingItems(getShoppingItems().filter(item => item.recipeId !== id));
 }
 export function deletePersonalRecipe(id: string): boolean {
   if (!isPersonalRecipe(id)) return false;
   if (!write(RECIPE_KEY,loadPersonalRecipes().filter(item => item.id !== id))) return false;
+  clearCookingState(id);
   setRecipeSaved(id,false);
   const collections = loadCollections().map(item => ({...item,recipeIds:item.recipeIds.filter(value => value !== id)}));
   write(COLLECTION_KEY,collections);
