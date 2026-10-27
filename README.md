@@ -28,7 +28,7 @@ For a production build:
     npm run build
     npm run preview
 
-The app is static and requires no database, API keys or authentication. Deploy the root directory to Vercel as a Vite project; build command is npm run build and output directory is dist.
+The app is mostly static and requires no database, API keys or authentication. Mise 2.1 also includes an optional narrow serverless endpoint for protected imports from explicitly supported recipe websites. Deploy the root directory to Vercel as a Vite project; build command is npm run build and output directory is dist.
 
 ## Structure
 
@@ -142,7 +142,7 @@ QA: `npm run test` checks conversion precision, bad storage data, real-prep sepa
 
 Open **My cookbook** from the navigation or visit `/cookbook/`. Create and edit personal recipes, favourite published or personal dishes, and organise either in named collections. Manual recipes use a name, servings, cook time, ingredient lines and method lines; inputs are validated and stored locally. The editor keeps numeric amounts and units explicit rather than guessing ingredient density. New recipes are immediately usable with guided Cook Mode, interactive Quick 3D/full physics (optional), shopping lists, preparation checklists and independent kitchen timers.
 
-**Import recipes:** Paste a recipe formatted with `Ingredients` and `Instructions` headings, Recipe JSON-LD, or HTML containing a valid `Recipe` JSON-LD block. HTTPS website URL import works only when the source provides accessible structured recipe data **and permits cross-origin browser requests**; websites with restrictive CORS/redirects require manual paste. There is no server scraping proxy, automatic sign-in, or third-party recipe extraction service. Check each imported ingredient, allergy warning, quantity and time before cooking.
+**Import recipes:** Paste a recipe formatted with `Ingredients` and `Instructions` headings, Recipe JSON-LD, or HTML containing a valid `Recipe` JSON-LD block. HTTPS website URL import first tries direct browser fetches; selected known recipe publishers may use Mise's narrow rate-limited serverless fallback when CORS blocks them. Other websites require manual paste. There is no open-ended scraping proxy, automatic sign-in or third-party extraction service. Check each imported ingredient, allergy warning, quantity and time before cooking.
 
 **PWA share target:** Compatible installed browsers can offer **Mise** in the operating system's share menu for text or URLs. This opens the import editor for review — URLs are never fetched until the user explicitly taps Import. Offline recipe editing and viewing use cached application files and local browser storage. Cooking timers can recover visual remaining time after backgrounding but **do not provide guaranteed alarms or food-safety notifications**.
 
