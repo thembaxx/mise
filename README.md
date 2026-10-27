@@ -157,3 +157,7 @@ Open **My cookbook** from the navigation or visit `/cookbook/`. Create and edit 
 - Recipe imports now recognize nested Recipe JSON-LD instructions, reject unsafe URL literals, avoid credentials and redirects, and stop oversized downloads. Paste/manual editing remain available for sites that block browser requests.
 - A public server-side extraction proxy is intentionally **not enabled** until Vercel WAF global rate limits, SSRF/DNS protections and cost controls are verified; see [Mise 2.1 security and portability](docs/mise-2-1-security.md).
 - Run tests on a separate environment when GitHub Actions jobs fail before steps begin. Independent Playwright verification should cover desktop Chromium and touch-mobile in addition to unit, TypeScript, production PWA and prerender tests.
+
+### Performance and accessible controls
+
+While the distraction-free Cook Mode dialog is open, its background 3D canvas is paused to keep timers and touch interactions responsive on low-power or software-rendered devices. Closing Cook Mode restores the optional 3D kitchen. The recipe progress indicators keep their slim appearance but now expose 44-pixel tap and keyboard-focus targets. An independent Amazon Linux browser runner (with Chromium dependencies installed through dnf) is used when GitHub Actions fails before job steps start; this is not a substitute for physical iOS Safari/Android validation.
