@@ -117,11 +117,60 @@ function FinishedPlate() {
   </group>;
 }
 
+
+/** Heat-dependent shallow simmer bubbles. No particle texture, shader or extra package. */
+function PanSimmer({ heat, addedCount, pours }: { heat: number; addedCount: number; pours: number }) {
+  const bubbles = useRef<(THREE.Mesh | null)[]>([]);
+  useFrame(({ clock }) => {
+    const intensity = heat > .08 && addedCount > 0 ? Math.min(1, heat * (pours ? 1.2 : .8)) : 0;
+    bubbles.current.forEach((bubble, index) => {
+      if (!bubble) return;
+      const phase = (clock.elapsedTime * (.8 + heat) + index * .137) % 1;
+      const size = .35 + phase * 1.3;
+      bubble.scale.setScalar(size);
+      bubble.visible = intensity > 0;
+      (bubble.material as THREE.MeshBasicMaterial).opacity = intensity * Math.sin(Math.PI * phase) * .28;
+    });
+  });
+  return <group position={[1.16, .283, .15]} rotation={[-Math.PI / 2, 0, 0]}>
+    {Array.from({ length: 9 }, (_, index) => {
+      const angle = index * 2.3999, radius = .12 + .065 * (index % 5);
+      return <mesh key={index} ref={node => { bubbles.current[index] = node; }} position={[Math.cos(angle) * radius, Math.sin(angle) * radius, .015]}>
+        <ringGeometry args={[.055, .08, 14]}/>
+        <meshBasicMaterial color="#ffdb90" transparent opacity={0} depthWrite={false}/>
+      </mesh>;
+    })}
+  </group>;
+}
+
+/** A visible, brief pour arc connects the bottle action to the pan without DOM overlays. */
+function PourArc({ pulse }: { pulse: KitchenPulse }) {
+  const stream = useRef<THREE.Mesh>(null);
+  const elapsed = useRef(0);
+  useEffect(() => { elapsed.current = 0; }, [pulse]);
+  useFrame((_, delta) => {
+    elapsed.current += Math.min(delta, .1);
+    const active = pulse?.action === 'pour' && elapsed.current < .7;
+    if (!stream.current) return;
+    stream.current.visible = active;
+    if (active) {
+      stream.current.scale.set(1, .6 + Math.sin(elapsed.current * Math.PI / .7) * .65, 1);
+      (stream.current.material as THREE.MeshBasicMaterial).opacity = Math.sin(elapsed.current * Math.PI / .7) * .56;
+    }
+  });
+  return <mesh ref={stream} visible={false} position={[.32, .85, -.42]} rotation={[0, 0, -.78]}>
+    <cylinderGeometry args={[.025, .044, 1.05, 9]}/>
+    <meshBasicMaterial color="#e6c98f" transparent opacity={0} depthWrite={false}/>
+  </mesh>;
+}
+
 export default function KitchenEffects({ progress, addedCount, heat, pulse, onAction }: Props) {
   return <>
     <InteractiveUtensils pulse={pulse} onAction={onAction}/>
     {!progress.plated && <ChoppedFood chops={progress.chops}/>}
     <Steam heat={heat} addedCount={addedCount}/>
+    <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours}/>
+    <PourArc pulse={pulse}/>
     {progress.pours > 0 && <mesh position={[1.16, .286, .15]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[.67, 48]} />
       <meshStandardMaterial color="#927543" transparent opacity={Math.min(progress.pours * .14, .38)} depthWrite={false} metalness={.42} roughness={.3}/>

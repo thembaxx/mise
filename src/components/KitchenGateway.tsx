@@ -33,7 +33,7 @@ function KitchenLoading({ onEnter }: { onEnter?: () => void }) {
 
 export default function KitchenGateway({ recipe, onRecipeChange }: Props) {
   const root = useRef<HTMLDivElement>(null);
-  const [activated, setActivated] = useState(false);
+  const [activated, setActivated] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
 
   useEffect(() => {
     if (activated) return;

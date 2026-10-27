@@ -97,8 +97,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
       stir: 'Beautifully stirred. Keep the flavor moving.',
       plate: 'Bon appétit! Your virtual creation is served.',
     }[action]);
-    playCookingCue(action, soundEnabled);
-    cookingHaptic();
+    playCookingCue(action, soundEnabled, heat);
+    cookingHaptic(action);
   }, [progress, added.length, recipe.ingredients.length, recipe.steps.length, heat, stepIndex, soundEnabled]);
   const resetKitchen = () => {
     clearKitchenSnapshot(recipe.id);

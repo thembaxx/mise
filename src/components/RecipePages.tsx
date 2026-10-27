@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Check, ClipboardList, Share2, Trash2 } from 'lucide-react';
 import { addRecipeToShoppingList, getShoppingItems, recipePath, saveShoppingItems, type ShoppingItem } from '../lib/kitchen-storage';
-import type { Recipe } from '../data/recipes';
+import { recipes, type Recipe } from '../data/recipes';
 import { useNativeApp } from '../pwa/useNativeApp';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './NativeControls';
 
@@ -13,6 +13,10 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
   useEffect(() => { document.title = recipe ? recipe.name + ' recipe · Mise' : 'Recipe not found · Mise'; }, [recipe]);
 
   if (!recipe) return <main className="recipe-page"><a href="/" className="recipe-back"><ArrowLeft size={18}/> Back to Mise</a><h1>That recipe isn’t on our table yet.</h1><p>Try the discovery page for something delicious.</p></main>;
+  const related = recipes.filter(candidate => candidate.id !== recipe.id)
+    .sort((a, b) => Number(b.region === recipe.region) - Number(a.region === recipe.region)
+      || Number(b.tags.some(tag => recipe.tags.includes(tag))) - Number(a.tags.some(tag => recipe.tags.includes(tag))))
+    .slice(0, 3);
   const scale = (value: number) => (Math.round(value * servings / recipe.servings * 10) / 10).toLocaleString();
   const add = () => {
     const count = addRecipeToShoppingList(recipe, servings);
@@ -48,6 +52,16 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
         <section className="recipe-ingredients"><div className="recipe-section-heading"><div><p className="eyebrow">WHAT YOU NEED</p><h2>Ingredients</h2></div><label>Servings <select value={servings} onChange={event => setServings(Number(event.target.value))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label></div><ul>{recipe.ingredients.map(item=><li key={item.id}><span>{item.name}</span><strong>{scale(item.amount)} {item.unit}</strong></li>)}</ul></section>
         <section className="recipe-method"><p className="eyebrow">A LITTLE AT A TIME</p><h2>How to make it</h2><ol>{recipe.steps.map((step,index)=><li key={index} id={'step-'+(index+1)}><span className="recipe-step-number">{String(index+1).padStart(2,'0')}</span><div><h3>{step.title}</h3><p>{step.instruction}</p><aside><strong>Chef’s note</strong> {step.tip}</aside></div><small>{step.minutes} min</small></li>)}</ol></section>
       </div>
+      <section className="recipe-related" aria-label="Discover more recipes">
+        <p className="eyebrow">MORE FLAVORS TO EXPLORE</p>
+        <h2>Your next adventure</h2>
+        <div className="recipe-related-grid">
+          {related.map(other => <a href={recipePath(other.id)} key={other.id}>
+            <img loading="lazy" src={other.image} alt="" onError={event => { event.currentTarget.onerror = null; event.currentTarget.src='/brand/mise-social.svg'; }}/>
+            <span>{other.country} · {other.minutes} min</span><strong>{other.name}</strong>
+          </a>)}
+        </div>
+      </section>
       <div className="recipe-bottom-cta"><h2>Ready to make it yours?</h2><p>Take this recipe into the interactive kitchen, or discover another part of the world.</p><a href={'/?view=kitchen&recipe=' + encodeURIComponent(recipe.id)}>Enter the kitchen</a></div>
     </article>
     <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)}/>

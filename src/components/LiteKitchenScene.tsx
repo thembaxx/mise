@@ -6,7 +6,7 @@ import type { Ingredient, IngredientKind } from '../data/recipes';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
 import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 
-type Props = { ingredients: Ingredient[]; added: string[]; heat: number; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function IngredientModel({ kind }: { kind: IngredientKind }) {
@@ -209,9 +209,9 @@ function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onActi
   </>;
 }
 
-export default function LiteKitchenScene({ ingredients, added, heat, onAdd, resetKey, progress, pulse, onAction }: Props) {
+export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
-    <Canvas key={resetKey} shadows camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={[1, 1.1]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+    <Canvas key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 1.7] : [1, 1.2]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
       <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} /></Suspense>
     </Canvas>
   </div>;
