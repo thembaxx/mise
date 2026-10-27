@@ -52,6 +52,7 @@ test('search can be cleared in place and empty saved recipes explain how to star
   await page.getByRole('button', { name: 'Only show my saved recipes' }).click();
   await page.locator('.save-button').first().click();
   await page.getByRole('button', { name: 'Dismiss feedback' }).click();
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
   await expect(search).not.toBeFocused();
 });
 
