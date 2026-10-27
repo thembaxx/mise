@@ -43,7 +43,7 @@ test('phone navigation stays reachable after scrolling and exposes cookbook and 
   await expect(menu.getByRole('link', { name: 'My cookbook' })).toBeInViewport();
   await expect(menu.getByRole('link', { name: 'Shopping list' })).toBeInViewport();
   await menu.getByRole('link', { name: 'Shopping list' }).click();
-  await expect(page.getByRole('heading', { name: /shopping/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Shopping list', level: 1, exact: true })).toBeVisible();
   await expectNoOverflow(page);
 });
 

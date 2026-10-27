@@ -155,15 +155,15 @@ export default function CookbookPage() {
     </header>
     <div className="cookbook-main">
       <a href="/#discover" className="recipe-back"><ArrowLeft size={16}/> Back to recipes</a>
-      <div className="cookbook-hero"><div><p className="eyebrow">A PLACE FOR EVERYTHING DELICIOUS</p><h1>My <em>cookbook.</em></h1>
-        <p>Keep family recipes, collect favourites and bring your own discoveries into the Mise kitchen. Everything stays on this device.</p>
-      </div><div className="cookbook-hero-action"><strong>{personal.length}</strong><span>PERSONAL RECIPES</span><button type="button" onClick={startNew}><Plus size={17}/> New recipe</button></div></div>
+      <div className="cookbook-hero"><div><h1>My <em>cookbook.</em></h1>
+        <p>Your recipes and favorites, organized in one place. Saved on this device.</p>
+      </div><div className="cookbook-hero-action"><button type="button" onClick={startNew}><Plus size={17}/> New recipe</button><span>{personal.length} personal {personal.length === 1 ? 'recipe' : 'recipes'}</span></div></div>
       {status && <p className="recipe-notice cookbook-status" role="status">{status}</p>}
       <section className="cookbook-editor-section" aria-label="Recipe editor">
         {!importOpen
           ? <button type="button" className="cookbook-import-opener" onClick={()=>{setImportOpen(true);setEditor('url');}}><Upload size={19}/> Import a recipe from a website or text <Plus size={16}/></button>
           : <div className="cookbook-editor">
-            <div className="cookbook-editor-title"><div><p className="eyebrow">YOUR NEXT FAVOURITE</p><h2>{draft.id?'Edit your recipe':'Add a recipe'}</h2></div><button type="button" aria-label="Close recipe editor" onClick={()=>setImportOpen(false)}><X size={20}/></button></div>
+            <div className="cookbook-editor-title"><div><h2>{draft.id?'Edit your recipe':'Add a recipe'}</h2></div><button type="button" aria-label="Close recipe editor" onClick={()=>setImportOpen(false)}><X size={20}/></button></div>
             <div className="cookbook-editor-tabs" role="group" aria-label="Recipe input method">
               {([['manual','Write my own'],['url','From a URL'],['paste','Paste recipe']] as const).map(([id,label])=>
                 <button type="button" key={id} className={editor===id?'active':''} aria-pressed={editor===id} onClick={()=>setEditor(id)}>{label}</button>)}
@@ -172,7 +172,7 @@ export default function CookbookPage() {
               <label htmlFor="import-url">Recipe webpage URL</label>
               <input id="import-url" type="url" inputMode="url" value={url} placeholder="https://example.com/recipe" onChange={event=>setUrl(event.target.value)}/>
               <button type="button" disabled={busy || !url.trim() || !native.online} onClick={()=>void importFromUrl()}><Link size={16}/>{busy?'Importing…':'Import recipe'}</button>
-              <p>Import tries browser access first, then a protected, rate-limited server fetch for selected recipe publishers if CORS blocks it. Unsupported websites require Paste recipe. Review all ingredients, quantities and allergens before saving. The website URL is sent to Mise only when you tap Import.</p>
+              <p>Paste a public recipe link to import its ingredients and instructions. If the website blocks importing, use Paste recipe instead. Review quantities and allergens before saving. The URL is sent to Mise when you tap Import.</p>
             </div> : editor==='paste' ? <div className="cookbook-import-field">
               <label htmlFor="import-paste">Recipe text, HTML or JSON-LD</label>
               <textarea id="import-paste" rows={8} maxLength={500000} value={pasted} onChange={event=>setPasted(event.target.value)}
@@ -239,12 +239,12 @@ export default function CookbookPage() {
           }}><Trash size={14}/> Delete collection</button>}
         </aside>
         <section className="cookbook-results" aria-label="Cookbook recipes">
-          <div className="cookbook-results-header"><div><p className="eyebrow">YOUR RECIPES, YOUR WAY</p><h2>{collectionId==='saved'?'Favourites':collectionId==='personal'?'My recipes':collections.find(c=>c.id===collectionId)?.name || 'All recipes'}</h2><small>{visible.length} recipes</small></div>
+          <div className="cookbook-results-header"><div><h2>{collectionId==='saved'?'Favourites':collectionId==='personal'?'My recipes':collections.find(c=>c.id===collectionId)?.name || 'All recipes'}</h2><small>{visible.length} recipes</small></div>
             <label className="cookbook-search"><MagnifyingGlass size={17}/><span className="visually-hidden">Search cookbook</span><input type="search" value={search} placeholder="Search recipes" onChange={event=>setSearch(event.target.value)}/></label></div>
           {visible.length ? <div className="cookbook-grid">{visible.map(recipe=><article className="cookbook-item" key={recipe.id}>
             <a className="cookbook-item-photo" href={recipePath(recipe.id)}><img loading="lazy" src={recipe.image} alt="" onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/brand/mise-social.svg';}}/></a>
             <div className="cookbook-item-body"><span>{isPersonalRecipe(recipe.id)?'MY RECIPE':recipe.country.toUpperCase()} · {recipe.minutes} MIN</span>
-              <h3><a href={recipePath(recipe.id)}>{recipe.name}</a></h3><p>{recipe.subtitle}</p>
+              <h3><a href={recipePath(recipe.id)}>{recipe.name}</a></h3><p>{recipe.ingredients.length} ingredients · {recipe.difficulty}</p>
               <div className="cookbook-item-actions">
                 <button type="button" aria-label={(saved.includes(recipe.id)?'Remove ':'Save ')+recipe.name+' favourite'} aria-pressed={saved.includes(recipe.id)} onClick={()=>toggleFavourite(recipe.id)}><Heart size={17} weight={saved.includes(recipe.id)?'fill':'regular'}/></button>
                 {isPersonalRecipe(recipe.id) && <><button type="button" aria-label={'Edit '+recipe.name} onClick={()=>editRecipe(recipe)}><Pencil size={17}/></button><button type="button" aria-label={'Delete '+recipe.name} onClick={()=>remove(recipe)}><Trash size={17}/></button></>}

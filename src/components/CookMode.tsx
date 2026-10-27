@@ -16,6 +16,7 @@ import { SpeakerSlash } from '@phosphor-icons/react/dist/csr/SpeakerSlash';
 import { X } from '@phosphor-icons/react/dist/csr/X';
 import { Sun } from '@phosphor-icons/react/dist/csr/Sun';
 import { Moon } from '@phosphor-icons/react/dist/csr/Moon';
+import { useStepDirection } from '../motion/useStepDirection';
 import type { Recipe } from '../data/recipes';
 import { IngredientGuide, PrepChecklist, RecipeTimers } from './SmartCompanion';
 import { getCookingRequirements, isReadyToPlate, type CookingAction, type KitchenProgress } from '../lib/cooking';
@@ -54,6 +55,7 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
   const [wakeStatus, setWakeStatus] = useState('');
   const [voiceStatus, setVoiceStatus] = useState('');
   const [reading, setReading] = useState(false);
+  const direction = useStepDirection(stepIndex);
   const step = recipe.steps[stepIndex];
   const complete = progress.plated;
   const requirements = getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length);
@@ -185,9 +187,11 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
           <p className="cook-mode-kicker">{recipe.country} · {recipe.name} · {servings} {servings === 1 ? 'serving' : 'servings'}</p>
           <div className="cook-mode-stepcount"><span>STEP {String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span><span>{Math.round((stepIndex + 1) / recipe.steps.length * 100)}% through the recipe</span></div>
           <div className="cook-mode-progress" role="progressbar" aria-label="Recipe step progress" aria-valuemin={0} aria-valuemax={recipe.steps.length} aria-valuenow={stepIndex + 1}><span style={{transform: `scaleX(${(stepIndex + 1) / recipe.steps.length})`}}/></div>
-          <h2 id="cook-mode-title" key={recipe.id + ':' + stepIndex}>{step.title}</h2>
-          <p id="cook-mode-description" className="cook-mode-instruction">{step.instruction}</p>
-          <aside className="cook-mode-tip"><span>CHEF'S NOTE</span><p>{step.tip}</p></aside>
+          <div className="cook-mode-step-content" key={recipe.id + ':' + stepIndex} data-direction={direction}>
+            <h2 id="cook-mode-title">{step.title}</h2>
+            <p id="cook-mode-description" className="cook-mode-instruction">{step.instruction}</p>
+            <aside className="cook-mode-tip"><span>CHEF'S NOTE</span><p>{step.tip}</p></aside>
+          </div>
           <div className="cook-mode-step-actions">
             <button type="button" onClick={() => changeStep(stepIndex - 1)} disabled={stepIndex === 0}><ArrowLeft size={19}/> Previous</button>
             <button type="button" className="cook-mode-next" onClick={() => changeStep(stepIndex + 1)} disabled={stepIndex === recipe.steps.length - 1}>Next step <ArrowRight size={19}/></button>

@@ -59,3 +59,35 @@ Validation includes the production build, existing browser journeys, and
 reopening, focus restoration, keyboard steps, progress and touch hover behavior.
 Physical iOS/Safari and Android testing remains device QA; Chromium touch emulation
 is not a claim of physical-device testing.
+
+## Product craft and micro-interactions
+
+The interface now leads with a named recipe and its time instead of decorative
+reminder cards, a rotating badge, a city strip and generic promotional tiles.
+Recipe titles open recipe instructions; the separate cooking action stays explicit.
+A short set of functional links replaces the feature grid, and the footer is compact.
+Cookbook and cooking copy describes the controls and content directly.
+
+Motion decisions follow MotionDesign and Emil Kowalski's design engineering guidance:
+
+| Before | After | Why |
+| --- | --- | --- |
+| Saving changes only a heart | Immediate filled heart with a small, interruptible 180ms settle, a specific confirmation and Undo | Acknowledge the action and make mistakes recoverable |
+| Cooking title, instruction and tip change independently | One 220ms transform/180ms opacity entrance, 8px from the direction of travel | Preserve continuity between steps; timer ticks never replay it |
+| Transient feedback changes width with each recipe name | A stable notice width, 180ms entrance and wrapping for long names | Avoid lateral jumps during repeated actions |
+| Notices can expire while a user reaches Undo | Pause expiration during hover/focus, reset the timer for the latest action | Keep the action usable with pointer and keyboard |
+| Removed shopping items and Clear all are final | Undo restores original order and preserves newer checks and additions | Recover from an accidental deletion without losing later work |
+| Search has a generic empty state and no explicit clear | Focus-preserving clear/reset, contextual counts and a saved-recipes empty state | Make the next action clear |
+| Mobile discovery inherits a percentage row gap | A bounded 36px row gap | Prevent hundreds of pixels of dead space |
+
+GSAP retains the conditional discovery pin and restrained hero image depth. The
+hero keeps the original Outfit/Playfair typography and two-line title. Useful links
+have short arrow feedback; decorative loops and imitation clickable feature tiles
+are removed. Hover movement is restricted to fine pointers. Keyboard actions bypass
+transitions and reduced motion removes spatial movement. No new dependency is added.
+
+Undo restores focus to the originating control, including remounted shopping rows.
+Storage errors show an error rather than a success state. Copy-link confirmation
+has its own button state and no unrelated shopping-list link. Motion and product
+behavior are exercised together in Playwright, including rapid changes, persistence,
+focus, reduced motion, touch and responsive spacing.
