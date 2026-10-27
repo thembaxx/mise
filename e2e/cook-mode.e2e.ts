@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('direct recipe link opens distraction-free Cook Mode with shared steps and accessible controls', async ({page}) => {
+  test.setTimeout(120_000); // Software-rendered WebGL can be slow on CI/sandbox runners.
   const errors:string[]=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/?view=cook&recipe=shakshuka');

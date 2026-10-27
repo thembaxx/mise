@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, BookOpen, Check, ClipboardList, Heart, Link2, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Check, ClipboardList, Download, Heart, Link2, Pencil, Plus, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
+import { applyRestore, exportCookbook, MAX_BACKUP_BYTES, previewRestore, type RestoreMode, type RestorePlan } from '../lib/cookbook-backup';
 import { addRecipeToShoppingList, recipePath } from '../lib/kitchen-storage';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './NativeControls';
 import { useNativeApp } from '../pwa/useNativeApp';
@@ -28,6 +29,10 @@ export default function CookbookPage() {
   const [pasted,setPasted]=useState('');
   const [busy,setBusy]=useState(false);
   const [collectionName,setCollectionName]=useState('');
+  const [restoreMode,setRestoreMode]=useState<RestoreMode>('merge');
+  const [backupContents,setBackupContents]=useState('');
+  const [backupFileName,setBackupFileName]=useState('');
+  const [restorePlan,setRestorePlan]=useState<RestorePlan|null>(null);
   const catalog=useMemo(()=>allRecipes(),[revision]);
   const personal=useMemo(()=>loadPersonalRecipes(),[revision]);
   const collections=useMemo(()=>loadCollections(),[revision]);
@@ -82,6 +87,39 @@ export default function CookbookPage() {
     try{setDraft(importRecipeContent(pasted,url));setEditor('manual');setStatus('Recipe parsed. Check the quantities, timing and method before saving.');}
     catch(error){setStatus((error as Error).message);}
   };
+  const downloadBackup=()=>{
+    try{
+      const content=exportCookbook();
+      const blob=new Blob([content],{type:'application/json'});
+      const link=document.createElement('a');
+      const downloadUrl=URL.createObjectURL(blob);
+      link.href=downloadUrl;link.download='mise-cookbook-'+new Date().toISOString().slice(0,10)+'.json';
+      document.body.appendChild(link);link.click();link.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
+      setStatus('Cookbook backup downloaded. Keep it somewhere safe.');
+    }catch(error){setStatus((error as Error).message);}
+  };
+  const updateRestore=(content:string,mode:RestoreMode)=>{
+    setRestorePlan(null);
+    try{setRestorePlan(previewRestore(content,mode));setStatus('Backup validated. Review the counts before applying changes.');}
+    catch(error){setStatus((error as Error).message);}
+  };
+  const pickBackup=async(file:File|undefined)=>{
+    setRestorePlan(null);setBackupContents('');setBackupFileName(file?.name||'');
+    if(!file)return;
+    if(file.size>MAX_BACKUP_BYTES){setStatus('Backup exceeds the 1 MB limit.');return;}
+    try{const content=await file.text();setBackupContents(content);updateRestore(content,restoreMode);}
+    catch{setStatus('Could not read this backup file.');}
+  };
+  const commitRestore=()=>{
+    if(!restorePlan||!backupContents)return;
+    try{
+      const outcome=applyRestore(backupContents,restoreMode);
+      setBackupContents('');setRestorePlan(null);setBackupFileName('');
+      setStatus('Restored '+outcome.resultRecipes+' personal recipes and '+outcome.resultCollections+' collections on this device.');
+      refresh();setCollectionId('all');
+    }catch(error){setStatus((error as Error).message);}
+  };
   const toggleFavourite=(id:string)=>{
     if(setRecipeSaved(id,!saved.includes(id)))refresh();
     else setStatus('Could not save your favourites on this device.');
@@ -121,7 +159,7 @@ export default function CookbookPage() {
               <label htmlFor="import-url">Recipe webpage URL</label>
               <input id="import-url" type="url" inputMode="url" value={url} placeholder="https://example.com/recipe" onChange={event=>setUrl(event.target.value)}/>
               <button type="button" disabled={busy || !url.trim() || !native.online} onClick={()=>void importFromUrl()}><Link2 size={16}/>{busy?'Importing…':'Import recipe'}</button>
-              <p>Direct import requires an HTTPS page with Recipe JSON-LD that allows browser access (CORS). Many websites block it. We never use a scraping proxy or bypass restrictions; use Paste recipe instead. Your imported text stays local.</p>
+              <p>Import tries browser access first, then a protected, rate-limited server fetch for selected recipe publishers if CORS blocks it. Unsupported websites require Paste recipe. Review all ingredients, quantities and allergens before saving. The website URL is sent to Mise only when you tap Import.</p>
             </div> : editor==='paste' ? <div className="cookbook-import-field">
               <label htmlFor="import-paste">Recipe text, HTML or JSON-LD</label>
               <textarea id="import-paste" rows={8} maxLength={500000} value={pasted} onChange={event=>setPasted(event.target.value)}
@@ -142,6 +180,34 @@ export default function CookbookPage() {
               <button type="submit" className="cookbook-save"><Check size={18}/> {draft.id?'Save changes':'Save to my cookbook'}</button>
             </form>}
           </div>}
+      </section>
+      <section className="cookbook-backup" aria-label="Cookbook backup and restore">
+        <details><summary><span><ShieldCheck size={20}/> Your recipes, kept safe</span><span>Backup &amp; restore</span></summary>
+          <div className="cookbook-backup-content">
+            <div><h2>Take your cookbook with you.</h2>
+              <p>Export a versioned JSON backup of your personal recipes, collections and favourites. Only you receive the file; there is no cloud sync or upload to Mise.</p>
+              <button type="button" className="cookbook-save" onClick={downloadBackup}><Download size={17}/> Download cookbook backup</button>
+            </div>
+            <div className="cookbook-restore">
+              <h3>Restore a backup</h3>
+              <label htmlFor="cookbook-backup-file">Choose a Mise JSON backup file (1 MB maximum)</label>
+              <input id="cookbook-backup-file" aria-label="Choose cookbook backup" type="file" accept=".json,application/json" onChange={event=>void pickBackup(event.currentTarget.files?.[0])}/>
+              <fieldset><legend>Restore method</legend>
+                <label><input type="radio" name="restore-mode" checked={restoreMode==='merge'} onChange={()=>{setRestoreMode('merge');if(backupContents)updateRestore(backupContents,'merge');}}/> Merge — keep my existing recipes</label>
+                <label><input type="radio" name="restore-mode" checked={restoreMode==='replace'} onChange={()=>{setRestoreMode('replace');if(backupContents)updateRestore(backupContents,'replace');}}/> Replace — use only the backup</label>
+              </fieldset>
+              {restorePlan&&<div className="cookbook-restore-preview" role="region" aria-label="Restore preview">
+                <strong>Review before restoring</strong>
+                <p>{restorePlan.incomingRecipes} recipes in file · {restorePlan.incomingCollections} collections in file</p>
+                <p>{restorePlan.addedRecipes} recipes to add · {restorePlan.duplicateRecipes} identical recipes skipped · {restorePlan.conflictingIds} ID conflicts resolved</p>
+                <p>After restore: {restorePlan.resultRecipes} recipes, {restorePlan.resultCollections} collections{restorePlan.mode==='replace'?' · '+restorePlan.removedRecipes+' existing recipes removed':''}</p>
+                {restorePlan.warnings.map(note=><p key={note}>{note}</p>)}
+                <button type="button" className="cookbook-save" onClick={commitRestore}><Check size={16}/> {restoreMode==='replace'?'Confirm replace cookbook':'Confirm merge backup'}</button>
+              </div>}
+              {backupFileName&&!restorePlan&&<p role="status">{backupFileName} could not be validated. No changes were made.</p>}
+            </div>
+          </div>
+        </details>
       </section>
       <div className="cookbook-browser">
         <aside className="cookbook-sidebar">
@@ -179,7 +245,7 @@ export default function CookbookPage() {
           </article>)}</div> : <div className="cookbook-empty"><BookOpen size={28}/><h3>Nothing on this shelf yet.</h3><p>Save recipes you love, create your own, or try another collection.</p><button type="button" onClick={startNew}><Plus size={15}/> Write a recipe</button></div>}
         </section>
       </div>
-      <p className="cookbook-privacy"><strong>Private, local-first.</strong> Your recipes and collections are saved in this browser only, not synced between devices. Clearing site data removes them. Personal recipe links work only on devices where the recipe is saved. Public recipe import depends on each website's access rules.</p>
+      <p className="cookbook-privacy"><strong>Private, local-first.</strong> Your recipes and collections are saved in this browser only, not synced between devices. Clearing site data removes them unless you have exported a backup. Restoring or exporting uses only this device; backup JSON files contain your recipes in readable text, so store them privately. Personal recipe links work only on devices where the recipe is saved. Public recipe import depends on each website's access rules.</p>
     </div>
     <NativeDialog app={native} open={settingsOpen} close={()=>setSettingsOpen(false)}/>
     <NativeNotices app={native}/>

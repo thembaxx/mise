@@ -28,7 +28,7 @@ For a production build:
     npm run build
     npm run preview
 
-The app is static and requires no database, API keys or authentication. Deploy the root directory to Vercel as a Vite project; build command is npm run build and output directory is dist.
+The app is mostly static and requires no database, API keys or authentication. Mise 2.1 also includes an optional narrow serverless endpoint for protected imports from explicitly supported recipe websites. Deploy the root directory to Vercel as a Vite project; build command is npm run build and output directory is dist.
 
 ## Structure
 
@@ -142,10 +142,29 @@ QA: `npm run test` checks conversion precision, bad storage data, real-prep sepa
 
 Open **My cookbook** from the navigation or visit `/cookbook/`. Create and edit personal recipes, favourite published or personal dishes, and organise either in named collections. Manual recipes use a name, servings, cook time, ingredient lines and method lines; inputs are validated and stored locally. The editor keeps numeric amounts and units explicit rather than guessing ingredient density. New recipes are immediately usable with guided Cook Mode, interactive Quick 3D/full physics (optional), shopping lists, preparation checklists and independent kitchen timers.
 
-**Import recipes:** Paste a recipe formatted with `Ingredients` and `Instructions` headings, Recipe JSON-LD, or HTML containing a valid `Recipe` JSON-LD block. HTTPS website URL import works only when the source provides accessible structured recipe data **and permits cross-origin browser requests**; websites with restrictive CORS/redirects require manual paste. There is no server scraping proxy, automatic sign-in, or third-party recipe extraction service. Check each imported ingredient, allergy warning, quantity and time before cooking.
+**Import recipes:** Paste a recipe formatted with `Ingredients` and `Instructions` headings, Recipe JSON-LD, or HTML containing a valid `Recipe` JSON-LD block. HTTPS website URL import first tries direct browser fetches; selected known recipe publishers may use Mise's narrow rate-limited serverless fallback when CORS blocks them. Other websites require manual paste. There is no open-ended scraping proxy, automatic sign-in or third-party extraction service. Check each imported ingredient, allergy warning, quantity and time before cooking.
 
 **PWA share target:** Compatible installed browsers can offer **Mise** in the operating system's share menu for text or URLs. This opens the import editor for review — URLs are never fetched until the user explicitly taps Import. Offline recipe editing and viewing use cached application files and local browser storage. Cooking timers can recover visual remaining time after backgrounding but **do not provide guaranteed alarms or food-safety notifications**.
 
 **Privacy/limitations:** Cookbook data and favourite IDs stay on this device only. Clearing site data or uninstalling may delete recipes and collections; export/cloud sync is **not** available. Personal recipe URLs require the same browser's locally saved data, are not publicly shareable and have `noindex` protections. Editing recipe ingredients or steps clears obsolete cooking progress, timers and related shopping entries; deleting a recipe removes its associated state. The built-in public recipe pages remain prerendered and indexable, while the cookbook itself is intentionally noindexed. The Redact runtime migration is an isolated, unmerged experiment; production and this milestone use React 19.
 
 **Test locally:** `npm run build` executes Vitest, TypeScript, production build, PWA and private/public prerender verification. `npx playwright install chromium && npm run test:e2e` runs desktop Chromium and emulated touch-mobile flows including cookbook creation/edit, collection persistence, import, Cook Mode integration and offline reload. Browser-based verification requires actually running these suites; GitHub Actions runner failures before test steps are infrastructure issues, not successful browser tests. Physical Safari/iOS and Android remain device QA follow-ups.
+
+
+## Mise 2.1 — portable, private cookbook backups
+
+In **My cookbook → Backup & restore**, download a readable, versioned JSON file containing personal recipes, their collections and favourite IDs. No recipe data is uploaded or sent to a third-party backup service.
+
+To restore, select a Mise backup (up to **1 MB**) and choose **Merge** (keep existing recipes and combine collections) or **Replace** (remove recipes, collections and favourites not in the file). The preview shows imports, identical recipes skipped, ID collisions resolved, collections and removals. Confirming is a separate step. Restore validates version, recipe structure, quantities, step lengths, unique identifiers, references and size; malformed files cause no changes. It attempts a rollback if browser storage rejects a write.
+
+The backup intentionally excludes kitchen progress, shopping lists, cooking timers, passwords and unrelated browser storage. Treat downloaded recipe files as private: anyone holding the file can read its contents. Backup restore is per-device and never a cloud sync. A replace operation can discard existing local recipes; preserve a second backup before replacing.
+
+### Recipe URL importing
+
+The browser first tries public Recipe JSON-LD directly; many publishers disallow cross-origin requests. For selected publishers, Mise additionally offers a user-initiated **protected HTTPS import endpoint** at /api/import-recipe. It only accepts reviewed hosts: www.budgetbytes.com, www.recipetineats.com, www.bbcgoodfood.com, www.allrecipes.com and www.seriouseats.com. Other sites use Paste recipe/manual editing. Successful imports remain editable previews until explicitly saved.
+
+Server-side import uses exact HTTPS hostname matching, no embedded credentials or custom ports, pinned validated public IPv4 DNS resolution (SSRF/rebinding protection), no redirects, TLS verification, a **350 KB document limit**, a **seven-second timeout**, no cookies and no storage of recipe content. Per-instance abuse limiting is three imports per client per five minutes and 25 total per instance per five minutes. **In-memory limits are not a distributed global rate limit**: configure a project-scoped Vercel WAF rule or shared limiter before broad public launch. Only public Recipe JSON-LD can be parsed; compatibility depends on publishers' access policies. Respect publishers' policies and rights.
+
+### QA and release
+
+The build executes brand generation, Vitest, TypeScript, Vite, PWA and prerender verification. Playwright runs desktop Chromium and touch-mobile Chromium with cookbook backup, restore, import fallback and established 3D/Cook Mode/Smart Companion flows. The GitHub Actions runner has previously failed before running any steps. **A READY Vercel deployment is not a substitute for passing browser QA.** The isolated TanStack Redact experiment remains unmerged.

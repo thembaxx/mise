@@ -62,7 +62,7 @@ export const setRecipeSaved = (id: string, enabled: boolean): boolean => {
   return write(FAVORITES_KEY,next);
 };
 
-function validateStoredRecipe(value: unknown): PersonalRecipe | null {
+export function validateStoredRecipe(value: unknown): PersonalRecipe | null {
   if (!value || typeof value !== 'object') return null;
   const row = value as Partial<PersonalRecipe>;
   if (!isPersonalRecipe(str(row.id,90)) || !str(row.name,120) ||
@@ -216,6 +216,16 @@ function isoMinutes(value: unknown): number {
   const match = /^PT(?:(\d+)H)?(?:(\d+)M)?/i.exec(str(value,70));
   return match ? Number(match[1] || 0)*60+Number(match[2] || 0) : 0;
 }
+function flattenInstructions(value:unknown):string[] {
+  if(Array.isArray(value)) return value.flatMap(flattenInstructions);
+  if(typeof value==='string')return value.trim()?[value.trim()]:[];
+  if(!value||typeof value!=='object')return [];
+  const row=value as Record<string,unknown>;
+  const nested=flattenInstructions(row.itemListElement);
+  if(nested.length)return nested;
+  const direct=textValue(row.text)||textValue(row.name);
+  return direct?[direct]:[];
+}
 function findSchema(value: unknown): Record<string,unknown> | null {
   if (Array.isArray(value)) {for (const item of value) {const recipe=findSchema(item);if (recipe) return recipe;} return null;}
   if (!value || typeof value !== 'object') return null;
@@ -231,18 +241,17 @@ export function importRecipeContent(content: string, sourceUrl = ''): RecipeDraf
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     try {data=JSON.parse(trimmed);} catch { /* plain text may contain braces */ }
   } else {
-    const script=/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+    const script=/<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
     let match: RegExpExecArray | null;
     while ((match=script.exec(content))) {
-      try { const candidate=JSON.parse(match[1]); if(findSchema(candidate)){data=candidate;break;} } catch { /* ignore invalid block */ }
+      if(!/\btype\s*=\s*(?:["']application\/ld\+json["']|application\/ld\+json)/i.test(match[1]))continue;
+      try { const candidate=JSON.parse(match[2]); if(findSchema(candidate)){data=candidate;break;} } catch { /* ignore invalid block */ }
     }
   }
   const schema=findSchema(data);
   if (schema) {
     const ingredients=Array.isArray(schema.recipeIngredient) ? schema.recipeIngredient.map(textValue).filter(Boolean) : [];
-    const instructions=Array.isArray(schema.recipeInstructions)
-      ? schema.recipeInstructions.map(textValue).filter(Boolean)
-      : [textValue(schema.recipeInstructions)].filter(Boolean);
+    const instructions=flattenInstructions(schema.recipeInstructions);
     const name=textValue(schema.name);
     if (!name || !ingredients.length || !instructions.length) throw new Error('Recipe schema is missing a name, ingredients or instructions.');
     const minutes=isoMinutes(schema.totalTime) || isoMinutes(schema.cookTime) + isoMinutes(schema.prepTime) || 30;
@@ -273,8 +282,22 @@ export async function importRecipeUrl(value: string): Promise<RecipeDraft> {
     const content=await response.text();
     return importRecipeContent(content,url);
   } catch (error) {
-    if (error instanceof TypeError || (error as Error)?.name==='AbortError')
-      throw new Error('The website blocked browser import or timed out. Copy its recipe text or JSON-LD into the paste field instead.');
+    if(error instanceof TypeError || (error as Error)?.name==='AbortError') {
+      // Vercel's narrow, protected importer is an opt-in fallback for supported hosts.
+      // Vite/local/offline may not provide this route; paste remains the safe universal option.
+      try {
+        if(!navigator.onLine)throw new Error('offline');
+        const reply=await fetch('/api/import-recipe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url}),credentials:'same-origin',cache:'no-store'});
+        const result:unknown=await reply.json();
+        if(!result || typeof result!=='object')throw new Error('invalid response');
+        const response=result as {content?:unknown;error?:unknown};
+        if(!reply.ok)throw new Error(typeof response.error==='string'?response.error:'Protected import failed.');
+        if(typeof response.content!=='string')throw new Error('Invalid recipe response.');
+        return importRecipeContent(response.content,url);
+      }catch(problem){
+        throw new Error((problem as Error).message.startsWith('Protected') || (problem as Error).message.startsWith('This website') || (problem as Error).message.startsWith('Import rate') ? (problem as Error).message : 'Website import is unavailable or blocked. Copy the recipe text or JSON-LD into Paste recipe instead.');
+      }
+    }
     throw error;
   } finally {clearTimeout(timeout);}
 }
