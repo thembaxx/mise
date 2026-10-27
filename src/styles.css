@@ -329,3 +329,39 @@ body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area
 .recipe-related-grid strong{font-family:'Playfair Display',Georgia,serif;font-size:21px;line-height:1.2;font-weight:650}
 @media(max-width:650px){.recipe-related-grid{grid-template-columns:1fr;gap:12px}.recipe-related-grid a{display:grid;grid-template-columns:116px 1fr;grid-template-rows:1fr 1fr;gap:0;padding:0;min-height:112px}.recipe-related-grid img{grid-column:1;grid-row:1 / 3;aspect-ratio:auto;height:100%;max-height:140px}.recipe-related-grid span{grid-column:2;align-self:end;padding-top:16px}.recipe-related-grid strong{grid-column:2;align-self:start;font-size:18px;padding-top:8px}}
 @media(prefers-reduced-motion:reduce){.recipe-related-grid a{transition:none}.recipe-related-grid a:hover{transform:none}}
+
+
+/* Smart Cooking Companion: separate real prep, units and durable kitchen timers */
+.companion-section{border:1px solid var(--cm-border,var(--rp-border,#d7dfd1));border-radius:18px;padding:17px;background:var(--cm-bg,var(--rp-surface,#fffdf7));min-width:0;margin:12px 0}
+.companion-section>header{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px;align-items:center}
+.companion-section h3{margin:0;font-size:16px;display:flex;align-items:center;gap:6px}
+.companion-section>header>span,.companion-help{font-size:11px;color:var(--app-muted,#72806f);line-height:1.6}
+.companion-help{margin:7px 0 12px}
+.companion-section ul{list-style:none;margin:0;padding:0}
+.companion-prep li,.companion-guide li,.companion-timer-list li{border-top:1px solid var(--cm-border,var(--rp-border,#dae1d5));padding:10px 0}
+.companion-prep label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600}
+.companion-prep input{width:20px;height:20px;accent-color:#71994f;flex-shrink:0}
+.companion-prep input:checked+span{text-decoration:line-through;opacity:.6}
+.companion-units{border:0;margin:10px 0;padding:0;display:flex;gap:13px;align-items:center}
+.companion-units legend{font-size:11px;font-weight:700;color:var(--app-muted,#738274);padding-bottom:7px}
+.companion-units label{font-size:12px;display:inline-flex;align-items:center;gap:5px}
+.companion-units input{width:17px;height:17px;accent-color:#71994f}
+.companion-amount-row{display:flex;justify-content:space-between;gap:10px;font-size:12px}
+.companion-amount-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}
+.companion-guide details{margin:6px 0;font-size:11px;line-height:1.5;color:var(--app-muted,#66776a)}
+.companion-guide summary{cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.companion-timer-add{display:grid;grid-template-columns:minmax(0,1fr) 86px;gap:8px;margin:12px 0}
+.companion-timer-add label{font-size:11px;font-weight:700;display:flex;flex-direction:column;gap:5px;min-width:0}
+.companion-timer-add input{width:100%;min-width:0;height:40px;padding:7px 9px;background:var(--cm-surface,#fff);border:1px solid var(--cm-border,#cfd8ca);border-radius:10px;color:inherit}
+.companion-timer-add button{grid-column:1/-1;min-height:42px;border-radius:12px;background:#d6e9c2;border:1px solid #95b57b;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:750;color:#29492a}
+.companion-timer-add button:disabled{opacity:.45}
+.companion-timer-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+.companion-timer-heading span{font-size:11px;color:var(--app-muted,#71806d)}
+.companion-timer-list output{display:block;font-size:30px;font-family:'Outfit',monospace;font-variant-numeric:tabular-nums;letter-spacing:-.04em;margin:6px 0}
+.companion-timer-actions{display:flex;gap:7px;flex-wrap:wrap}
+.companion-timer-actions button{display:flex;gap:5px;align-items:center;min-height:38px;background:var(--cm-surface,#fff);border:1px solid var(--cm-border,#d7dfd4);padding:0 10px;border-radius:99px;color:inherit;font-size:11px}
+.companion-timer-actions button:first-child{background:#d6e9c2;color:#29492a}
+.companion-notice{display:block;font-size:11px;line-height:1.5}
+.companion-section :is(input,button,summary):focus-visible{outline:3px solid #f47743;outline-offset:3px}
+.recipe-ingredients .companion-section{margin:16px 0}
+@media(max-width:850px){.cook-mode-side .companion-section{padding:15px}.companion-timer-add{grid-template-columns:minmax(0,1fr) 82px}}
