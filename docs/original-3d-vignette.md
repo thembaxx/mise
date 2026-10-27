@@ -20,3 +20,7 @@ The new additive `public/models/original/mise-plated-dish-animated.glb` (111,648
 The original `mise-plated-dish.glb` is retained as the first network-error fallback; the built-in procedural dish remains the final fallback. The GLB does not represent the user's exact selected recipe or real food.
 The clip stops for reduced motion; the plate reveal stays a one-time flourish. The animated GLB is included in the PWA precache, so installed apps can load it offline. The `/3d-preview.html` route still previews the original static asset until the viewer supports multi-mesh materials.
 Run `npm run assets:check`, `npm test`, `npm run typecheck` and browser tests when runners are available. Physical-device QA and deployment confirmation remain pending.
+
+## Browser model preview v3
+
+The bundled `/3d-preview.html` route now loads either original or animated GLBs in the same-origin `/3d-viewer.js` WebGL2 renderer. It supports embedded binary buffers, multiple material-based primitive meshes, indexed or non-indexed triangles, node transforms, keyframe animation clips, touch orbit/pinch zoom, keyboard controls, a play/pause control, reduced motion, and PNG capture without external CDNs. Switch between **Animated** and **Original static**. The browser preview is not a Blender render. Unsupported GLB features (skins, textures, external URIs, compressed geometry) are intentionally not decoded. Mobile Safari and real device GPU validation are still required.
