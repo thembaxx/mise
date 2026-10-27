@@ -28,7 +28,7 @@ For a production build:
     npm run build
     npm run preview
 
-The app is mostly static and requires no database, API keys or authentication. Mise 2.1 also includes an optional narrow serverless endpoint for protected imports from explicitly supported recipe websites. Deploy the root directory to Vercel as a Vite project; build command is npm run build and output directory is dist.
+The app is mostly static and requires no database, API keys or authentication. Mise 2.1 also includes an optional narrow serverless endpoint for protected imports from explicitly supported recipe websites. The endpoint is **disabled by default** until an operator configures and verifies Vercel's global WAF limits, then explicitly enables both `MISE_IMPORT_PROXY_ENABLED=true` and `MISE_IMPORT_GLOBAL_RATE_LIMIT_VERIFIED=true` in Vercel. A per-instance counter alone cannot enforce global protection; browser import and manual paste remain available while disabled. Deploy the root directory to Vercel as a Vite project; build command is npm run build and output directory is dist.
 
 ## Structure
 
