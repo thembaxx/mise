@@ -157,6 +157,35 @@ function KitchenEnvironment({ heat }: { heat: number }) {
       <mesh castShadow><cylinderGeometry args={[.16, .17, .39, 16]} /><meshStandardMaterial color={i % 2 ? '#e0bd7e' : '#d4d0b9'} roughness={.5} /></mesh>
       <mesh position={[0, .22, 0]}><cylinderGeometry args={[.18, .18, .05, 16]} /><meshStandardMaterial color="#3c4034" /></mesh>
     </group>)}
+    {/* Original low-poly shelf vignette: decorative only, outside the cooking physics. */}
+    <group position={[0, 2.65, -2.62]}>
+      <mesh castShadow position={[0, -0.03, 0]}>
+        <boxGeometry args={[1.24, .17, .42]} />
+        <meshStandardMaterial color="#986841" roughness={.83} />
+      </mesh>
+      {[-.36, -.12, .12, .36].map((x, i) => (
+        <group key={x} position={[x, .16, 0]}>
+          <mesh castShadow>
+            <icosahedronGeometry args={[i === 3 ? .14 : .12, 1]} />
+            <meshStandardMaterial color={['#d46e35', '#e4b742', '#a9bd65', '#b84d34'][i]} roughness={.7} />
+          </mesh>
+          <mesh position={[0, .13, 0]} rotation={[0, 0, .35]}>
+            <cylinderGeometry args={[.012, .013, .09, 6]} />
+            <meshStandardMaterial color="#58724b" />
+          </mesh>
+        </group>
+      ))}
+      <mesh castShadow position={[.69, .05, 0]}>
+        <cylinderGeometry args={[.13, .16, .35, 12]} />
+        <meshStandardMaterial color="#dad0b2" roughness={.92} />
+      </mesh>
+      {[-.05, .06].map((x) => (
+        <mesh key={x} position={[.69 + x, .32, 0]} rotation={[0, 0, x * 3]}>
+          <icosahedronGeometry args={[.14, 0]} />
+          <meshStandardMaterial color="#5f8456" />
+        </mesh>
+      ))}
+    </group>
     <mesh position={[0, -.72, 0]} receiveShadow castShadow><boxGeometry args={[9.4, .85, 6.1]} /><meshStandardMaterial color="#785a43" roughness={.78} /></mesh>
     <mesh position={[0, -.25, 0]} receiveShadow><boxGeometry args={[9.5, .14, 6.2]} /><meshStandardMaterial color="#b7a58c" roughness={.72} /></mesh>
     <mesh position={[0, -.172, 0]} receiveShadow><boxGeometry args={[9.5, .015, 6.2]} /><meshStandardMaterial color="#e3d8c4" roughness={.7} /></mesh>
