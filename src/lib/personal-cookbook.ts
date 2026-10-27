@@ -145,7 +145,7 @@ export function parseIngredient(line: string, index: number): Ingredient {
   const match = /^(\d+(?:[.,]\d+)?|\d+\/\d+)\s+([a-zA-Z]+)\s+(.+)$/.exec(clean);
   let amount = 1, unit = 'item', name = clean;
   if (match) {
-    const quantity = match[1].includes('/') ? match[1].split('/').reduce((a,b) => Number(a)/Number(b)) : Number(match[1].replace(',','.'));
+    const quantity = match[1].includes('/') ? Number(match[1].split('/')[0]) / Number(match[1].split('/')[1]) : Number(match[1].replace(',','.'));
     if (!finite(quantity,0.001,100_000)) throw new Error('Ingredient quantities must be positive and reasonable.');
     amount = quantity; unit = match[2].slice(0,30); name = match[3];
   } else {
