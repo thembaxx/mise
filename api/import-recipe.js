@@ -100,6 +100,10 @@ export default async function handler(req,res){
   let url;
   try{url=validateImportUrl(req.body.url);}
   catch(error){return res.status(422).json({error:error.message});}
+  // A per-function Map cannot enforce a global limit across serverless instances.
+  // Fail closed until an operator confirms global WAF rules AND explicitly opts in.
+  if(process.env.MISE_IMPORT_PROXY_ENABLED!=='true'||process.env.MISE_IMPORT_GLOBAL_RATE_LIMIT_VERIFIED!=='true')
+    return res.status(503).json({error:'Protected website importing is unavailable. Paste the recipe text instead.'});
   if(!rateLimit(req)){
     res.setHeader('Retry-After','300');
     return res.status(429).json({error:'Import rate limit reached. Wait a few minutes or paste recipe text.'});
