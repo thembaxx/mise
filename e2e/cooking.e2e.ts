@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 test('discovers a recipe and completes the guided cooking activity', async ({ page }) => {
+  // End-to-end ingredient-by-ingredient interaction can exceed 45 seconds with software WebGL.
+  test.setTimeout(120_000);
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /the world/i })).toBeVisible();
 
