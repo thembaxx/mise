@@ -18,7 +18,7 @@ Do not confuse the separately downloadable *procedural candidate review pack* wi
 ## Animated plated-dish v2
 The new additive `public/models/original/mise-plated-dish-animated.glb` (111,648 bytes) includes a named **Garnish breathing** keyframe clip for a slow, subtle finishing touch when a virtual dish is plated. It was generated programmatically from original shapes and material colours, **not made or rendered with Blender**.
 The original `mise-plated-dish.glb` is retained as the first network-error fallback; the built-in procedural dish remains the final fallback. The GLB does not represent the user's exact selected recipe or real food.
-The clip stops for reduced motion; the plate reveal stays a one-time flourish. The animated GLB is included in the PWA precache, so installed apps can load it offline. The `/3d-preview.html` route still previews the original static asset until the viewer supports multi-mesh materials.
+The clip stops for reduced motion; the plate reveal stays a one-time flourish. The animated GLB is included in the PWA precache, so installed apps can load it offline. The `/3d-preview.html` route now allows switching between the static and animated models (see v3 below).
 Run `npm run assets:check`, `npm test`, `npm run typecheck` and browser tests when runners are available. Physical-device QA and deployment confirmation remain pending.
 
 ## Browser model preview v3
