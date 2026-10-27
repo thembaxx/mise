@@ -17,7 +17,7 @@ test('recipe pages serve unique pre-rendered HTML and Google Recipe structured d
 
   await page.goto('/recipes/chakalaka/');
   await expect(page.getByRole('heading',{name:'Rainbow chakalaka'})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Ingredients'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Ingredients',exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'How to make it'})).toBeVisible();
   await expect(page.getByRole('link',{name:'Cook interactively'})).toHaveAttribute('href','/?view=kitchen&recipe=chakalaka');
 });
