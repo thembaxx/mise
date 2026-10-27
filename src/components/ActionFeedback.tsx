@@ -38,7 +38,7 @@ export function ActionFeedback({ notice, dismiss }: { notice: Notice | null; dis
     requestAnimationFrame(() => {
       const origin = notice.origin;
       const target = origin?.isConnected ? origin : origin?.id ? document.getElementById(origin.id) : null;
-      (target || document.getElementById('recipe-search'))?.focus({ preventScroll: true });
+      (target || (isKeyboardInteraction() ? document.getElementById('recipe-search') : null))?.focus({ preventScroll: true });
     });
   };
   return <div className="action-feedback-region" aria-live="polite" aria-atomic="true">
