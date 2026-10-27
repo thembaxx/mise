@@ -203,10 +203,9 @@ export default function App() {
   const selectedRecipe = catalog.find(recipe => recipe.id === selectedId) || recipes[0];
 
   const toggleSaved = (id: string) => {
-    setSaved(current => {
-      const next = current.includes(id) ? current.filter(item => item !== id) : [...current, id];
-      return setRecipeSaved(id,!current.includes(id)) ? next : current;
-    });
+    // Persist outside React's state updater: persistence broadcasts a cookbook event
+    // that may synchronously notify mounted components.
+    if (setRecipeSaved(id,!saved.includes(id))) setSaved(savedRecipeIds());
   };
 
   useEffect(() => {
