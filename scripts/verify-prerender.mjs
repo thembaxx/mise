@@ -16,7 +16,7 @@ const expected=[origin+'/',...recipes.map(recipe=>origin+'/recipes/'+recipe.id+'
 check(xmlLocations.length===expected.length,'Sitemap entry count mismatch');
 check(new Set(xmlLocations).size===xmlLocations.length,'Duplicate sitemap entries');
 for(const url of expected)check(xmlLocations.includes(url),'Sitemap missing '+url);
-check(!xmlLocations.some(url=>url.includes('/shopping/')),'Private shopping list indexed');
+check(!xmlLocations.some(url=>url.includes('/shopping/')||url.includes('/cookbook/')||url.includes('/recipes/personal-')),'Device-local pages accidentally indexed');
 
 const routeDirs=await readdir(resolve('dist/recipes'),{withFileTypes:true});
 check(routeDirs.filter(entry=>entry.isDirectory()).length===recipes.length,'Number of generated recipe route directories is wrong');
@@ -56,10 +56,14 @@ check(uniqueNames.size===recipes.length,'Duplicate recipe names');
 const list=await text('shopping/index.html');
 check(list.includes('name="robots" content="noindex, follow"'),'Shopping page not protected from indexing');
 check(list.includes('rel="canonical" href="'+origin+'/shopping/"'),'Shopping canonical mismatch');
+const cookbook=await text('cookbook/index.html');
+check(cookbook.includes('name="robots" content="noindex, nofollow"'),'Personal cookbook not protected from indexing');
+check(cookbook.includes('rel="canonical" href="'+origin+'/cookbook/"'),'Personal cookbook canonical mismatch');
+check(!cookbook.includes('"@type":"Recipe"'),'Personal recipes must never be embedded into public HTML');
 check((await text('index.html')).includes('The world, on your table'),'Home identity missing');
 check((await text('sw.js')).includes('precacheAndRoute'),'Missing offline service-worker precache');
 if(errors.length){
   for(const error of errors)console.error('VERIFY FAIL:',error);
   throw new Error('Recipe prerender verification failed ('+errors.length+' error(s)).');
 }
-console.log('Verified '+recipes.length+' unique crawlable recipe documents, JSON-LD, canonical metadata, sitemap, private shopping page and service worker.');
+console.log('Verified '+recipes.length+' unique crawlable recipe documents, JSON-LD, canonical metadata, sitemap, private shopping and cookbook pages, and service worker.');
