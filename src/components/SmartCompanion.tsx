@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Clock3, Pause, Play, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { Clock } from '@phosphor-icons/react/dist/csr/Clock';
+import { Pause } from '@phosphor-icons/react/dist/csr/Pause';
+import { Play } from '@phosphor-icons/react/dist/csr/Play';
+import { Plus } from '@phosphor-icons/react/dist/csr/Plus';
+import { ArrowCounterClockwise } from '@phosphor-icons/react/dist/csr/ArrowCounterClockwise';
+import { Trash } from '@phosphor-icons/react/dist/csr/Trash';
 import type { Recipe } from '../data/recipes';
 import { MAX_TIMERS, createTimer, formatIngredient, loadMeasureSystem, loadPrep, loadTimers, pauseTimer, reconcileTimers, resetTimer, saveMeasureSystem, savePrep, saveTimers, startTimer, suggestSwap, type CompanionTimer, type MeasureSystem } from '../lib/companion';
 
@@ -81,7 +86,7 @@ export function RecipeTimers({recipe,currentStep}:{recipe:Recipe;currentStep:num
   setMessage('Added paused timer. Press Start when ready.');
  };
  return <section className="companion-section companion-timers" aria-label="Independent kitchen timers">
-  <header><h3><Clock3 size={17}/> Kitchen timers</h3><span>{timers.length}/{MAX_TIMERS}</span></header>
+  <header><h3><Clock size={17}/> Kitchen timers</h3><span>{timers.length}/{MAX_TIMERS}</span></header>
   <p className="companion-help">Up to five independent timers, stored on this device. Running timers use real elapsed time even when this tab is hidden. Background alarms aren't guaranteed; check food when you return.</p>
   <div className="companion-timer-add">
    <button type="button" onClick={()=>add(recipe.steps[currentStep].title,recipe.steps[currentStep].minutes)}><Plus size={15}/> Add step timer</button>
@@ -96,8 +101,8 @@ export function RecipeTimers({recipe,currentStep}:{recipe:Recipe;currentStep:num
     {timer.status==='running'
       ? <button type="button" aria-label={'Pause '+timer.label} onClick={()=>apply(current=>current.map(t=>t.id===timer.id?pauseTimer(t):t))}><Pause size={16}/> Pause</button>
       : <button type="button" aria-label={'Start '+timer.label} onClick={()=>apply(current=>current.map(t=>t.id===timer.id?startTimer(t):t))}><Play size={16}/> {timer.status==='finished'?'Restart':'Start'}</button>}
-    <button type="button" aria-label={'Reset '+timer.label} onClick={()=>apply(current=>current.map(t=>t.id===timer.id?resetTimer(t):t))}><RotateCcw size={16}/></button>
-    <button type="button" aria-label={'Remove '+timer.label} onClick={()=>apply(current=>current.filter(t=>t.id!==timer.id))}><Trash2 size={16}/></button>
+    <button type="button" aria-label={'Reset '+timer.label} onClick={()=>apply(current=>current.map(t=>t.id===timer.id?resetTimer(t):t))}><ArrowCounterClockwise size={16}/></button>
+    <button type="button" aria-label={'Remove '+timer.label} onClick={()=>apply(current=>current.filter(t=>t.id!==timer.id))}><Trash size={16}/></button>
    </div>
   </li>)}</ul>
   {timers.length===0&&<p className="companion-help">Timers start paused, independently of the existing step timer.</p>}

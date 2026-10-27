@@ -1,5 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Droplets, Flame, Pause, Play, Plus, Scissors, Soup, Volume2, VolumeX, X, Sun, Moon } from 'lucide-react';
+import { ArrowLeft } from '@phosphor-icons/react/dist/csr/ArrowLeft';
+import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
+import { Knife } from '@phosphor-icons/react/dist/csr/Knife';
+import { Drop } from '@phosphor-icons/react/dist/csr/Drop';
+import { BowlSteam } from '@phosphor-icons/react/dist/csr/BowlSteam';
+import { Clock } from '@phosphor-icons/react/dist/csr/Clock';
+import { Fire } from '@phosphor-icons/react/dist/csr/Fire';
+import { Pause } from '@phosphor-icons/react/dist/csr/Pause';
+import { Play } from '@phosphor-icons/react/dist/csr/Play';
+import { Plus } from '@phosphor-icons/react/dist/csr/Plus';
+import { SpeakerHigh } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
+import { SpeakerSlash } from '@phosphor-icons/react/dist/csr/SpeakerSlash';
+import { X } from '@phosphor-icons/react/dist/csr/X';
+import { Sun } from '@phosphor-icons/react/dist/csr/Sun';
+import { Moon } from '@phosphor-icons/react/dist/csr/Moon';
 import type { Recipe } from '../data/recipes';
 import { IngredientGuide, PrepChecklist, RecipeTimers } from './SmartCompanion';
 import { getCookingRequirements, isReadyToPlate, type CookingAction, type KitchenProgress } from '../lib/cooking';
@@ -146,10 +162,10 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
     onStep(Math.max(0, Math.min(recipe.steps.length - 1, value)));
   };
 
-  const actionButtons: { action: CookingAction; label: string; icon: typeof Scissors; disabled: boolean }[] = [
-    { action: 'chop', label: 'Chop', icon: Scissors, disabled: complete || progress.chops >= 4 },
-    { action: 'pour', label: 'Pour', icon: Droplets, disabled: complete || progress.pours >= 3 },
-    { action: 'stir', label: 'Stir', icon: Soup, disabled: complete || heat <= 0 || added.length === 0 || progress.stirs >= 6 },
+  const actionButtons: { action: CookingAction; label: string; icon: typeof Knife; disabled: boolean }[] = [
+    { action: 'chop', label: 'Chop', icon: Knife, disabled: complete || progress.chops >= 4 },
+    { action: 'pour', label: 'Pour', icon: Drop, disabled: complete || progress.pours >= 3 },
+    { action: 'stir', label: 'Stir', icon: BowlSteam, disabled: complete || heat <= 0 || added.length === 0 || progress.stirs >= 6 },
     { action: 'plate', label: 'Plate', icon: ChefHat, disabled: complete || !readyToPlate },
   ];
 
@@ -159,7 +175,7 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
         <div className="cook-mode-brand"><img src="/brand/mise-mark.svg" width="32" height="32" alt="" /><span>MISE <b>/ COOK MODE</b></span></div>
         <div className="cook-mode-header-actions">
           <button type="button" aria-pressed={wakeEnabled} aria-label={'Keep awake ' + (wakeEnabled ? 'on' : 'off')} onClick={toggleWake} title="Optional screen wake lock"><Sun size={17} /> <span>Keep awake {wakeEnabled ? 'on' : 'off'}</span></button>
-          <button type="button" onClick={speakStep} aria-pressed={reading} aria-label={reading ? 'Stop reading the step' : 'Read current step aloud'}>{reading ? <VolumeX size={17}/> : <Volume2 size={17}/>}<span>{reading ? 'Stop voice' : 'Read aloud'}</span></button>
+          <button type="button" onClick={speakStep} aria-pressed={reading} aria-label={reading ? 'Stop reading the step' : 'Read current step aloud'}>{reading ? <SpeakerSlash size={17}/> : <SpeakerHigh size={17}/>}<span>{reading ? 'Stop voice' : 'Read aloud'}</span></button>
           <button className="cook-mode-exit" ref={closeButton} type="button" onClick={close} aria-label="Close cook mode"><X size={20} /> <span>Exit</span></button>
         </div>
       </header>
@@ -181,7 +197,7 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
 
         <aside className="cook-mode-side" aria-label="Cooking timer, ingredients and interactive tools">
           <div className="cook-mode-timer">
-            <p><Clock3 size={16} /> THIS STEP'S TIMER</p>
+            <p><Clock size={16} /> THIS STEP'S TIMER</p>
             <strong aria-label={'Timer remaining ' + formatTime(seconds)}>{formatTime(seconds)}</strong>
             <div className="cook-mode-timer-actions">
               <button type="button" onClick={onTimerToggle} aria-label={running ? 'Pause cook mode timer' : 'Start cook mode timer'}>{running ? <Pause size={19}/> : <Play size={19}/>} {running ? 'Pause' : 'Start'}</button>
@@ -203,13 +219,13 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
             </div>
           </div>
           <div className="cook-mode-play">
-            <div className="cook-mode-play-title"><span>INTERACTIVE KITCHEN</span><span><Flame size={13}/> {heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</span></div>
+            <div className="cook-mode-play-title"><span>INTERACTIVE KITCHEN</span><span><Fire size={13}/> {heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</span></div>
             <input type="range" aria-label="Cook mode burner heat" value={heat} min="0" max="1" step=".05" onChange={event => onHeat(Number(event.target.value))} />
             <div className="cook-mode-tool-actions">{actionButtons.map(({action,label,icon:Icon,disabled})=><button key={action} type="button" onClick={() => onAction(action)} disabled={disabled} aria-label={'Cook mode ' + label.toLowerCase()}><Icon size={18}/><span>{label}</span></button>)}</div>
           </div>
         </aside>
       </div>
-      {(voiceStatus || wakeStatus) && <div className="cook-mode-status" role="status">{wakeStatus && <span><Moon size={13}/>{wakeStatus}</span>}{voiceStatus && <span><Volume2 size={13}/>{voiceStatus}</span>}</div>}
+      {(voiceStatus || wakeStatus) && <div className="cook-mode-status" role="status">{wakeStatus && <span><Moon size={13}/>{wakeStatus}</span>}{voiceStatus && <span><SpeakerHigh size={13}/>{voiceStatus}</span>}</div>}
     </section>
   </div>;
 }

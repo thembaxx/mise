@@ -1,5 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, ClipboardList, BookOpen, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
+import { ArrowDown } from '@phosphor-icons/react/dist/csr/ArrowDown';
+import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
+import { Clock } from '@phosphor-icons/react/dist/csr/Clock';
+import { GlobeHemisphereWest } from '@phosphor-icons/react/dist/csr/GlobeHemisphereWest';
+import { Heart } from '@phosphor-icons/react/dist/csr/Heart';
+import { ClipboardText } from '@phosphor-icons/react/dist/csr/ClipboardText';
+import { BookOpen } from '@phosphor-icons/react/dist/csr/BookOpen';
+import { List } from '@phosphor-icons/react/dist/csr/List';
+import { Cursor } from '@phosphor-icons/react/dist/csr/Cursor';
+import { MagnifyingGlass } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
+import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
+import { X } from '@phosphor-icons/react/dist/csr/X';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import KitchenGateway from './components/KitchenGateway';
@@ -33,17 +45,18 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
         <button type="button" onClick={() => go('experience')}>Our philosophy</button>
       </nav>
       <div className="header-actions">
-        <a className="shopping-header-link" href="/cookbook/" aria-label="Open personal cookbook" title="My cookbook"><BookOpen size={19} strokeWidth={1.8}/></a>
-        <a className="shopping-header-link" href="/shopping/" aria-label="Open shopping list" title="Shopping list"><ClipboardList size={19} strokeWidth={1.8}/></a>
+        <a className="shopping-header-link" href="/cookbook/" aria-label="Open personal cookbook" title="My cookbook"><BookOpen size={19}/></a>
+        <a className="shopping-header-link" href="/shopping/" aria-label="Open shopping list" title="Shopping list"><ClipboardText size={19}/></a>
         <NativeHeaderActions app={app} onSettings={onSettings} />
-        <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} strokeWidth={1.8} /><span>{favoritesCount}</span></button>
+        <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} /><span>{favoritesCount}</span></button>
         <button type="button" className="nav-cta" onClick={() => go('kitchen')}>Start cooking <ArrowUpRight size={17} /></button>
-        <button type="button" className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <Menu size={23} />}</button>
+        <button type="button" className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <List size={23} />}</button>
       </div>
     </header>
     {open && <div className="mobile-menu">
       <button type="button" onClick={() => go('discover')}>Discover recipes <ArrowUpRight /></button>
       <a href="/cookbook/" className="mobile-cookbook-link">My cookbook <BookOpen size={18}/></a>
+      <a href="/shopping/" className="mobile-cookbook-link">Shopping list <ClipboardText size={18}/></a>
       <button type="button" onClick={() => go('kitchen')}>The kitchen <ArrowUpRight /></button>
       <button type="button" onClick={() => go('experience')}>Our philosophy <ArrowUpRight /></button>
     </div>}
@@ -57,8 +70,8 @@ function Hero() {
       <h1 id="hero-title">The world,<br /><em>on your table.</em></h1>
       <p className="hero-description">Curious about what the world is cooking? Discover extraordinary recipes, get a little messy, and make every meal a story worth sharing.</p>
       <div className="hero-buttons">
-        <button type="button" className="button-dark" onClick={() => scrollToSection('kitchen')}>Step into the kitchen <span><ArrowUpRight size={19} strokeWidth={1.8} /></span></button>
-        <button type="button" className="button-text" onClick={() => scrollToSection('discover')}>Explore recipes <ArrowRight size={19} strokeWidth={1.7} /></button>
+        <button type="button" className="button-dark" onClick={() => scrollToSection('kitchen')}>Step into the kitchen <span><ArrowUpRight size={19} /></span></button>
+        <button type="button" className="button-text" onClick={() => scrollToSection('discover')}>Explore recipes <ArrowRight size={19} /></button>
       </div>
       <div className="hero-bottom"><span className="hero-bottom-line" /><span>GOOD FOOD. GOOD STORIES. GOOD COMPANY.</span></div>
     </div>
@@ -69,7 +82,7 @@ function Hero() {
       </div>
       <div className="hero-photo-caption"><span>MADE TO BE SHARED</span><span>01 — ∞</span></div>
       <div className="hero-float-card">
-        <div className="float-card-icon"><Sparkles size={19} strokeWidth={1.6} /></div>
+        <div className="float-card-icon"><Sparkle size={19} /></div>
         <span>TODAY'S LITTLE REMINDER</span>
         <strong>Life's too short<br />for boring food.</strong>
         <div className="float-card-footer"><span>With love, Mise</span><ArrowUpRight size={18} /></div>
@@ -81,7 +94,7 @@ function Hero() {
 
 function Marquee() {
   const items = ['TOKYO', 'NAPLES', 'JOHANNESBURG', 'MEXICO CITY', 'MARRAKECH', 'BANGKOK', 'ATHENS'];
-  return <div className="marquee-strip" aria-label="Inspired by kitchens around the world"><div className="marquee-track" aria-hidden="true">{[...items, ...items].map((item, index) => <span key={index}>{item}<span className="marquee-flower">✳</span></span>)}</div></div>;
+  return <div className="marquee-strip" aria-label="Inspired by kitchens around the world"><div className="marquee-track" aria-hidden="true">{[...items, ...items].map((item, index) => <span key={index}>{item}<span className="marquee-flower" /></span>)}</div></div>;
 }
 
 function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
@@ -90,13 +103,13 @@ function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
   return <article className={'recipe-card ' + (selected ? 'recipe-selected' : '')}>
     <div className="recipe-image">
       <img src={recipe.image} alt={recipe.name + ' — ' + recipe.country + ' inspired dish'} loading="lazy" onError={event => { if (!event.currentTarget.src.includes('mise-social.svg')) event.currentTarget.src = '/brand/mise-social.svg'; }} />
-      <div className="recipe-image-top"><span>{recipe.country}</span><button type="button" className={'save-button ' + (saved ? 'saved' : '')} onClick={onSave} aria-label={(saved ? 'Remove ' : 'Save ') + recipe.name + (saved ? ' from saved recipes' : ' to saved recipes')} aria-pressed={saved}><Heart size={17} fill={saved ? 'currentColor' : 'none'} strokeWidth={1.8} /></button></div>
+      <div className="recipe-image-top"><span>{recipe.country}</span><button type="button" className={'save-button ' + (saved ? 'saved' : '')} onClick={onSave} aria-label={(saved ? 'Remove ' : 'Save ') + recipe.name + (saved ? ' from saved recipes' : ' to saved recipes')} aria-pressed={saved}><Heart size={17} weight={saved ? 'fill' : 'regular'} /></button></div>
       <button type="button" className="recipe-image-action" onClick={onSelect} aria-label={'Cook ' + recipe.name}><ArrowUpRight size={22} /></button>
     </div>
     <div className="recipe-details">
       <div className="recipe-meta"><span>{recipe.region}</span><span className="meta-divider" /><span>{recipe.difficulty}</span></div>
       <button type="button" className="recipe-name" onClick={onSelect}>{recipe.name}</button>
-      <div className="recipe-bottom"><span>{recipe.subtitle}</span><span><Clock3 size={14} strokeWidth={1.6} /> {recipe.minutes} min</span></div>
+      <div className="recipe-bottom"><span>{recipe.subtitle}</span><span><Clock size={14} /> {recipe.minutes} min</span></div>
       <a className="recipe-view-link" href={'/recipes/' + encodeURIComponent(recipe.id) + '/'} aria-label={'View full recipe for ' + recipe.name}>View recipe and ingredients <ArrowUpRight size={16}/></a>
     </div>
   </article>;
@@ -121,17 +134,17 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
         <p className="eyebrow"><span className="eyebrow-dot" /> THE DISCOVERY TABLE</p>
         <h2>Where to<br /><em>today?</em></h2>
         <p>From street food to Sunday feasts. Find something that speaks to your appetite, then make it your own.</p>
-        <div className="search-wrap"><Search size={19} strokeWidth={1.7} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search a dish, a place..." type="search" /></div>
+        <div className="search-wrap"><MagnifyingGlass size={19} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search a dish, a place..." type="search" /></div>
         <div className="filter-list" role="group" aria-label="Filter recipes by region">
-          {regions.map(region => <button key={region} type="button" className={filter === region ? 'filter-active' : ''} onClick={() => setFilter(region)} aria-pressed={filter === region}><span>{region}</span><ArrowUpRight size={15} strokeWidth={1.6} /></button>)}
+          {regions.map(region => <button key={region} type="button" className={filter === region ? 'filter-active' : ''} onClick={() => setFilter(region)} aria-pressed={filter === region}><span>{region}</span><ArrowUpRight size={15} /></button>)}
         </div>
-        <button type="button" className={'saved-filter ' + (savedOnly ? 'is-active' : '')} onClick={() => setSavedOnly(!savedOnly)} aria-pressed={savedOnly}><Heart size={17} fill={savedOnly ? 'currentColor' : 'none'} /> {savedOnly ? 'Showing saved recipes' : 'Only show my saved recipes'} <span>{saved.length}</span></button>
+        <button type="button" className={'saved-filter ' + (savedOnly ? 'is-active' : '')} onClick={() => setSavedOnly(!savedOnly)} aria-pressed={savedOnly}><Heart size={17} weight={savedOnly ? 'fill' : 'regular'} /> {savedOnly ? 'Showing saved recipes' : 'Only show my saved recipes'} <span>{saved.length}</span></button>
       </div>
       <div className="recipes-content">
         <div className="recipes-topline"><span>THE MENU</span><span>{String(filtered.length).padStart(2, '0')} DISHES TO DISCOVER</span></div>
         {filtered.length ? <div className="recipe-grid">
           {filtered.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} selected={selectedId === recipe.id} saved={saved.includes(recipe.id)} onSelect={() => { onSelect(recipe.id); scrollToSection('kitchen'); }} onSave={() => onToggleSave(recipe.id)} />)}
-        </div> : <div className="empty-recipes"><Search size={29} strokeWidth={1.2} /><h3>No dishes on this table.</h3><p>Try another region or search term. There's always something good to cook.</p><button type="button" onClick={() => { setSearch(''); setFilter('All'); setSavedOnly(false); }}>Show all recipes <ArrowRight size={17} /></button></div>}
+        </div> : <div className="empty-recipes"><MagnifyingGlass size={29} /><h3>No dishes on this table.</h3><p>Try another region or search term. There's always something good to cook.</p><button type="button" onClick={() => { setSearch(''); setFilter('All'); setSavedOnly(false); }}>Show all recipes <ArrowRight size={17} /></button></div>}
         <div className="recipes-end"><span>MORE STORIES ARE ALWAYS COOKING</span><span>SCROLL TO THE KITCHEN <ArrowDown size={16} /></span></div>
       </div>
     </div>
@@ -155,18 +168,18 @@ function Experience() {
         <span className="feature-kicker">FEEL EVERY INGREDIENT</span><h3>Go ahead.<br />Play with your food.</h3><p>Reach into a tactile 3D kitchen. Pick things up, move them around, and cook your way.</p>
       </div>
       <div className="feature-card feature-time">
-        <div className="feature-icon"><Clock3 size={25} strokeWidth={1.4} /></div>
+        <div className="feature-icon"><Clock size={25} /></div>
         <div className="feature-timer-graphic"><span>00</span><i>:</i><span>35</span></div>
         <h3>Your time.<br />Your pace.</h3><p>Step-by-step guidance and a timer that stays right beside you.</p>
       </div>
       <div className="feature-card feature-world">
-        <div className="feature-icon"><Globe2 size={25} strokeWidth={1.4} /></div>
+        <div className="feature-icon"><GlobeHemisphereWest size={25} /></div>
         <div className="world-lines"><span>JAPAN</span><span>ITALY</span><span>SOUTH AFRICA</span><span>MEXICO</span></div>
         <h3>One world.<br />Infinite flavor.</h3><p>Recipes inspired by kitchens and cultures across the globe.</p>
       </div>
       <div className="feature-card feature-love">
-        <div className="feature-icon"><Heart size={25} strokeWidth={1.4} /></div>
-        <div className="love-graphic"><Heart size={96} strokeWidth={1} fill="currentColor" /></div>
+        <div className="feature-icon"><Heart size={25} /></div>
+        <div className="love-graphic"><Heart size={96} weight="fill" /></div>
         <h3>Keep what<br />you love.</h3><p>Save your favorites. Come back whenever inspiration strikes.</p>
       </div>
     </div>
@@ -212,7 +225,7 @@ export default function App() {
     const destination = new URLSearchParams(window.location.search).get('view');
     if (destination !== 'kitchen' && destination !== 'discover' && destination !== 'cook') return;
     const frame = window.requestAnimationFrame(() => {
-      document.getElementById(destination === 'cook' ? 'kitchen' : destination)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      document.getElementById(destination === 'cook' ? 'kitchen' : destination)?.scrollIntoView({ behavior: 'instant', block: 'start' });
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -248,7 +261,7 @@ export default function App() {
     <KitchenGateway key={selectedRecipe.id} recipe={selectedRecipe} onRecipeChange={setSelectedId} />
     <Experience />
     <Footer />
-    <div className="corner-credit" aria-hidden="true"><MousePointer2 size={12} /> MADE TO EXPLORE</div>
+    <div className="corner-credit" aria-hidden="true"><Cursor size={12} /> MADE TO EXPLORE</div>
     <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)} />
     <NativeNotices app={native} />
   </main>;
