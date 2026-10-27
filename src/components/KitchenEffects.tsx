@@ -106,7 +106,17 @@ function ChoppedFood({ chops }: { chops: number }) {
 }
 
 function FinishedPlate() {
-  return <group position={[-1.5, .25, .23]}>
+  const reducedMotion = useReducedMotion();
+  const plate = useRef<THREE.Group>(null);
+  const reveal = useRef(0);
+  useFrame((_, delta) => {
+    if (!plate.current || reducedMotion || reveal.current >= 1) return;
+    reveal.current = Math.min(1, reveal.current + Math.min(delta, .05) * 2.3);
+    const t = reveal.current;
+    // One-shot plate reveal; never animates when the visitor prefers reduced motion.
+    plate.current.scale.setScalar(0.75 + 0.25 * (1 - Math.pow(1 - t, 3)));
+  });
+  return <group ref={plate} position={[-1.5, .25, .23]} scale={reducedMotion ? 1 : .75}>
     <mesh castShadow><cylinderGeometry args={[.68, .64, .09, 48]} /><meshStandardMaterial color="#f6f1dc" roughness={.46}/></mesh>
     <mesh position={[0, .065, 0]}><torusGeometry args={[.55, .035, 10, 48]} /><meshStandardMaterial color="#d5cfad" /></mesh>
     {Array.from({ length: 9 }, (_, i) => {
@@ -114,6 +124,21 @@ function FinishedPlate() {
       const r = .13 + .034 * i;
       return <mesh key={i} position={[Math.cos(a) * r, .105, Math.sin(a) * r]} castShadow scale={[.65, .4, .65]}>
         <sphereGeometry args={[.17, 12, 9]}/><meshStandardMaterial color={i % 3 === 0 ? '#dd663f' : i % 3 === 1 ? '#e8bb5d' : '#769a5b'} roughness={.62}/>
+      </mesh>;
+    })}
+    {/* Hand-placed herb garnish and toasted sesame keep plating legible even on eco graphics. */}
+    {Array.from({ length: 5 }, (_, i) => {
+      const a = i * Math.PI * 2 / 5 + .22;
+      return <group key={'herb' + i} position={[Math.cos(a) * .20, .15, Math.sin(a) * .17]} rotation={[0, a, .13]}>
+        <mesh castShadow scale={[.14, .032, .068]}><sphereGeometry args={[1, 10, 8]} /><meshStandardMaterial color={i % 2 ? '#54804c' : '#83a25f'} roughness={.83} /></mesh>
+        <mesh position={[.10, .015, 0]} rotation={[0, 0, -.12]} castShadow scale={[.12, .028, .052]}><sphereGeometry args={[1, 10, 8]} /><meshStandardMaterial color='#6c9853' roughness={.82} /></mesh>
+      </group>;
+    })}
+    {Array.from({ length: 8 }, (_, i) => {
+      const a = i * 2.399;
+      const r = .17 + .028 * (i % 4);
+      return <mesh key={'seed' + i} position={[Math.cos(a) * r, .18, Math.sin(a) * r]} rotation={[0, a, .45]} scale={[.018, .011, .009]}>
+        <sphereGeometry args={[1, 8, 6]} /><meshStandardMaterial color={i % 3 ? '#e9ce91' : '#3e392c'} roughness={.9} />
       </mesh>;
     })}
   </group>;
