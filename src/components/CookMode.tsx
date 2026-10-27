@@ -157,7 +157,7 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
       <header className="cook-mode-header">
         <div className="cook-mode-brand"><img src="/brand/mise-mark.svg" width="32" height="32" alt="" /><span>MISE <b>/ COOK MODE</b></span></div>
         <div className="cook-mode-header-actions">
-          <button type="button" aria-pressed={wakeEnabled} onClick={toggleWake} title="Optional screen wake lock"><Sun size={17} /> <span>Keep awake {wakeEnabled ? 'on' : 'off'}</span></button>
+          <button type="button" aria-pressed={wakeEnabled} aria-label={'Keep awake ' + (wakeEnabled ? 'on' : 'off')} onClick={toggleWake} title="Optional screen wake lock"><Sun size={17} /> <span>Keep awake {wakeEnabled ? 'on' : 'off'}</span></button>
           <button type="button" onClick={speakStep} aria-pressed={reading} aria-label={reading ? 'Stop reading the step' : 'Read current step aloud'}>{reading ? <VolumeX size={17}/> : <Volume2 size={17}/>}<span>{reading ? 'Stop voice' : 'Read aloud'}</span></button>
           <button className="cook-mode-exit" ref={closeButton} type="button" onClick={close} aria-label="Close cook mode"><X size={20} /> <span>Exit</span></button>
         </div>
