@@ -127,3 +127,13 @@ In the 3D scene, graphics can be switched between **Eco**, **Balanced** and **Hi
 Recipe pages now suggest three other dishes, favoring related regional recipes. No profile, analytics, account or automated cloud synchronization is required. Shopping lists and progress remain device-local; authenticated cross-device synchronization is a separate, consent-based backend project.
 
 Playwright: \`npx playwright test e2e/cook-mode.e2e.ts\`. The 3D and offline suites remain necessary release checks. Run them against a freshly built production preview, not just dev mode.
+
+## Smart Cooking Companion (offline-first)
+
+**Real-world preparation:** In a recipe detail page or Cook Mode, tick ingredients when you have them ready. Checkmarks are stored per recipe locally and are intentionally separate from the virtual 3D pan. No account, network service or cloud storage is needed.
+
+**Independent timers:** Cook Mode has up to five additional timers per recipe, created paused. Start, pause, reset and remove them separately. Running timers use absolute wall-clock deadlines, rather than relying on background JavaScript intervals: upon returning to a throttled or reloaded tab, remaining time is recalculated from the deadline. They do not automatically play sounds or request notification permissions; the browser may suspend the page entirely. These are visual reminders, not safety systems. The original single-step timer is preserved.
+
+**Ingredient guidance:** Metric/US preference is local. We convert mass (g/kg) and liquid volumes (ml/l) using defined standard constants and label US fluid ounces explicitly. Counts, spoons and ingredients lacking a known density are kept unchanged. A small set of curated swaps provides caveats; there are no claims that swaps are allergy-safe or universally equivalent.
+
+QA: `npm run test` checks conversion precision, bad storage data, real-prep separation, and background-timer math; `npx playwright test e2e/companion.e2e.ts` exercises desktop/mobile controls and persistence.

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Check, ClipboardList, Share2, Trash2 } from 'lucide-react';
 import { addRecipeToShoppingList, getShoppingItems, recipePath, saveShoppingItems, type ShoppingItem } from '../lib/kitchen-storage';
 import { recipes, type Recipe } from '../data/recipes';
+import { IngredientGuide, PrepChecklist } from './SmartCompanion';
 import { useNativeApp } from '../pwa/useNativeApp';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './NativeControls';
 
@@ -17,7 +18,6 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
     .sort((a, b) => Number(b.region === recipe.region) - Number(a.region === recipe.region)
       || Number(b.tags.some(tag => recipe.tags.includes(tag))) - Number(a.tags.some(tag => recipe.tags.includes(tag))))
     .slice(0, 3);
-  const scale = (value: number) => (Math.round(value * servings / recipe.servings * 10) / 10).toLocaleString();
   const add = () => {
     const count = addRecipeToShoppingList(recipe, servings);
     setMessage(count < 0 ? 'Shopping list could not be saved on this device.' : count ? count + ' ingredients added to your list.' : 'These ingredients are already on your list.');
@@ -49,7 +49,7 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
         <div className="recipe-page-image" style={{ background: recipe.accent }}><img src={recipe.image} alt={recipe.name} onError={event => {event.currentTarget.src = '/brand/mise-social.svg';}} /></div>
       </div>
       <div className="recipe-page-columns">
-        <section className="recipe-ingredients"><div className="recipe-section-heading"><div><p className="eyebrow">WHAT YOU NEED</p><h2>Ingredients</h2></div><label>Servings <select value={servings} onChange={event => setServings(Number(event.target.value))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label></div><ul>{recipe.ingredients.map(item=><li key={item.id}><span>{item.name}</span><strong>{scale(item.amount)} {item.unit}</strong></li>)}</ul></section>
+        <section className="recipe-ingredients"><div className="recipe-section-heading"><div><p className="eyebrow">WHAT YOU NEED</p><h2>Ingredients</h2></div><label>Servings <select value={servings} onChange={event => setServings(Number(event.target.value))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label></div><IngredientGuide recipe={recipe} servings={servings}/><PrepChecklist recipe={recipe}/></section>
         <section className="recipe-method"><p className="eyebrow">A LITTLE AT A TIME</p><h2>How to make it</h2><ol>{recipe.steps.map((step,index)=><li key={index} id={'step-'+(index+1)}><span className="recipe-step-number">{String(index+1).padStart(2,'0')}</span><div><h3>{step.title}</h3><p>{step.instruction}</p><aside><strong>Chef’s note</strong> {step.tip}</aside></div><small>{step.minutes} min</small></li>)}</ol></section>
       </div>
       <section className="recipe-related" aria-label="Discover more recipes">

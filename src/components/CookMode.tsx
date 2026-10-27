@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChefHat, Clock3, Droplets, Flame, Pause, Play, Plus, Scissors, Soup, Volume2, VolumeX, X, Sun, Moon } from 'lucide-react';
 import type { Recipe } from '../data/recipes';
+import { IngredientGuide, PrepChecklist, RecipeTimers } from './SmartCompanion';
 import { getCookingRequirements, isReadyToPlate, type CookingAction, type KitchenProgress } from '../lib/cooking';
 
 type Props = {
@@ -189,6 +190,9 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
             </div>
             {seconds === 0 && !running && <p role="status">Timer finished. Check your food.</p>}
           </div>
+          <RecipeTimers recipe={recipe} currentStep={stepIndex}/>
+          <PrepChecklist recipe={recipe}/>
+          <IngredientGuide recipe={recipe} servings={servings}/>
           <div className="cook-mode-ingredients">
             <h3>Ingredients <span>{added.length}/{recipe.ingredients.length} in the virtual pan</span></h3>
             <div className="cook-mode-ingredient-scroll">
