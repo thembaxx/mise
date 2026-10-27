@@ -11,6 +11,7 @@ const item=(amount:number,unit:string):Ingredient=>({id:'test',name:'Example',ki
 describe('honest cooking measurements',()=>{
  it('converts exact mass and volume dimensions to US units',()=>{
   expect(formatIngredient(item(100,'g'),2,2,'us')).toBe('3.5 oz');
+  expect(formatIngredient(item(400,'g'),2,2,'us')).toBe('14.1 oz');
   expect(formatIngredient(item(250,'ml'),2,2,'us')).toBe('8.5 US fl oz');
   expect(formatIngredient(item(1,'kg'),2,2,'us')).toBe('2.2 lb');
   expect(formatIngredient(item(1,'l'),2,2,'us')).toBe('1.1 US qt');

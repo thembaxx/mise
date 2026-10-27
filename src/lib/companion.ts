@@ -14,7 +14,7 @@ export function formatIngredient(item:Ingredient,servings:number,base:number,sys
   const ratios:Record<string,[number,string]>={g:[1/28.349523125,'oz'],kg:[2.2046226218,'lb'],ml:[1/29.5735295625,'US fl oz'],l:[1.0566882094,'US qt']};
   const ratio=system==='us'?ratios[item.unit]:undefined;
   const value=item.amount*servings/base*(ratio?.[0]??1);
-  const digits=value<1?2:value<10?1:0;
+  const digits=ratio?(value<1?2:1):(value<1?2:value<10?1:0);
   return Number(value.toFixed(digits)).toLocaleString('en-US',{maximumFractionDigits:digits})+' '+(ratio?.[1]??item.unit);
 }
 export type SuggestedSwap={name:string;note:string};

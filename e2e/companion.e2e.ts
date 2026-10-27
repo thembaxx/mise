@@ -27,6 +27,7 @@ test('unit conversion and curated substitution caveats are visible on recipe pag
 });
 
 test('multiple timers start independently, pause, and survive reload',async({page})=>{
+ test.setTimeout(120_000); // Two full WebGL loads may be slow under software rendering.
  await page.goto('/?view=cook&recipe=shakshuka');
  const dialog=page.getByRole('dialog');
  const board=dialog.getByRole('region',{name:'Independent kitchen timers'});
