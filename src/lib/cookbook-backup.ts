@@ -79,6 +79,8 @@ export function validateCookbookBackup(text: string): CookbookBackup {
       (entry.sourceUrl!==undefined && typeof entry.sourceUrl!=='string'))
       throw new Error('Backup contains an invalid recipe; no data was changed.');
     const validated=validateStoredRecipe(entry);
+    if (!Number.isInteger(entry.minutes) || !Number.isInteger(entry.servings) || entry.steps.some(step => !Number.isInteger((step as Record<string,unknown>).minutes)))
+      throw new Error('Backup contains a non-whole cooking duration or serving count.');
     if (!validated) throw new Error('Backup contains a malformed recipe or measurement.');
     parsed.push(validated);
   }
@@ -165,7 +167,7 @@ export function applyCookbookRestore(plan:RestorePlan): void {
     const changedIds=new Set(beforeRecipes.filter(row=>!incomingIds.has(row.id) || fingerprint(row)!==fingerprint(incomingById.get(row.id)!)).map(row=>row.id));
     // Shopping list is a separate user document. Keep built-in recipes; prune only
     // personal recipe entries absent after replacement.
-    saveShoppingItems(getShoppingItems().filter(item=>!item.recipeId.startsWith('personal-') || incomingIds.has(item.recipeId)));
+    saveShoppingItems(getShoppingItems().filter(item=>!item.recipeId.startsWith('personal-') || incomingIds.has(item.recipeId) && !changedIds.has(item.recipeId)));
     for(const id of changedIds) for(const prefix of ['mise:progress:v1:','mise:prep:v1:','mise:timers:v1:']) {
       try{localStorage.removeItem(prefix+id);}catch{ /* browser may deny item-specific cleanup */ }
     }
