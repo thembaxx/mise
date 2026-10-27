@@ -43,7 +43,7 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
           <h1>{recipe.name}</h1>
           <p className="recipe-lede">{recipe.story}</p>
           <div className="recipe-facts"><span>{recipe.minutes} min</span><span>{recipe.difficulty}</span><span>{servings} servings</span></div>
-          <div className="recipe-page-actions"><button type="button" onClick={add}><ClipboardList size={18}/> Add ingredients</button><button type="button" onClick={() => void share()}><Share2 size={18}/> Share recipe</button><a href={'/?view=kitchen&recipe=' + encodeURIComponent(recipe.id)}>Cook interactively</a></div>
+          <div className="recipe-page-actions"><button type="button" onClick={add}><ClipboardList size={18}/> Add ingredients</button><button type="button" onClick={() => void share()}><Share2 size={18}/> Share recipe</button><a href={'/?view=kitchen&recipe=' + encodeURIComponent(recipe.id)}>Cook interactively</a><a href={'/?view=cook&recipe=' + encodeURIComponent(recipe.id)}>Start Cook Mode</a></div>
           {message && <p role="status" className="recipe-notice">{message} <a href="/shopping/">View list</a></p>}
         </div>
         <div className="recipe-page-image" style={{ background: recipe.accent }}><img src={recipe.image} alt={recipe.name} onError={event => {event.currentTarget.src = '/brand/mise-social.svg';}} /></div>
