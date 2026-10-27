@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RoundedBox } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -109,6 +110,20 @@ function FinishedPlate() {
   const reducedMotion = useReducedMotion();
   const plate = useRef<THREE.Group>(null);
   const reveal = useRef(0);
+  const [originalDish, setOriginalDish] = useState<THREE.Group | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new GLTFLoader();
+    loader.load(
+      '/models/original/mise-plated-dish.glb',
+      ({ scene }) => {
+        if (!cancelled) setOriginalDish(scene);
+      },
+      undefined,
+      () => { /* The procedural dish remains the offline fallback. */ },
+    );
+    return () => { cancelled = true; };
+  }, []);
   useFrame((_, delta) => {
     if (!plate.current || reducedMotion || reveal.current >= 1) return;
     reveal.current = Math.min(1, reveal.current + Math.min(delta, .05) * 2.3);
@@ -117,6 +132,7 @@ function FinishedPlate() {
     plate.current.scale.setScalar(0.75 + 0.25 * (1 - Math.pow(1 - t, 3)));
   });
   return <group ref={plate} position={[-1.5, .25, .23]} scale={reducedMotion ? 1 : .75}>
+    {originalDish ? <primitive object={originalDish} dispose={null} /> : <>
     <mesh castShadow><cylinderGeometry args={[.68, .64, .09, 48]} /><meshStandardMaterial color="#f6f1dc" roughness={.46}/></mesh>
     <mesh position={[0, .065, 0]}><torusGeometry args={[.55, .035, 10, 48]} /><meshStandardMaterial color="#d5cfad" /></mesh>
     {Array.from({ length: 9 }, (_, i) => {
@@ -141,6 +157,7 @@ function FinishedPlate() {
         <sphereGeometry args={[1, 8, 6]} /><meshStandardMaterial color={i % 3 ? '#e9ce91' : '#3e392c'} roughness={.9} />
       </mesh>;
     })}
+    </>}
   </group>;
 }
 
