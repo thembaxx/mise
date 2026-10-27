@@ -38,6 +38,8 @@ test('a failed save never shows a false success or changes the heart', async ({ 
 test('search can be cleared in place and empty saved recipes explain how to start', async ({ page }) => {
   await page.goto('/?view=discover');
   const search = page.getByRole('searchbox');
+  await search.fill('garlic');
+  await expect(page.getByRole('link', { name: 'Miso mushroom ramen', exact: true })).toBeVisible();
   await search.fill('shakshuka');
   await expect(page.locator('.recipe-card')).toHaveCount(1);
   await expect(page.locator('.recipes-topline')).toContainText('1 recipe');

@@ -122,7 +122,7 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
   const [search, setSearch] = useState('');
   const matching = useMemo(() => catalog.filter(recipe =>
     (!savedOnly || saved.includes(recipe.id)) &&
-    (recipe.name + ' ' + recipe.country + ' ' + recipe.region + ' ' + recipe.tags.join(' ') + ' ' + recipe.story).toLowerCase().includes(search.trim().toLowerCase())
+    (recipe.name + ' ' + recipe.country + ' ' + recipe.region + ' ' + recipe.ingredients.map(item => item.name).join(' ') + ' ' + recipe.tags.join(' ') + ' ' + recipe.story).toLowerCase().includes(search.trim().toLowerCase())
   ), [catalog, search, saved, savedOnly]);
   const filtered = useMemo(() => matching.filter(recipe => filter === 'All' || recipe.region === filter), [matching, filter]);
 
@@ -139,7 +139,7 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
         <p className="eyebrow">Find your next meal</p>
         <h2>What sounds<br /><em>good?</em></h2>
         <p>Search by dish, ingredient or country. Every recipe includes quantities, timings and step-by-step instructions.</p>
-        <div className="search-wrap"><MagnifyingGlass size={19} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Try noodles, tomato, Japan…" type="search" />{search && <button className="search-clear" type="button" aria-label="Clear recipe search" onClick={() => { setSearch(''); document.getElementById('recipe-search')?.focus(); }}><X size={17}/></button>}</div>
+        <div className="search-wrap"><MagnifyingGlass size={19} /><label htmlFor="recipe-search" className="visually-hidden">Search recipes, ingredients or countries</label><input id="recipe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Try noodles, tomato, Japan…" type="search" />{search && <button className="search-clear" type="button" aria-label="Clear recipe search" onClick={() => { setSearch(''); document.getElementById('recipe-search')?.focus(); }}><X size={17}/></button>}</div>
         <div className="filter-list" role="group" aria-label="Filter recipes by region">
           {regions.map(region => <button key={region} type="button" className={filter === region ? 'filter-active' : ''} onClick={() => setFilter(region)} aria-label={region} aria-pressed={filter === region}><span>{region}</span><small className="filter-count" aria-hidden="true">{matching.filter(recipe => region === 'All' || recipe.region === region).length}</small></button>)}
         </div>
