@@ -1,0 +1,49 @@
+name: Daily recipe experience review
+on:
+  schedule:
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/lib/diagnostics.ts'
+      - 'src/lib/feedback/**'
+      - 'scripts/feedback/**'
+      - 'tests/diagnostics.test.ts'
+      - 'e2e/feedback.e2e.ts'
+      - 'e2e/diagnostics-settings.e2e.ts'
+      - '.github/workflows/daily-feedback.yml'
+permissions:
+  contents: read
+concurrency:
+  group: daily-feedback-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:feedback
+      - run: npx playwright install --with-deps chromium
+      - name: Exercise representative synthetic import and cooking journeys
+        run: npm run feedback:capture
+      - name: Review captured evidence
+        if: always()
+        env:
+          FEEDBACK_GEMINI_API_KEY: ${{ github.event_name != 'pull_request' && secrets.FEEDBACK_GEMINI_API_KEY || '' }}
+        run: npm run feedback:review
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mise-daily-feedback
+          path: |
+            .feedback/events.jsonl
+            .feedback/report.md
+            .feedback/report.json
+            test-results/
+          retention-days: 7

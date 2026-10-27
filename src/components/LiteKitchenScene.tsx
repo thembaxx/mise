@@ -1,3 +1,4 @@
+import { diagnostics, recordIngredientDrop } from '../lib/diagnostics';
 import { useReducedMotion } from '../motion/preferences';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
@@ -73,6 +74,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
   const body = useRef<THREE.Group>(null);
   const target = useRef<THREE.Vector3 | null>(null);
   const dragging = useRef(false);
+  const dragStarted = useRef(0);
   const reducedMotion = useReducedMotion();
   const [hover, setHover] = useState(false);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.1), []);
@@ -106,7 +108,9 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
     onDraggingChange(false);
     (event.target as unknown as { releasePointerCapture?: (id: number) => void }).releasePointerCapture?.(event.pointerId);
     const position = body.current?.position;
-    if (position && position.x > .15 && position.x < 2.25 && Math.abs(position.z - .15) < 1.05) onAdd(ingredient.id);
+    const inPan = Boolean(position && position.x > .15 && position.x < 2.25 && Math.abs(position.z - .15) < 1.05);
+    recordIngredientDrop(event.pointerType, event.type === 'pointercancel', inPan, performance.now() - dragStarted.current);
+    if (inPan) onAdd(ingredient.id);
   };
 
   return <group ref={body} position={[x, .33 + (index % 2) * .03, z]}>
@@ -118,6 +122,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
         if (cooked) return;
         event.stopPropagation();
         dragging.current = true;
+        dragStarted.current = performance.now();
         onDraggingChange(true);
         (event.target as unknown as { setPointerCapture?: (id: number) => void }).setPointerCapture?.(event.pointerId);
       }}
@@ -213,7 +218,7 @@ function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onActi
 
 export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
-    <Canvas key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 1.7] : [1, 1.2]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
+    <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 1.7] : [1, 1.2]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
       <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} /></Suspense>
     </Canvas>
   </div>;

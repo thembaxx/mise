@@ -1,4 +1,5 @@
-import { Component, type ReactNode } from 'react';
+import { Component, useEffect, useState, type ReactNode } from 'react';
+import { diagnostics } from '../lib/diagnostics';
 import { WarningCircle } from '@phosphor-icons/react/dist/csr/WarningCircle';
 import { ChefHat } from '@phosphor-icons/react/dist/csr/ChefHat';
 
@@ -23,6 +24,10 @@ export default class SceneErrorBoundary extends Component<Props, State> {
     return { unavailable: true };
   }
 
+  componentDidCatch() {
+    diagnostics.record('webgl_start', 'failure', { code: 'scene_error' });
+  }
+
   render() {
     if (this.state.unavailable) return <Fallback />;
     return this.props.children;
@@ -30,12 +35,23 @@ export default class SceneErrorBoundary extends Component<Props, State> {
 }
 
 export function SupportsWebGL({ children }: Props) {
-  let supported = false;
-  try {
-    const canvas = document.createElement('canvas');
-    supported = Boolean(canvas.getContext('webgl2'));
-  } catch {
-    supported = false;
-  }
+  const [supported] = useState(() => {
+    try {
+      const canvas = document.createElement('canvas');
+      return Boolean(canvas.getContext('webgl2'));
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!supported) diagnostics.record('webgl_start', 'failure', { code: 'unsupported' });
+    const contextLost = (event: Event) => {
+      if (event.target instanceof HTMLCanvasElement && event.target.matches('.kitchen-canvas canvas')) {
+        diagnostics.record('webgl_context', 'failure', { code: 'context_lost' });
+      }
+    };
+    window.addEventListener('webglcontextlost', contextLost, true);
+    return () => window.removeEventListener('webglcontextlost', contextLost, true);
+  }, [supported]);
   return supported ? <>{children}</> : <Fallback />;
 }
