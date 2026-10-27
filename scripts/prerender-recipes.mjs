@@ -52,6 +52,10 @@ for(const recipe of recipes){
 const shopping=metadata(original,{title:'My shopping list · Mise',description:'Manage your Mise shopping list on this device.',url:origin+'/shopping/',image:origin+'/og-mise.png',robots:'noindex, follow',jsonld:{'@context':'https://schema.org','@type':'WebPage',name:'My shopping list',url:origin+'/shopping/'}});
 await mkdir(resolve('dist/shopping'),{recursive:true});
 await writeFile(resolve('dist/shopping/index.html'),shopping);
+// Personal recipes are private device data. Only ship the client shell, never static personal content.
+const cookbook=metadata(original,{title:'My personal cookbook · Mise',description:'Your private recipes and collections, stored on this device.',url:origin+'/cookbook/',image:origin+'/og-mise.png',robots:'noindex, nofollow',jsonld:{'@context':'https://schema.org','@type':'WebPage',name:'My personal cookbook',url:origin+'/cookbook/'} });
+await mkdir(resolve('dist/cookbook'),{recursive:true});
+await writeFile(resolve('dist/cookbook/index.html'),cookbook);
 const urls=[origin+'/',...recipes.map(canonical)];
 await writeFile(resolve('dist/sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.map(url=>'  <url><loc>'+escape(url)+'</loc></url>').join('\n')+'\n</urlset>\n');
 console.log('Prerendered '+recipes.length+' crawlable recipe pages and '+urls.length+' sitemap URLs.');
