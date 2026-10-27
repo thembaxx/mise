@@ -54,6 +54,17 @@ describe('portable Mise cookbook backups',()=>{
   expect(loadPersonalRecipes()[0].id).toBe(item.id);
   expect(savedRecipeIds()).toContain(recipes[0].id);
  });
+ it('invalidates old cooking timers and shopping state when replace changes a saved recipe with the same ID',()=>{
+  const item=seed();
+  localStorage.setItem('mise:timers:v1:'+item.id,'some old timer');
+  localStorage.setItem('mise:prep:v1:'+item.id,'["ingredient-1"]');
+  const backup=JSON.parse(exportCookbook());
+  backup.recipes[0].ingredients[0].name='Chickpeas';
+  applyRestore(JSON.stringify(backup),'replace');
+  expect(localStorage.getItem('mise:timers:v1:'+item.id)).toBeNull();
+  expect(localStorage.getItem('mise:prep:v1:'+item.id)).toBeNull();
+  expect(loadPersonalRecipes()[0].ingredients[0].name).toBe('Chickpeas');
+ });
  it('rejects unsupported versions, invalid quantities, duplicate ids, missing references and excessive data without changing storage',()=>{
   seed();
   const raw=JSON.parse(exportCookbook());
