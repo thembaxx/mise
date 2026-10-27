@@ -37,7 +37,8 @@ describe('Mise offline-first PWA', () => {
     expect(hook).toContain("registerSW({");
     expect(hook).toContain('onNeedRefresh');
     expect(hook).toContain('setNeedRefresh(true)');
-    expect(hook).toContain('updateSW.current?.(true)');
+    expect(hook).toContain('updateSW.current(true)');
+    expect(hook).toContain('navigator.serviceWorker.ready');
     expect(hook).toContain('mise:theme');
   });
   it('provides accessible controls even without install support', () => {
