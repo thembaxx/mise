@@ -48,7 +48,7 @@ const uuid = () => 'personal-' + Date.now().toString(36) + '-' + Math.random().t
 const allowedUrl = (value: unknown) => {
   try {
     const url = new URL(String(value));
-    return url.protocol === 'https:' && !url.username && !url.password && !/^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/.test(url.hostname) && !url.hostname.endsWith('.local') ? url.href : '';
+    return url.protocol === 'https:' && !url.username && !url.password && !/^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/.test(url.hostname) && !url.hostname.endsWith('.local') && !url.hostname.includes(':') ? url.href : '';
   } catch { return ''; }
 };
 export const isPersonalRecipe = (id: string) => id.startsWith('personal-');
@@ -209,8 +209,21 @@ export const recipeToDraft = (recipe: Recipe): RecipeDraft => ({
 
 function textValue(value: unknown): string {
   if (typeof value === 'string') return value.trim();
-  if (value && typeof value === 'object' && typeof (value as {text?:unknown}).text === 'string') return String((value as {text:string}).text).trim();
+  if (value && typeof value === 'object') {
+    const row=value as {text?:unknown;name?:unknown};
+    return typeof row.text==='string' ? row.text.trim() : typeof row.name==='string' ? row.name.trim() : '';
+  }
   return '';
+}
+function instructionLines(value:unknown,depth=0):string[]{
+  if(depth>6)return[];
+  if(Array.isArray(value))return value.flatMap(item=>instructionLines(item,depth+1)).slice(0,40);
+  if(value&&typeof value==='object'){
+    const row=value as Record<string,unknown>;
+    if(Array.isArray(row.itemListElement))return instructionLines(row.itemListElement,depth+1);
+  }
+  const text=textValue(value);
+  return text ? [text] : [];
 }
 function isoMinutes(value: unknown): number {
   const match = /^PT(?:(\d+)H)?(?:(\d+)M)?/i.exec(str(value,70));
@@ -222,7 +235,7 @@ function findSchema(value: unknown): Record<string,unknown> | null {
   const obj=value as Record<string,unknown>;
   const type=obj['@type'];
   if (type === 'Recipe' || Array.isArray(type) && type.includes('Recipe')) return obj;
-  return findSchema(obj['@graph']);
+  return findSchema(obj['@graph']) || findSchema(obj.mainEntity);
 }
 export function importRecipeContent(content: string, sourceUrl = ''): RecipeDraft {
   if (!content || content.length > 500_000) throw new Error('Recipe content is empty or too large (limit 500 KB).');
@@ -231,18 +244,17 @@ export function importRecipeContent(content: string, sourceUrl = ''): RecipeDraf
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     try {data=JSON.parse(trimmed);} catch { /* plain text may contain braces */ }
   } else {
-    const script=/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+    const script=/<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
     let match: RegExpExecArray | null;
     while ((match=script.exec(content))) {
-      try { const candidate=JSON.parse(match[1]); if(findSchema(candidate)){data=candidate;break;} } catch { /* ignore invalid block */ }
+      if(!/\btype\s*=\s*(["'])application\/ld\+json\1/i.test(match[1]))continue;
+      try { const candidate=JSON.parse(match[2]); if(findSchema(candidate)){data=candidate;break;} } catch { /* ignore invalid block */ }
     }
   }
   const schema=findSchema(data);
   if (schema) {
     const ingredients=Array.isArray(schema.recipeIngredient) ? schema.recipeIngredient.map(textValue).filter(Boolean) : [];
-    const instructions=Array.isArray(schema.recipeInstructions)
-      ? schema.recipeInstructions.map(textValue).filter(Boolean)
-      : [textValue(schema.recipeInstructions)].filter(Boolean);
+    const instructions=instructionLines(schema.recipeInstructions);
     const name=textValue(schema.name);
     if (!name || !ingredients.length || !instructions.length) throw new Error('Recipe schema is missing a name, ingredients or instructions.');
     const minutes=isoMinutes(schema.totalTime) || isoMinutes(schema.cookTime) + isoMinutes(schema.prepTime) || 30;
@@ -270,7 +282,26 @@ export async function importRecipeUrl(value: string): Promise<RecipeDraft> {
     if (!response.ok) throw new Error('The recipe page did not respond successfully.');
     const contentType=response.headers.get('content-type') || '';
     if (!/text\/html|application\/ld\+json|application\/json/.test(contentType)) throw new Error('This URL did not return a supported recipe page.');
-    const content=await response.text();
+    const declared=Number(response.headers.get('content-length'));
+    if(Number.isFinite(declared) && declared>500_000)throw new Error('Recipe webpage exceeds the 500 KB import limit.');
+    const reader=response.body?.getReader();
+    let content='';
+    if(reader){
+      const decoder=new TextDecoder();
+      let bytes=0;
+      try{
+        while(true){
+          const part=await reader.read();if(part.done)break;
+          bytes+=part.value.byteLength;
+          if(bytes>500_000)throw new Error('Recipe webpage exceeds the 500 KB import limit.');
+          content+=decoder.decode(part.value,{stream:true});
+        }
+        content+=decoder.decode();
+      }finally{void reader.cancel().catch(()=>{});}
+    }else{
+      content=await response.text();
+      if(new TextEncoder().encode(content).length>500_000)throw new Error('Recipe webpage exceeds the 500 KB import limit.');
+    }
     return importRecipeContent(content,url);
   } catch (error) {
     if (error instanceof TypeError || (error as Error)?.name==='AbortError')
