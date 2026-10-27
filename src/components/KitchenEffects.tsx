@@ -114,9 +114,14 @@ function FinishedPlate() {
   useEffect(() => {
     let cancelled = false;
     const loader = new GLTFLoader();
-    loader.load('/models/original/mise-plated-dish.glb', ({ scene }) => {
-      if (!cancelled) setOriginalDish(scene);
-    }, undefined, () => { /* The accessible procedural dish remains the offline fallback. */ });
+    loader.load(
+      '/models/original/mise-plated-dish.glb',
+      ({ scene }) => {
+        if (!cancelled) setOriginalDish(scene);
+      },
+      undefined,
+      () => { /* The procedural dish remains the offline fallback. */ },
+    );
     return () => { cancelled = true; };
   }, []);
   useFrame((_, delta) => {
@@ -127,7 +132,7 @@ function FinishedPlate() {
     plate.current.scale.setScalar(0.75 + 0.25 * (1 - Math.pow(1 - t, 3)));
   });
   return <group ref={plate} position={[-1.5, .25, .23]} scale={reducedMotion ? 1 : .75}>
-    {originalDish ? <primitive object={originalDish} dispose={null} /> : <>}
+    {originalDish ? <primitive object={originalDish} dispose={null} /> : <>
     <mesh castShadow><cylinderGeometry args={[.68, .64, .09, 48]} /><meshStandardMaterial color="#f6f1dc" roughness={.46}/></mesh>
     <mesh position={[0, .065, 0]}><torusGeometry args={[.55, .035, 10, 48]} /><meshStandardMaterial color="#d5cfad" /></mesh>
     {Array.from({ length: 9 }, (_, i) => {
