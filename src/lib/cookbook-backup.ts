@@ -35,7 +35,7 @@ export type RestorePlan = {
 const isRecord = (value: unknown): value is Record<string,unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const unique = <T,>(items: T[]) => [...new Set(items)];
 const asString = (value:unknown, max:number) => typeof value === 'string' && value.trim().length>0 && value.length<=max;
-const safeId = (id:string) => /^[a-zA-Z0-9-]{1,110}$/.test(id);
+const safeId = (id:string) => /^[a-z0-9-]{1,110}$/.test(id);
 const fingerprint = (recipe: Recipe) => JSON.stringify({
   name:recipe.name.trim().toLocaleLowerCase('en-US'),
   ingredients:recipe.ingredients.map(item => [item.name.trim().toLocaleLowerCase('en-US'),item.amount,item.unit]),
@@ -46,8 +46,10 @@ const localBaseline = (): string => {
   catch {throw new Error('Browser storage is unavailable. Backup restore cannot proceed.');}
 };
 export function makeCookbookBackup(now:Date = new Date()): CookbookBackup {
+  localBaseline(); // Do not misrepresent blocked device storage as an empty backup.
+  const personal=loadPersonalRecipes(),known=new Set([...recipes.map(row=>row.id),...personal.map(row=>row.id)]);
   return {format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt:now.toISOString(),
-    recipes:loadPersonalRecipes(),collections:loadCollections(),favourites:savedRecipeIds()};
+    recipes:personal,collections:loadCollections(),favourites:savedRecipeIds().filter(id=>known.has(id))};
 }
 export function serializeCookbookBackup(): string {
   const json = JSON.stringify(makeCookbookBackup(),null,2);
@@ -68,7 +70,7 @@ export function validateCookbookBackup(text: string): CookbookBackup {
     throw new Error('Backup exceeds Mise limits (80 recipes, 30 collections, 200 favourites).');
   const parsed: PersonalRecipe[]=[];
   for(const entry of value.recipes){
-    if (!isRecord(entry) || !asString(entry.id,90) || !asString(entry.name,120) ||
+    if (!isRecord(entry) || !asString(entry.id,90) || !safeId(entry.id as string) || !asString(entry.name,120) ||
       (entry.subtitle!==undefined && typeof entry.subtitle!=='string') ||
       !Array.isArray(entry.ingredients) || !Array.isArray(entry.steps) ||
       entry.ingredients.some(i=>!isRecord(i)||!asString(i.id,90)||!asString(i.name,160)||!asString(i.unit,30)) ||
