@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, ClipboardList, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChefHat, Clock3, Globe2, Heart, ClipboardList, BookOpen, Menu, MousePointer2, Search, Sparkles, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import KitchenGateway from './components/KitchenGateway';
@@ -7,6 +7,7 @@ import { useNativeApp, type NativeAppState } from './pwa/useNativeApp';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './components/NativeControls';
 import { recipes, regions } from './data/recipes';
 import type { Recipe, Region } from './data/recipes';
+import { allRecipes, findRecipe, savedRecipeIds, setRecipeSaved } from './lib/personal-cookbook';
 
 gsap.registerPlugin(ScrollTrigger);
 type Filter = 'All' | Region;
@@ -27,10 +28,12 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
       <Logo />
       <nav className="desktop-nav" aria-label="Main navigation">
         <button type="button" onClick={() => go('discover')}>Discover</button>
+        <a href="/cookbook/">My cookbook</a>
         <button type="button" onClick={() => go('kitchen')}>The kitchen</button>
         <button type="button" onClick={() => go('experience')}>Our philosophy</button>
       </nav>
       <div className="header-actions">
+        <a className="shopping-header-link" href="/cookbook/" aria-label="Open personal cookbook" title="My cookbook"><BookOpen size={19} strokeWidth={1.8}/></a>
         <a className="shopping-header-link" href="/shopping/" aria-label="Open shopping list" title="Shopping list"><ClipboardList size={19} strokeWidth={1.8}/></a>
         <NativeHeaderActions app={app} onSettings={onSettings} />
         <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} strokeWidth={1.8} /><span>{favoritesCount}</span></button>
@@ -40,6 +43,7 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
     </header>
     {open && <div className="mobile-menu">
       <button type="button" onClick={() => go('discover')}>Discover recipes <ArrowUpRight /></button>
+      <a href="/cookbook/" className="mobile-cookbook-link">My cookbook <BookOpen size={18}/></a>
       <button type="button" onClick={() => go('kitchen')}>The kitchen <ArrowUpRight /></button>
       <button type="button" onClick={() => go('experience')}>Our philosophy <ArrowUpRight /></button>
     </div>}
@@ -98,17 +102,18 @@ function RecipeCard({ recipe, selected, saved, onSelect, onSave }: {
   </article>;
 }
 
-function Discover({ selectedId, onSelect, saved, onToggleSave, savedOnly, setSavedOnly }: {
+function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnly, setSavedOnly }: {
+   catalog: Recipe[];
   selectedId: string; onSelect: (id: string) => void; saved: string[]; onToggleSave: (id: string) => void;
   savedOnly: boolean; setSavedOnly: (value: boolean) => void;
 }) {
   const [filter, setFilter] = useState<Filter>('All');
   const [search, setSearch] = useState('');
-  const filtered = useMemo(() => recipes.filter(recipe =>
+  const filtered = useMemo(() => catalog.filter(recipe =>
     (filter === 'All' || recipe.region === filter) &&
     (!savedOnly || saved.includes(recipe.id)) &&
     (recipe.name + ' ' + recipe.country + ' ' + recipe.region + ' ' + recipe.tags.join(' ') + ' ' + recipe.story).toLowerCase().includes(search.trim().toLowerCase())
-  ), [filter, search, saved, savedOnly]);
+  ), [catalog, filter, search, saved, savedOnly]);
 
   return <section className="discover-section" id="discover">
     <div className="discover-layout">
@@ -181,23 +186,26 @@ function Footer() {
 
 export default function App() {
   const native = useNativeApp();
+  const [catalog, setCatalog] = useState<Recipe[]>(() => allRecipes());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(() => {
     const id = new URLSearchParams(window.location.search).get('recipe');
-    return recipes.find(recipe => recipe.id === id)?.id || recipes[0].id;
+    return findRecipe(id)?.id || recipes[0].id;
   });
-  const [saved, setSaved] = useState<string[]>(() => {
-    try { const value = JSON.parse(localStorage.getItem('mise:saved') || '[]'); return Array.isArray(value) ? value.filter((id: unknown) => typeof id === 'string') : []; }
-    catch { return []; }
-  });
+  const [saved, setSaved] = useState<string[]>(() => savedRecipeIds());
+  useEffect(() => {
+    const sync = () => { setCatalog(allRecipes()); setSaved(savedRecipeIds()); };
+    window.addEventListener('storage',sync);
+    window.addEventListener('mise:cookbook:updated',sync);
+    return () => {window.removeEventListener('storage',sync); window.removeEventListener('mise:cookbook:updated',sync);};
+  },[]);
   const [savedOnly, setSavedOnly] = useState(false);
-  const selectedRecipe = recipes.find(recipe => recipe.id === selectedId) || recipes[0];
+  const selectedRecipe = catalog.find(recipe => recipe.id === selectedId) || recipes[0];
 
   const toggleSaved = (id: string) => {
     setSaved(current => {
       const next = current.includes(id) ? current.filter(item => item !== id) : [...current, id];
-      try { localStorage.setItem('mise:saved', JSON.stringify(next)); } catch { /* Storage can be unavailable. */ }
-      return next;
+      return setRecipeSaved(id,!current.includes(id)) ? next : current;
     });
   };
 
@@ -237,7 +245,7 @@ export default function App() {
     <Header favoritesCount={saved.length} onSaved={() => setSavedOnly(true)} app={native} onSettings={() => setSettingsOpen(true)} />
     <Hero />
     <Marquee />
-    <Discover selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
+    <Discover catalog={catalog} selectedId={selectedId} onSelect={setSelectedId} saved={saved} onToggleSave={toggleSaved} savedOnly={savedOnly} setSavedOnly={setSavedOnly} />
     <KitchenGateway key={selectedRecipe.id} recipe={selectedRecipe} onRecipeChange={setSelectedId} />
     <Experience />
     <Footer />
