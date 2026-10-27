@@ -11,7 +11,7 @@ export default defineConfig({
       // The existing manifest is kept as the single source of truth for name, icons and shortcuts.
       manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,txt,xml,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,glb,webmanifest,txt,xml,woff2}'],
         // The full Rapier mode is optional: don't download its heavy JS while
         // preparing the offline quick kitchen. Cache it on first activation.
         globIgnores: ['**/KitchenScene-*.js'],

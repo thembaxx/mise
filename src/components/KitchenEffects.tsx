@@ -110,21 +110,35 @@ function FinishedPlate() {
   const reducedMotion = useReducedMotion();
   const plate = useRef<THREE.Group>(null);
   const reveal = useRef(0);
-  const [originalDish, setOriginalDish] = useState<THREE.Group | null>(null);
+  const [originalDish, setOriginalDish] = useState<{ scene: THREE.Group; animations: THREE.AnimationClip[] } | null>(null);
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   useEffect(() => {
     let cancelled = false;
     const loader = new GLTFLoader();
-    loader.load(
-      '/models/original/mise-plated-dish.glb',
-      ({ scene }) => {
-        if (!cancelled) setOriginalDish(scene);
-      },
-      undefined,
-      () => { /* The procedural dish remains the offline fallback. */ },
-    );
+    const load = (path: string, older = false) => {
+      loader.load(path, ({ scene, animations }) => {
+        if (!cancelled) setOriginalDish({ scene, animations });
+      }, undefined, () => {
+        if (!cancelled && !older) load('/models/original/mise-plated-dish.glb', true);
+        // Keep the existing procedural dish on offline or model errors.
+      });
+    };
+    load('/models/original/mise-plated-dish-animated.glb');
     return () => { cancelled = true; };
   }, []);
+  useEffect(() => {
+    if (!originalDish || reducedMotion || !originalDish.animations.length) return;
+    const mixer = new THREE.AnimationMixer(originalDish.scene);
+    originalDish.animations.forEach(clip => mixer.clipAction(clip).play());
+    mixerRef.current = mixer;
+    return () => {
+      mixer.stopAllAction();
+      mixer.uncacheRoot(originalDish.scene);
+      mixerRef.current = null;
+    };
+  }, [originalDish, reducedMotion]);
   useFrame((_, delta) => {
+    if (!reducedMotion) mixerRef.current?.update(Math.min(delta, .05));
     if (!plate.current || reducedMotion || reveal.current >= 1) return;
     reveal.current = Math.min(1, reveal.current + Math.min(delta, .05) * 2.3);
     const t = reveal.current;
@@ -132,7 +146,7 @@ function FinishedPlate() {
     plate.current.scale.setScalar(0.75 + 0.25 * (1 - Math.pow(1 - t, 3)));
   });
   return <group ref={plate} position={[-1.5, .25, .23]} scale={reducedMotion ? 1 : .75}>
-    {originalDish ? <primitive object={originalDish} dispose={null} /> : <>
+    {originalDish ? <primitive object={originalDish.scene} dispose={null} /> : <>
     <mesh castShadow><cylinderGeometry args={[.68, .64, .09, 48]} /><meshStandardMaterial color="#f6f1dc" roughness={.46}/></mesh>
     <mesh position={[0, .065, 0]}><torusGeometry args={[.55, .035, 10, 48]} /><meshStandardMaterial color="#d5cfad" /></mesh>
     {Array.from({ length: 9 }, (_, i) => {
