@@ -4,7 +4,7 @@ import { addRecipeToShoppingList, loadKitchenSnapshot } from '../src/lib/kitchen
 import { loadPrep, savePrep, createTimer, saveTimers, loadTimers, startTimer } from '../src/lib/companion';
 import {
   allRecipes, createCollection, deletePersonalRecipe, draftToRecipe, findRecipe,
-  importRecipeContent, isPersonalRecipe, loadCollections, loadPersonalRecipes, parseIngredient,
+  importRecipeContent, importRecipeUrl, isPersonalRecipe, loadCollections, loadPersonalRecipes, parseIngredient,
   recipeToDraft, savePersonalRecipe, savedRecipeIds, setRecipeSaved, toggleInCollection,
 } from '../src/lib/personal-cookbook';
 const storage=()=>{
@@ -91,5 +91,34 @@ describe('supported recipe import without unsafe HTML rendering',()=>{
   expect(importRecipeContent(json,'javascript:alert(1)').sourceUrl).toBe('');
   expect(importRecipeContent(json,'https://localhost/private').sourceUrl).toBe('');
   expect(()=>importRecipeContent('x'.repeat(500_001))).toThrow();
+ });
+});
+
+describe('hardened browser-side recipe importing',()=>{
+ it('reads nested schema.org HowToSection instructions with reordered script attributes',()=>{
+  const graph={'@graph':[{'@type':'Recipe',name:'Vegetable broth',recipeIngredient:['1 onion','500 ml water'],
+   recipeInstructions:[{'@type':'HowToSection',name:'Prep',itemListElement:[{'@type':'HowToStep',text:'Slice the onion.'},{'@type':'HowToStep',text:'Simmer with water.'}]}]}]};
+  const html='<script defer type="application/ld+json">'+JSON.stringify(graph)+'</script>';
+  const draft=importRecipeContent(html);
+  expect(draft.steps).toBe('Slice the onion.\nSimmer with water.');
+ });
+ it('rejects literal IPv6 loopback and private-network recipe URLs before fetch',async()=>{
+  const mock=vi.fn();
+  vi.stubGlobal('fetch',mock);
+  await expect(importRecipeUrl('https://[::1]/private')).rejects.toThrow('public HTTPS');
+  await expect(importRecipeUrl('https://127.0.0.1/local')).rejects.toThrow('public HTTPS');
+  expect(mock).not.toHaveBeenCalled();
+ });
+ it('enforces response size, content-type and redirect restrictions',async()=>{
+  const good=JSON.stringify({'@type':'Recipe',name:'Sample stew',recipeIngredient:['1 onion'],recipeInstructions:['Chop the onion.']});
+  const fetchMock=vi.fn().mockResolvedValueOnce(new Response(good,{headers:{'content-type':'application/ld+json'}}))
+    .mockResolvedValueOnce(new Response('x',{headers:{'content-type':'application/octet-stream'}}))
+    .mockResolvedValueOnce(new Response('too large',{headers:{'content-type':'text/html','content-length':'999999'}}));
+  vi.stubGlobal('fetch',fetchMock);
+  expect((await importRecipeUrl('https://www.example.com/stew')).name).toBe('Sample stew');
+  expect(fetchMock.mock.calls[0][1].credentials).toBe('omit');
+  expect(fetchMock.mock.calls[0][1].redirect).toBe('error');
+  await expect(importRecipeUrl('https://www.example.com/binary')).rejects.toThrow('supported');
+  await expect(importRecipeUrl('https://www.example.com/huge')).rejects.toThrow('500 KB');
  });
 });
