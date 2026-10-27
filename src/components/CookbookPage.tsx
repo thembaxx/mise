@@ -10,6 +10,7 @@ import {
   type RecipeDraft,
 } from '../lib/personal-cookbook';
 import type { Recipe } from '../data/recipes';
+import CookbookBackup from './CookbookBackup';
 
 const emptyDraft: RecipeDraft = {name:'',minutes:30,servings:2,ingredients:'',steps:'',region:'Personal',country:'My kitchen'};
 type EditorMode = 'manual'|'url'|'paste';
@@ -143,6 +144,7 @@ export default function CookbookPage() {
             </form>}
           </div>}
       </section>
+      <CookbookBackup onChange={refresh}/>
       <div className="cookbook-browser">
         <aside className="cookbook-sidebar">
           <h2>Collections</h2>
@@ -179,7 +181,7 @@ export default function CookbookPage() {
           </article>)}</div> : <div className="cookbook-empty"><BookOpen size={28}/><h3>Nothing on this shelf yet.</h3><p>Save recipes you love, create your own, or try another collection.</p><button type="button" onClick={startNew}><Plus size={15}/> Write a recipe</button></div>}
         </section>
       </div>
-      <p className="cookbook-privacy"><strong>Private, local-first.</strong> Your recipes and collections are saved in this browser only, not synced between devices. Clearing site data removes them. Personal recipe links work only on devices where the recipe is saved. Public recipe import depends on each website's access rules.</p>
+      <p className="cookbook-privacy"><strong>Private, local-first.</strong> Your recipes and collections are saved in this browser only, not synced between devices. Export a JSON backup before clearing site data. Personal recipe links work only on devices where the recipe is saved. Public recipe import depends on each website's access rules.</p>
     </div>
     <NativeDialog app={native} open={settingsOpen} close={()=>setSettingsOpen(false)}/>
     <NativeNotices app={native}/>
