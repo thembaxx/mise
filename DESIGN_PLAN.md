@@ -22,3 +22,40 @@ Touch and pointer gestures, OrbitControls, reduced-motion support, keyboard-acce
 ## Tactile kitchen update
 
 Chopping knife, pouring cruet and stirring spoon now respond to direct WebGL taps with short kinetic motion. The same functions are accessible as large HTML controls. An action-specific audiovisual response, steam, plating feedback, a six-stage non-food-safety cooking game loop and completion message help bridge discovery and kitchen. Avoids external paid models or large licensed textures. Performance safeguards include existing intersection-based code splitting, shadow/DPR limits and reduced-motion CSS.
+
+## Motion refinement (October 2026)
+
+Guidance: MotionDesign's GSAP composition and frontend engineering workflows, and
+[Emil Kowalski's design engineering skills](https://emilkowal.ski/skill)
+(`emilkowalski/skill` at `2d228630ba1446365f614a108cb8252f1feda202`).
+This is a motion pass on the existing editorial design, rather than a new layout.
+
+| Before | After | Why |
+| --- | --- | --- |
+| Hero takes up to 1.6 seconds; deep links animate unseen content | 650–800ms editorial entrance with 55ms stagger; skip for view links | A small welcome, without slowing access to the kitchen |
+| Recipe cards scrub from 35% opacity; filters leave stale triggers | 240ms once-per-result-set reveals with explicit cleanup | Dishes remain legible when scrolling stops and after filtering |
+| Whole feature cards move and fade during scroll | Desktop image-only scale scrub from 1.08 to 1 | Retain visual depth while keeping copy stationary |
+| Discovery panel pins regardless of height | Pin only when the panel fits and results extend beyond it | Keep every filter reachable; refresh after layout changes |
+| UI transitions vary up to 450ms; progress animates width | 100ms press, 160–240ms UI transitions; scaleX progress | Prompt feedback without repeated layout work |
+| Navigation/settings disappear immediately | Interruptible entry/exit using retained hidden, inert DOM and CSS discrete transitions | Spatial continuity with immediate focus and accessibility cleanup |
+| Touch can retain hover transforms | Hover movement limited to fine hover pointers | Avoid sticky image zoom and lifted controls on touch |
+| Reduced motion sampled at mount; particles continue moving | Live GSAP, CSS and WebGL preference handling | Stop decorative movement without reloading or losing cooking state |
+| Decorative movement loops indefinitely | Finite four-second marquee drift and five-second tomato float | Decorative motion settles without requiring a pause control |
+| Keyboard actions inherit movement | Input modality skips result animation, CSS transitions and smooth scrolling | Keyboard navigation and cooking steps respond immediately |
+
+The existing Outfit/Playfair typography, two-line hero and dense grids are
+preserved. GSAP owns the editorial photo transform; CSS hover does not compete
+for that transform. Scopes, media-query contexts, resize observers, frame requests
+and deferred reveal tweens are cleaned up. No new animation dependency is added.
+
+`@starting-style` and discrete display transitions progressively enhance navigation,
+settings, Cook Mode and notices. Browsers without support still show and hide
+content normally. Only navigation and settings retain DOM for an exit transition;
+Cook Mode exits immediately so timers, wake lock and focus cleanup are not delayed.
+The physics simulation remains explicitly opt-in and user-controlled.
+
+Validation includes the production build, existing browser journeys, and
+`e2e/motion.e2e.ts` for refiltering, live reduced-motion changes, rapid settings
+reopening, focus restoration, keyboard steps, progress and touch hover behavior.
+Physical iOS/Safari and Android testing remains device QA; Chromium touch emulation
+is not a claim of physical-device testing.

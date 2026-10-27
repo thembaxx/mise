@@ -5,6 +5,10 @@ import { RecipePage, ShoppingPage } from './components/RecipePages';
 import CookbookPage from './components/CookbookPage';
 import { findRecipe } from './lib/personal-cookbook';
 import './styles.css';
+import { trackInputModality } from './motion/preferences';
+
+const stopTracking = trackInputModality();
+if (import.meta.hot) import.meta.hot.dispose(stopTracking);
 
 const recipeRoute = /^\/recipes\/([a-z0-9-]+)\/?$/.exec(window.location.pathname);
 const shoppingRoute = /^\/shopping\/?$/.test(window.location.pathname);

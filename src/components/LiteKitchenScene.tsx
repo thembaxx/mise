@@ -1,3 +1,4 @@
+import { useReducedMotion } from '../motion/preferences';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
 import { OrbitControls, RoundedBox } from '@react-three/drei';
@@ -72,7 +73,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
   const body = useRef<THREE.Group>(null);
   const target = useRef<THREE.Vector3 | null>(null);
   const dragging = useRef(false);
-  const reducedMotion = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
+  const reducedMotion = useReducedMotion();
   const [hover, setHover] = useState(false);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.1), []);
   const point = useMemo(() => new THREE.Vector3(), []);
@@ -138,10 +139,11 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
 }
 
 function Burner({ heat }: { heat: number }) {
+  const reducedMotion = useReducedMotion();
   const shader = useRef<THREE.ShaderMaterial>(null);
   useFrame(({ clock }) => {
     if (shader.current) {
-      shader.current.uniforms.uTime.value = clock.elapsedTime;
+      shader.current.uniforms.uTime.value = reducedMotion ? 0 : clock.elapsedTime;
       shader.current.uniforms.uHeat.value = heat;
     }
   });

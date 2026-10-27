@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
@@ -12,8 +12,8 @@ import { Cursor } from '@phosphor-icons/react/dist/csr/Cursor';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
 import { X } from '@phosphor-icons/react/dist/csr/X';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { usePageMotion, useRecipeReveal } from './motion/usePageMotion';
+import { isKeyboardInteraction } from './motion/preferences';
 import KitchenGateway from './components/KitchenGateway';
 import { useNativeApp, type NativeAppState } from './pwa/useNativeApp';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './components/NativeControls';
@@ -21,11 +21,10 @@ import { recipes, regions } from './data/recipes';
 import type { Recipe, Region } from './data/recipes';
 import { allRecipes, findRecipe, savedRecipeIds, setRecipeSaved } from './lib/personal-cookbook';
 
-gsap.registerPlugin(ScrollTrigger);
 type Filter = 'All' | Region;
 
 function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches || isKeyboardInteraction() ? 'instant' : 'smooth', block: 'start' });
 }
 
 function Logo({ light = false }: { light?: boolean }) {
@@ -34,6 +33,15 @@ function Logo({ light = false }: { light?: boolean }) {
 
 function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: number; onSaved: () => void; app: NativeAppState; onSettings: () => void }) {
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setOpen(false); menuButton.current?.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
   const go = (id: string) => { setOpen(false); scrollToSection(id); };
   return <>
     <header className="site-header">
@@ -50,16 +58,16 @@ function Header({ favoritesCount, onSaved, app, onSettings }: { favoritesCount: 
         <NativeHeaderActions app={app} onSettings={onSettings} />
         <button type="button" className="saved-nav" onClick={() => { onSaved(); go('discover'); }} aria-label={'Show saved recipes, ' + favoritesCount + ' saved'}><Heart size={17} /><span>{favoritesCount}</span></button>
         <button type="button" className="nav-cta" onClick={() => go('kitchen')}>Start cooking <ArrowUpRight size={17} /></button>
-        <button type="button" className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <List size={23} />}</button>
+        <button type="button" ref={menuButton} className="mobile-menu-button" aria-controls="mobile-navigation" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open}>{open ? <X size={23} /> : <List size={23} />}</button>
       </div>
     </header>
-    {open && <div className="mobile-menu">
+    <div id="mobile-navigation" className="mobile-menu" hidden={!open} inert={!open}>
       <button type="button" onClick={() => go('discover')}>Discover recipes <ArrowUpRight /></button>
       <a href="/cookbook/" className="mobile-cookbook-link">My cookbook <BookOpen size={18}/></a>
       <a href="/shopping/" className="mobile-cookbook-link">Shopping list <ClipboardText size={18}/></a>
       <button type="button" onClick={() => go('kitchen')}>The kitchen <ArrowUpRight /></button>
       <button type="button" onClick={() => go('experience')}>Our philosophy <ArrowUpRight /></button>
-    </div>}
+    </div>
   </>;
 }
 
@@ -120,6 +128,7 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
   selectedId: string; onSelect: (id: string) => void; saved: string[]; onToggleSave: (id: string) => void;
   savedOnly: boolean; setSavedOnly: (value: boolean) => void;
 }) {
+  const resultsRoot = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<Filter>('All');
   const [search, setSearch] = useState('');
   const filtered = useMemo(() => catalog.filter(recipe =>
@@ -127,6 +136,8 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
     (!savedOnly || saved.includes(recipe.id)) &&
     (recipe.name + ' ' + recipe.country + ' ' + recipe.region + ' ' + recipe.tags.join(' ') + ' ' + recipe.story).toLowerCase().includes(search.trim().toLowerCase())
   ), [catalog, filter, search, saved, savedOnly]);
+
+  useRecipeReveal(resultsRoot, filtered.map(recipe => recipe.id).join(','));
 
   return <section className="discover-section" id="discover">
     <div className="discover-layout">
@@ -140,7 +151,7 @@ function Discover({ catalog, selectedId, onSelect, saved, onToggleSave, savedOnl
         </div>
         <button type="button" className={'saved-filter ' + (savedOnly ? 'is-active' : '')} onClick={() => setSavedOnly(!savedOnly)} aria-pressed={savedOnly}><Heart size={17} weight={savedOnly ? 'fill' : 'regular'} /> {savedOnly ? 'Showing saved recipes' : 'Only show my saved recipes'} <span>{saved.length}</span></button>
       </div>
-      <div className="recipes-content">
+      <div className="recipes-content" ref={resultsRoot}>
         <div className="recipes-topline"><span>THE MENU</span><span>{String(filtered.length).padStart(2, '0')} DISHES TO DISCOVER</span></div>
         {filtered.length ? <div className="recipe-grid">
           {filtered.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} selected={selectedId === recipe.id} saved={saved.includes(recipe.id)} onSelect={() => { onSelect(recipe.id); scrollToSection('kitchen'); }} onSave={() => onToggleSave(recipe.id)} />)}
@@ -198,6 +209,8 @@ function Footer() {
 }
 
 export default function App() {
+  const root = useRef<HTMLElement>(null);
+  usePageMotion(root);
   const native = useNativeApp();
   const [catalog, setCatalog] = useState<Recipe[]>(() => allRecipes());
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -230,30 +243,7 @@ export default function App() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  useLayoutEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo('.hero-copy > *', { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 1.05, ease: 'power3.out', stagger: .11, delay: .08 });
-      gsap.fromTo('.hero-visual', { y: 35, scale: .94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1.45, ease: 'power3.out', delay: .18 });
-      // Avoid scroll-linked transforms fighting touch interactions on narrow screens.
-      if (window.matchMedia('(min-width: 761px) and (pointer: fine)').matches) {
-      gsap.utils.toArray<HTMLElement>('.recipe-card').forEach((card, i) => {
-        gsap.fromTo(card, { y: 45, opacity: .35, scale: .95 }, { y: 0, opacity: 1, scale: 1, ease: 'none', scrollTrigger: { trigger: card, start: 'top 97%', end: 'top 62%', scrub: .65 }, delay: i % 2 * .05 });
-      });
-      }
-      gsap.utils.toArray<HTMLElement>('.feature-card').forEach(card => {
-        gsap.fromTo(card, { y: 65, opacity: .5 }, { y: 0, opacity: 1, ease: 'power2.out', scrollTrigger: { trigger: card, start: 'top 92%', end: 'top 62%', scrub: .7 } });
-      });
-      ScrollTrigger.matchMedia({
-        '(min-width: 1100px)': () => {
-          ScrollTrigger.create({ trigger: '#discover', start: 'top top+=115', end: 'bottom bottom-=120', pin: '#discover-intro', pinSpacing: false });
-        }
-      });
-    });
-    return () => ctx.revert();
-  }, []);
-
-  return <main id="top" className="site-wrap">
+  return <main id="top" className="site-wrap" ref={root}>
     <Header favoritesCount={saved.length} onSaved={() => setSavedOnly(true)} app={native} onSettings={() => setSettingsOpen(true)} />
     <Hero />
     <Marquee />

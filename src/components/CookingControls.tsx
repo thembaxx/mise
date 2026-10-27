@@ -53,7 +53,7 @@ export default function CookingControls({ progress, requirements, ingredientCoun
       <span><Hand size={16} /> COOKING JOURNEY</span><strong>{complete} / {requirements.length}</strong>
     </div>
     <div className="cooking-meter" role="progressbar" aria-label="Cooking activity progress" aria-valuenow={complete} aria-valuemax={requirements.length} aria-valuemin={0}>
-      <span style={{ width: (complete / requirements.length * 100) + '%' }} />
+      <span style={{ transform: `scaleX(${complete / requirements.length})` }} />
     </div>
     <div className="cooking-goals">
       {requirements.map(item => <div className={'cooking-goal ' + (item.complete ? 'met' : '')} key={item.id}>

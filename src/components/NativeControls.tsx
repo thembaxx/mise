@@ -20,6 +20,8 @@ export function NativeHeaderActions({ app, onSettings }: { app: NativeAppState; 
 
 export function NativeDialog({ app, open, close }: { app: NativeAppState; open: boolean; close: () => void }) {
   const sheetRef = useRef<HTMLElement>(null);
+  const closeRef = useRef(close);
+  useEffect(() => { closeRef.current = close; }, [close]);
   useEffect(() => {
     if (!open) return;
     const originalFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -27,7 +29,7 @@ export function NativeDialog({ app, open, close }: { app: NativeAppState; open: 
     document.body.style.overflow = 'hidden';
     sheetRef.current?.querySelector<HTMLButtonElement>('.native-close')?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+      if (event.key === 'Escape') { event.preventDefault(); closeRef.current(); return; }
       if (event.key !== 'Tab') return;
       const buttons = [...(sheetRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])') || [])];
       if (!buttons.length) return;
@@ -37,10 +39,9 @@ export function NativeDialog({ app, open, close }: { app: NativeAppState; open: 
     };
     window.addEventListener('keydown', onKey);
     return () => {window.removeEventListener('keydown', onKey);document.body.style.overflow=originalOverflow;originalFocus?.focus();};
-  }, [open, close]);
+  }, [open]);
 
-  if (!open) return null;
-  return <div className="native-modal-backdrop" onClick={close}>
+  return <div className="native-modal-backdrop native-settings-backdrop" hidden={!open} inert={!open} onClick={close}>
     <section ref={sheetRef} className="native-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="native-settings-title" onClick={event => event.stopPropagation()}>
       <div className="native-modal-heading">
         <div><span className="native-kicker">MAKE IT YOURS</span><h2 id="native-settings-title">App settings</h2></div>
