@@ -64,7 +64,7 @@ export function useNativeApp() {
   }, [preference, resolvedTheme]);
 
   useEffect(() => {
-    const syncOnline = () => setOnline(navigator.onLine);
+    const syncOnline = () => { setOnline(navigator.onLine); if (navigator.onLine) void swRegistration.current?.update().catch(() => { /* retry next visit */ }); };
     const installed = () => { setIsInstalled(true); setInstallPrompt(null); setInstallHelp(false); };
     const installable = (event: Event) => {
       event.preventDefault();
@@ -88,6 +88,7 @@ export function useNativeApp() {
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+    void navigator.serviceWorker.ready.then(() => setOfflineReady(true)).catch(() => { /* unsupported storage */ });
     updateSW.current = registerSW({
       immediate: true,
       onNeedRefresh: () => setNeedRefresh(true),
@@ -144,7 +145,9 @@ export function useNativeApp() {
   }, []);
 
   const activateUpdate = useCallback(() => {
-    void updateSW.current?.(true);
+    if (!navigator.onLine) { setMessage('Reconnect to the internet before updating Mise. Your saved recipes remain available offline.'); return; }
+    if (!updateSW.current) { setMessage('Update service not ready yet. Try checking for updates.'); return; }
+    void updateSW.current(true).catch(() => setMessage('Could not apply the update. Your current kitchen remains available.'));
   }, []);
 
   return {

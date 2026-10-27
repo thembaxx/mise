@@ -1,5 +1,5 @@
 export type IngredientKind = 'tomato' | 'lemon' | 'carrot' | 'mushroom' | 'onion' | 'chili' | 'garlic' | 'herb' | 'eggplant' | 'lime';
-export type Region = 'Asia' | 'Europe' | 'Africa' | 'Americas' | 'Middle East';
+export type Region = 'Asia' | 'Europe' | 'Africa' | 'Americas' | 'Middle East' | 'Personal';
 
 export interface Ingredient {
   id: string;
@@ -30,7 +30,7 @@ export interface Recipe {
   ingredients: Ingredient[];
   steps: RecipeStep[];
 }
-export const regions = ['All', 'Asia', 'Europe', 'Africa', 'Americas', 'Middle East'] as const;
+export const regions = ['All', 'Asia', 'Europe', 'Africa', 'Americas', 'Middle East', 'Personal'] as const;
 
 export const recipes: Recipe[] = [
   {

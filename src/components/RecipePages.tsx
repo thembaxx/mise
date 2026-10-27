@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Check, ClipboardList, Share2, Trash2 } from 'lucide-react';
 import { addRecipeToShoppingList, getShoppingItems, recipePath, saveShoppingItems, type ShoppingItem } from '../lib/kitchen-storage';
-import { recipes, type Recipe } from '../data/recipes';
+import { type Recipe } from '../data/recipes';
+import { allRecipes, isPersonalRecipe } from '../lib/personal-cookbook';
 import { IngredientGuide, PrepChecklist } from './SmartCompanion';
 import { useNativeApp } from '../pwa/useNativeApp';
 import { NativeDialog, NativeHeaderActions, NativeNotices } from './NativeControls';
@@ -11,10 +12,16 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [servings, setServings] = useState(recipe?.servings || 2);
-  useEffect(() => { document.title = recipe ? recipe.name + ' recipe · Mise' : 'Recipe not found · Mise'; }, [recipe]);
+  useEffect(() => {
+    document.title = recipe ? recipe.name + ' recipe · Mise' : 'Recipe not found · Mise';
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const previous = meta?.content;
+    if (meta && recipe && isPersonalRecipe(recipe.id)) meta.content = 'noindex, nofollow';
+    return () => { if (meta && previous !== undefined) meta.content = previous; };
+  }, [recipe]);
 
   if (!recipe) return <main className="recipe-page"><a href="/" className="recipe-back"><ArrowLeft size={18}/> Back to Mise</a><h1>That recipe isn’t on our table yet.</h1><p>Try the discovery page for something delicious.</p></main>;
-  const related = recipes.filter(candidate => candidate.id !== recipe.id)
+  const related = allRecipes().filter(candidate => candidate.id !== recipe.id)
     .sort((a, b) => Number(b.region === recipe.region) - Number(a.region === recipe.region)
       || Number(b.tags.some(tag => recipe.tags.includes(tag))) - Number(a.tags.some(tag => recipe.tags.includes(tag))))
     .slice(0, 3);
@@ -33,7 +40,7 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
   return <main className="recipe-page" id="top">
     <header className="recipe-page-header">
       <a href="/" className="recipe-wordmark"><img src="/brand/mise-mark.svg" alt="" width="36" height="36" /> Mise</a>
-      <nav aria-label="Recipe navigation"><a href="/#discover">Discover</a><a href="/shopping/"><ClipboardList size={16}/> Shopping list</a><NativeHeaderActions app={native} onSettings={() => setSettingsOpen(true)}/></nav>
+      <nav aria-label="Recipe navigation"><a href="/#discover">Discover</a><a href="/shopping/"><ClipboardList size={16}/> Shopping list</a><a href="/cookbook/">My cookbook</a><NativeHeaderActions app={native} onSettings={() => setSettingsOpen(true)}/></nav>
     </header>
     <article className="recipe-article">
       <div className="recipe-page-top"><a href="/#discover" className="recipe-back"><ArrowLeft size={16}/> All recipes</a><span>{recipe.country} · {recipe.region}</span></div>
@@ -43,7 +50,7 @@ export function RecipePage({ recipe }: { recipe: Recipe | undefined }) {
           <h1>{recipe.name}</h1>
           <p className="recipe-lede">{recipe.story}</p>
           <div className="recipe-facts"><span>{recipe.minutes} min</span><span>{recipe.difficulty}</span><span>{servings} servings</span></div>
-          <div className="recipe-page-actions"><button type="button" onClick={add}><ClipboardList size={18}/> Add ingredients</button><button type="button" onClick={() => void share()}><Share2 size={18}/> Share recipe</button><a href={'/?view=kitchen&recipe=' + encodeURIComponent(recipe.id)}>Cook interactively</a><a href={'/?view=cook&recipe=' + encodeURIComponent(recipe.id)}>Start Cook Mode</a></div>
+          <div className="recipe-page-actions"><button type="button" onClick={add}><ClipboardList size={18}/> Add ingredients</button>{isPersonalRecipe(recipe.id) ? <a href="/cookbook/"><Share2 size={18}/> Edit in my cookbook</a> : <button type="button" onClick={() => void share()}><Share2 size={18}/> Share recipe</button>}<a href={'/?view=kitchen&recipe=' + encodeURIComponent(recipe.id)}>Cook interactively</a><a href={'/?view=cook&recipe=' + encodeURIComponent(recipe.id)}>Start Cook Mode</a></div>
           {message && <p role="status" className="recipe-notice">{message} <a href="/shopping/">View list</a></p>}
         </div>
         <div className="recipe-page-image" style={{ background: recipe.accent }}><img src={recipe.image} alt={recipe.name} onError={event => {event.currentTarget.src = '/brand/mise-social.svg';}} /></div>
@@ -84,7 +91,7 @@ export function ShoppingPage() {
     } catch { setMessage('Clipboard unavailable. Use your browser’s share or selection controls.'); }
   };
   return <main className="recipe-page shopping-page">
-    <header className="recipe-page-header"><a className="recipe-wordmark" href="/"><img src="/brand/mise-mark.svg" alt="" width="36" height="36"/> Mise</a><nav><a href="/#discover">Discover</a><NativeHeaderActions app={native} onSettings={() => setSettingsOpen(true)}/></nav></header>
+    <header className="recipe-page-header"><a className="recipe-wordmark" href="/"><img src="/brand/mise-mark.svg" alt="" width="36" height="36"/> Mise</a><nav><a href="/#discover">Discover</a><a href="/cookbook/">My cookbook</a><NativeHeaderActions app={native} onSettings={() => setSettingsOpen(true)}/></nav></header>
     <div className="shopping-main"><a className="recipe-back" href="/#discover"><ArrowLeft size={17}/> Browse recipes</a><p className="eyebrow">THE THINGS YOU’LL NEED</p><h1>Shopping list</h1><p>Everything in one place, saved on this device. Tick off ingredients as you shop.</p>
       <div className="shopping-summary"><span>{items.filter(item => item.checked).length} of {items.length} checked</span><div><button type="button" onClick={() => void copyList()} disabled={!items.length}><Share2 size={16}/> Copy list</button><button type="button" onClick={() => apply([])} disabled={!items.length}><Trash2 size={16}/> Clear all</button></div></div>
       {message && <p role="status" className="recipe-notice">{message}</p>}

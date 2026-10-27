@@ -10,7 +10,7 @@ const PhysicsKitchenScene = lazy(() => import('./KitchenScene'));
 const CookMode = lazy(() => import('./CookMode'));
 import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
-import { recipes } from '../data/recipes';
+import { allRecipes } from '../lib/personal-cookbook';
 import { addRecipeToShoppingList, loadKitchenSnapshot, saveKitchenSnapshot, clearKitchenSnapshot } from '../lib/kitchen-storage';
 import { ClipboardList, Focus, Gauge } from 'lucide-react';
 
@@ -81,6 +81,17 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     // Only restart the deadline when the timer is toggled, not on each tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
+
+  useEffect(() => {
+    const recalculate = () => {
+      if (document.visibilityState === 'hidden') return;
+      if (timerDeadline.current !== null) setSeconds(Math.max(0,Math.ceil((timerDeadline.current - Date.now()) / 1000)));
+    };
+    document.addEventListener('visibilitychange',recalculate);
+    window.addEventListener('focus',recalculate);
+    window.addEventListener('pageshow',recalculate);
+    return () => {document.removeEventListener('visibilitychange',recalculate);window.removeEventListener('focus',recalculate);window.removeEventListener('pageshow',recalculate);};
+  },[]);
 
   useEffect(() => {
     if (seconds === 0 && running) {
@@ -189,7 +200,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
         <label className="visually-hidden" htmlFor="recipe-switch">Choose recipe</label>
         <select id="recipe-switch" className="recipe-switch" value={recipe.id} onChange={e => onRecipeChange(e.target.value)}>
-          {recipes.map(item => <option key={item.id} value={item.id}>{item.name} — {item.country}</option>)}
+          {allRecipes().map(item => <option key={item.id} value={item.id}>{item.name} — {item.country}</option>)}
         </select>
         <h3>{recipe.name}</h3>
         <p className="panel-story">{recipe.story}</p>

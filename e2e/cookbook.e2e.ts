@@ -1,0 +1,78 @@
+import { expect, test } from '@playwright/test';
+
+test('create, edit and cook a local recipe with shopping and Smart Companion integration',async({page})=>{
+ test.setTimeout(160_000);
+ await page.goto('/cookbook/');
+ await expect(page.getByRole('heading',{name:'My cookbook.'})).toBeVisible();
+ await page.getByRole('button',{name:'New recipe'}).click();
+ await page.getByRole('textbox',{name:'Recipe name'}).fill('Family lentil stew');
+ await page.getByRole('spinbutton',{name:'Cooking time (minutes)'}).fill('25');
+ await page.getByRole('spinbutton',{name:'Servings'}).fill('3');
+ await page.getByRole('textbox',{name:/Ingredients — one per line/}).fill('250 g lentils\n2 onions');
+ await page.getByRole('textbox',{name:/Instructions — one step per line/}).fill('Wash the lentils.\nSimmer the onions and lentils.');
+ await page.getByRole('button',{name:'Save to my cookbook'}).click();
+ await expect(page.getByRole('heading',{name:'Family lentil stew'})).toBeVisible();
+ await page.reload();
+ await expect(page.getByRole('heading',{name:'Family lentil stew'})).toBeVisible();
+ await page.getByRole('link',{name:'Family lentil stew'}).first().click();
+ await expect(page.getByRole('heading',{name:'Family lentil stew'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Real-world preparation checklist'})).toBeVisible();
+ await page.getByRole('button',{name:'Add ingredients'}).click();
+ await expect(page.getByRole('link',{name:/View list/})).toBeVisible();
+ await page.getByRole('link',{name:'Start Cook Mode'}).click();
+ const dialog=page.getByRole('dialog');
+ await expect(dialog.getByRole('region',{name:'Real-world preparation checklist'})).toBeVisible({timeout:50000});
+ await expect(dialog.getByRole('region',{name:'Independent kitchen timers'})).toBeVisible();
+});
+test('favourites and collections survive reload and allow removing a recipe from a collection',async({page})=>{
+ await page.goto('/cookbook/');
+ const card=page.locator('.cookbook-item').first();
+ const name=await card.locator('h3').innerText();
+ await card.getByRole('button',{name:/favourite/}).click();
+ await page.getByRole('textbox',{name:'New collection'}).fill('Weeknight');
+ await page.getByRole('button',{name:'Create collection'}).click();
+ await card.getByText('Organise in collections').click();
+ await card.getByRole('checkbox',{name:'Weeknight'}).check();
+ await page.reload();
+ await page.getByRole('group',{name:'Filter cookbook'}).getByRole('button',{name:'Weeknight'}).click();
+ await expect(page.locator('.cookbook-item h3').filter({hasText:name})).toBeVisible();
+ await page.getByRole('group',{name:'Filter cookbook'}).getByRole('button',{name:'Favourites'}).click();
+ await expect(page.locator('.cookbook-item h3').filter({hasText:name})).toBeVisible();
+});
+test('paste JSON-LD recipe without external API and review before saving',async({page})=>{
+ await page.goto('/cookbook/');
+ await page.getByRole('button',{name:/Import a recipe from a website or text/}).click();
+ await page.getByRole('button',{name:'Paste recipe'}).click();
+ const schema={'@type':'Recipe',name:'Imported beans',recipeIngredient:['200 g beans','1 onion'],recipeInstructions:[{'@type':'HowToStep',text:'Rinse the beans.'},{'@type':'HowToStep',text:'Cook until tender.'}],totalTime:'PT35M'};
+ await page.getByRole('textbox',{name:'Recipe text, HTML or JSON-LD'}).fill(JSON.stringify(schema));
+ await page.getByRole('button',{name:'Parse recipe'}).click();
+ await expect(page.getByRole('textbox',{name:'Recipe name'})).toHaveValue('Imported beans');
+ await page.getByRole('button',{name:'Save to my cookbook'}).click();
+ await expect(page.getByRole('heading',{name:'Imported beans'})).toBeVisible();
+});
+test('PWA share target uses explicit approval rather than automatically fetching an external URL',async({page})=>{
+ await page.goto('/cookbook/?url=https%3A%2F%2Fexample.com%2Frecipe');
+ await expect(page.getByRole('textbox',{name:'Recipe webpage URL'})).toHaveValue('https://example.com/recipe');
+ await expect(page.getByRole('button',{name:'Import recipe'})).toBeVisible();
+ await expect(page).toHaveURL(/\/cookbook\/$/);
+});
+test('mobile cookbook remains usable and can open local recipe while offline',async({page,context,isMobile})=>{
+ test.skip(!isMobile,'mobile-only viewport');
+ await page.goto('/cookbook/');
+ await page.getByRole('button',{name:'New recipe'}).click();
+ await page.getByRole('textbox',{name:'Recipe name'}).fill('Offline soup');
+ await page.getByRole('textbox',{name:/Ingredients — one per line/}).fill('1 carrot');
+ await page.getByRole('textbox',{name:/Instructions — one step per line/}).fill('Simmer the carrot for ten minutes.');
+ await page.getByRole('button',{name:'Save to my cookbook'}).click();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2)).toBe(false);
+ const link=page.getByRole('link',{name:'Offline soup'}).first();
+ await expect(link).toBeVisible();
+ await page.reload();
+ await expect(page.getByRole('heading',{name:'Offline soup'})).toBeVisible();
+ await context.setOffline(true);
+ await page.reload();
+ await expect(page.getByRole('heading',{name:'Offline soup'})).toBeVisible();
+ await link.click();
+ await expect(page.getByRole('heading',{name:'Offline soup'})).toBeVisible();
+ await context.setOffline(false);
+});

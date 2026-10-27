@@ -39,6 +39,12 @@
   ],
   "orientation": "any",
   "dir": "ltr",
+  "share_target": {
+    "action": "/cookbook/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  },
   "shortcuts": [
     {
       "name": "Discover recipes",
@@ -52,6 +58,12 @@
           "type": "image/png"
         }
       ]
+    },
+    {
+      "name": "My cookbook",
+      "short_name": "Cookbook",
+      "description": "Your saved and personal recipes",
+      "url": "/cookbook/"
     },
     {
       "name": "Open the kitchen",
