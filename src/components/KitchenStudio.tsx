@@ -83,6 +83,17 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   }, [running]);
 
   useEffect(() => {
+    const recalculate = () => {
+      if (document.visibilityState === 'hidden') return;
+      if (timerDeadline.current !== null) setSeconds(Math.max(0,Math.ceil((timerDeadline.current - Date.now()) / 1000)));
+    };
+    document.addEventListener('visibilitychange',recalculate);
+    window.addEventListener('focus',recalculate);
+    window.addEventListener('pageshow',recalculate);
+    return () => {document.removeEventListener('visibilitychange',recalculate);window.removeEventListener('focus',recalculate);window.removeEventListener('pageshow',recalculate);};
+  },[]);
+
+  useEffect(() => {
     if (seconds === 0 && running) {
       setRunning(false);
       setTimerNotice('Time is up. Check your food!');
