@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ArrowDownToLine, Check, ChevronRight, CloudOff, Download, RefreshCcw, Settings2, Share2, Smartphone, Wifi, X } from 'lucide-react';
 import type { NativeAppState, ThemePreference } from '../pwa/useNativeApp';
 
@@ -10,16 +10,29 @@ export function NativeHeaderActions({ app, onSettings }: { app: NativeAppState; 
 }
 
 export function NativeDialog({ app, open, close }: { app: NativeAppState; open: boolean; close: () => void }) {
+  const sheetRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!open) return;
-    const closeWithEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
-    window.addEventListener('keydown', closeWithEscape);
-    return () => window.removeEventListener('keydown', closeWithEscape);
+    const originalFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    sheetRef.current?.querySelector<HTMLButtonElement>('.native-close')?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+      if (event.key !== 'Tab') return;
+      const buttons = [...(sheetRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])') || [])];
+      if (!buttons.length) return;
+      const first = buttons[0], last = buttons[buttons.length-1];
+      if (event.shiftKey && document.activeElement === first) {event.preventDefault();last.focus();}
+      else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first.focus();}
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {window.removeEventListener('keydown', onKey);document.body.style.overflow=originalOverflow;originalFocus?.focus();};
   }, [open, close]);
 
   if (!open) return null;
   return <div className="native-modal-backdrop" onClick={close}>
-    <section className="native-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="native-settings-title" onClick={event => event.stopPropagation()}>
+    <section ref={sheetRef} className="native-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="native-settings-title" onClick={event => event.stopPropagation()}>
       <div className="native-modal-heading">
         <div><span className="native-kicker">MAKE IT YOURS</span><h2 id="native-settings-title">App settings</h2></div>
         <button type="button" className="native-close" onClick={close} aria-label="Close app settings"><X size={19}/></button>
