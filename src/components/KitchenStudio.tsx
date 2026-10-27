@@ -7,11 +7,12 @@ import { playCookingCue, cookingHaptic } from '../lib/cooking-sound';
 import LiteKitchenScene from './LiteKitchenScene';
 // Rapier/physics are intentionally loaded only after the visitor enables the simulation.
 const PhysicsKitchenScene = lazy(() => import('./KitchenScene'));
+const CookMode = lazy(() => import('./CookMode'));
 import SceneErrorBoundary, { SupportsWebGL } from './SceneErrorBoundary';
 import type { Recipe } from '../data/recipes';
 import { recipes } from '../data/recipes';
 import { addRecipeToShoppingList, loadKitchenSnapshot, saveKitchenSnapshot, clearKitchenSnapshot } from '../lib/kitchen-storage';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Focus, Gauge } from 'lucide-react';
 
 type Props = { recipe: Recipe; onRecipeChange: (id: string) => void };
 const formatTime = (seconds: number) => [Math.floor(seconds / 60), seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
@@ -20,6 +21,15 @@ const formatAmount = (amount: number) => Number.isInteger(amount) ? String(amoun
 export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [restored] = useState(() => loadKitchenSnapshot(recipe));
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
+  const [cookModeOpen, setCookModeOpen] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
+  const closeCookMode = useCallback(() => setCookModeOpen(false), []);
+  const [graphics, setGraphics] = useState<'eco' | 'balanced' | 'high'>(() => {
+    try {
+      const value = localStorage.getItem('mise:graphics');
+      if (value === 'eco' || value === 'balanced' || value === 'high') return value;
+    } catch { /* Private browsing or storage denied. */ }
+    return window.matchMedia('(max-width: 760px)').matches ? 'eco' : 'balanced';
+  });
   const [stepIndex, setStepIndex] = useState(restored.stepIndex);
   const [added, setAdded] = useState<string[]>(restored.added);
   const [heat, setHeat] = useState(restored.heat);
@@ -33,8 +43,15 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [progress, setProgress] = useState(restored.progress);
   const [shoppingNote, setShoppingNote] = useState('');
   const [pulse, setPulse] = useState<KitchenPulse>(null);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem('mise:sound') === 'on'; } catch { return false; }
+  });
+  const changeSound = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    try { localStorage.setItem('mise:sound', enabled ? 'on' : 'off'); } catch { /* optional preference */ }
+  };
   const [actionFeedback, setActionFeedback] = useState('Try chopping an ingredient to begin.');
+  useEffect(() => { try { localStorage.setItem('mise:graphics', graphics); } catch { /* optional preference */ } }, [graphics]);
 
   // KitchenGateway is keyed by recipe, so switching recipes remounts this studio.
   // The state from this device is restored before the first interactive frame.
@@ -97,8 +114,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
       stir: 'Beautifully stirred. Keep the flavor moving.',
       plate: 'Bon appétit! Your virtual creation is served.',
     }[action]);
-    playCookingCue(action, soundEnabled);
-    cookingHaptic();
+    playCookingCue(action, soundEnabled, heat);
+    cookingHaptic(action);
   }, [progress, added.length, recipe.ingredients.length, recipe.steps.length, heat, stepIndex, soundEnabled]);
   const resetKitchen = () => {
     clearKitchenSnapshot(recipe.id);
@@ -118,6 +135,9 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const timerTotal = Math.max(1, step.minutes * 60);
   const timerProgress = Math.max(0, Math.min(1, seconds / timerTotal));
   const clockText = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const toggleTimer = () => { if (seconds === 0) setSeconds(timerTotal); setTimerNotice(''); setRunning(value => !value); };
+  const resetTimer = () => { setRunning(false); setSeconds(timerTotal); setTimerNotice(''); };
+  const addMinute = () => { if (timerDeadline.current !== null) timerDeadline.current += 60000; setSeconds(value => value + 60); };
 
   return <section className="studio-section" id="cooking-studio">
     <div className="section-head studio-heading">
@@ -137,14 +157,15 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <button type="button" className="physics-mode-toggle" aria-pressed={physicsEnabled} onClick={() => setPhysicsEnabled(enabled => !enabled)} title={physicsEnabled ? 'Use quick lightweight 3D kitchen' : 'Load full Rapier physics simulation'}>
               {physicsEnabled ? 'Physics on' : 'Quick 3D'} <span aria-hidden="true">●</span>
             </button>
+            <label className="graphics-mode-control" title="3D graphics quality"><Gauge size={14}/><span className="visually-hidden">Graphics quality</span><select aria-label="Graphics quality" value={graphics} onChange={event => setGraphics(event.target.value as 'eco'|'balanced'|'high')}><option value="eco">Eco</option><option value="balanced">Balanced</option><option value="high">High</option></select></label>
             <button className="scene-icon-button" type="button" onClick={resetKitchen} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><RotateCcw size={16} /></button>
           </div>
         </div>
         <SceneErrorBoundary><SupportsWebGL>
           <div className="kitchen-scene-outer">
           {physicsEnabled
-            ? <Suspense fallback={<p className="physics-loader" role="status">Loading physics simulation…</p>}><PhysicsKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
-            : <LiteKitchenScene ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading physics simulation…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
             {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
           </div>
         </SupportsWebGL></SceneErrorBoundary>
@@ -173,6 +194,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         <h3>{recipe.name}</h3>
         <p className="panel-story">{recipe.story}</p>
         <div className="panel-facts"><span><Clock3 size={14} /> {recipe.minutes} min</span><span>{recipe.country}</span><span>{recipe.difficulty}</span></div>
+        <button className="cook-mode-launch" type="button" onClick={() => setCookModeOpen(true)}><Focus size={19}/> <span><strong>Enter Cook Mode</strong><small>Large steps, timer and optional voice guidance</small></span><ArrowRight size={19}/></button>
         <div className="panel-rule" />
 
         <div className="method-topline"><span>LET'S MAKE IT</span><span>{String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span></div>
@@ -200,9 +222,9 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <strong>Good things take time.</strong>
             <small aria-live="polite">{timerNotice || (running ? 'Counting down...' : 'Ready when you are')}</small>
             <div className="timer-buttons">
-              <button type="button" className="timer-play" onClick={() => { if (seconds === 0) setSeconds(timerTotal); setTimerNotice(''); setRunning(value => !value); }} aria-label={running ? 'Pause timer' : 'Start timer'}>{running ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}{running ? 'Pause' : 'Start'}</button>
-              <button type="button" className="timer-small" onClick={() => { setRunning(false); setSeconds(timerTotal); setTimerNotice(''); }} aria-label="Reset timer"><RotateCcw size={15} /></button>
-              <button type="button" className="timer-small" onClick={() => { if (timerDeadline.current !== null) timerDeadline.current += 60000; setSeconds(value => value + 60); }} aria-label="Add one minute"><Plus size={15} /></button>
+              <button type="button" className="timer-play" onClick={toggleTimer} aria-label={running ? 'Pause timer' : 'Start timer'}>{running ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}{running ? 'Pause' : 'Start'}</button>
+              <button type="button" className="timer-small" onClick={resetTimer} aria-label="Reset timer"><RotateCcw size={15} /></button>
+              <button type="button" className="timer-small" onClick={addMinute} aria-label="Add one minute"><Plus size={15} /></button>
             </div>
           </div>
         </div>
@@ -230,10 +252,13 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           <a href="/shopping/">Open list <ArrowRight size={15}/></a>
         </div>
         {shoppingNote && <p className="studio-shopping-status" role="status">{shoppingNote}</p>}
-        <CookingControls progress={progress} requirements={requirements} ingredientCount={recipe.ingredients.length} addedCount={added.length} heat={heat} sound={soundEnabled} onSoundChange={setSoundEnabled} onAction={cookingAction} />
+        <CookingControls progress={progress} requirements={requirements} ingredientCount={recipe.ingredients.length} addedCount={added.length} heat={heat} sound={soundEnabled} onSoundChange={changeSound} onAction={cookingAction} />
         <p className="cooking-action-feedback" role="status" aria-live="polite">{actionFeedback}</p>
         <p className="ingredient-disclaimer">The 3D ingredients are playful representations. Follow the written recipe and cook food safely in your real kitchen.</p>
       </aside>
     </div>
+    {cookModeOpen && <Suspense fallback={<p role="status" className="cook-mode-loading">Preparing Cook Mode…</p>}>
+      <CookMode recipe={recipe} stepIndex={stepIndex} onStep={setStepIndex} added={added} onAdd={addIngredient} servings={servings} seconds={seconds} running={running} onTimerToggle={toggleTimer} onTimerReset={resetTimer} onTimerAdd={addMinute} heat={heat} onHeat={setHeat} progress={progress} onAction={cookingAction} close={closeCookMode}/>
+    </Suspense>}
   </section>;
 }

@@ -116,3 +116,14 @@ This optimization is separate from the unmerged TanStack Redact experiment. Prod
 - Clicking **Add ingredients** again updates quantities for the new servings without duplicates while respecting checked-off items.
 - A saved countdown resumes **paused** after reload, and is reset only when switching steps or resetting the kitchen; it never starts counting down unattended after a reload.
 - `npm run verify:prerender` validates every emitted recipe document, canonical, JSON-LD and sitemap after the Vite build, even when external GitHub Actions runners cannot start. This is a build-level content check, not browser/gesture QA.
+
+
+## Focused Cook Mode and graphics settings
+
+Open any recipe and select **Start Cook Mode**, or use **Enter Cook Mode** in the kitchen. This optional full-screen view shares the existing recipe progress and timer: it does not start a new cooking session. It offers large previous/next buttons, ingredient check-offs for the *virtual* pan, adjustable heat, chop/pour/stir/plate controls and an on-demand voice reading of the current step. Wake Lock is **off by default**, available only when supported, and released when exiting Cook Mode. Browser speech is also opt-in and cancelled when stepping or leaving.
+
+In the 3D scene, graphics can be switched between **Eco**, **Balanced** and **High**. Eco limits device pixel ratio and disables dynamic shadows, making the kitchen more practical on mobile. Procedural oil-pouring, simmer bubbles and tool audio respond to user actions; sounds default off and need a user gesture. Mise never claims its simulation measures safe cooking temperatures.
+
+Recipe pages now suggest three other dishes, favoring related regional recipes. No profile, analytics, account or automated cloud synchronization is required. Shopping lists and progress remain device-local; authenticated cross-device synchronization is a separate, consent-based backend project.
+
+Playwright: \`npx playwright test e2e/cook-mode.e2e.ts\`. The 3D and offline suites remain necessary release checks. Run them against a freshly built production preview, not just dev mode.

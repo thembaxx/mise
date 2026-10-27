@@ -203,9 +203,9 @@ export default function App() {
 
   useEffect(() => {
     const destination = new URLSearchParams(window.location.search).get('view');
-    if (destination !== 'kitchen' && destination !== 'discover') return;
+    if (destination !== 'kitchen' && destination !== 'discover' && destination !== 'cook') return;
     const frame = window.requestAnimationFrame(() => {
-      document.getElementById(destination)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      document.getElementById(destination === 'cook' ? 'kitchen' : destination)?.scrollIntoView({ behavior: 'auto', block: 'start' });
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
