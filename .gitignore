@@ -16,3 +16,7 @@ public/icon-512.png
 public/icon-maskable-512.png
 public/og-mise.png
 public/splash-*.png
+
+# Local diagnostic exports and generated review artifacts
+.feedback/
+*.tsbuildinfo

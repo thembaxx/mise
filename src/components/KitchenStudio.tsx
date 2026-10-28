@@ -1,3 +1,4 @@
+import { diagnostics } from '../lib/diagnostics';
 import { useStepDirection } from '../motion/useStepDirection';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from '@phosphor-icons/react/dist/csr/ArrowLeft';
@@ -120,17 +121,50 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     return () => window.clearInterval(interval);
   }, []);
 
-  const addIngredient = useCallback((id: string) => setAdded(current => current.includes(id) ? current : [...current, id]), []);
+  const activityStarted = useRef<number | null>(null);
+  const beginActivity = () => { activityStarted.current ??= performance.now(); };
+  const abandonActivity = useCallback((code: 'page_left' | 'reset') => {
+    if (activityStarted.current === null) return;
+    diagnostics.record('cooking_session', 'abandoned', { code, durationMs: performance.now() - activityStarted.current });
+    activityStarted.current = null;
+  }, []);
+  useEffect(() => {
+    const leave = () => abandonActivity('page_left');
+    window.addEventListener('pagehide', leave);
+    return () => { window.removeEventListener('pagehide', leave); leave(); };
+  }, [abandonActivity]);
+  const changeStep = (next: number) => {
+    if (next === stepIndex) return;
+    if (!progress.plated) beginActivity();
+    diagnostics.record('cooking_step', 'success', { code: next > stepIndex ? 'forward' : 'backward' });
+    setStepIndex(next);
+  };
+  const addIngredient = useCallback((id: string) => {
+    if (added.includes(id)) return;
+    beginActivity();
+    diagnostics.record('cooking_ingredient', 'success');
+    setAdded(current => current.includes(id) ? current : [...current, id]);
+  }, [added]);
   const requirements = getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length);
   const cookingAction = useCallback((action: CookingAction) => {
     if (progress.plated) return;
-    if (action === 'plate' && !isReadyToPlate(getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length))) return;
+    if (action === 'plate' && !isReadyToPlate(getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length))) {
+      diagnostics.record('cooking_plate', 'failure', { code: 'prerequisites' });
+      return;
+    }
     if (action === 'stir' && (heat <= 0 || added.length === 0)) {
+      diagnostics.record('cooking_stir', 'failure', { code: 'prerequisites' });
       setActionFeedback('Turn up the heat and add ingredients before stirring.');
       return;
     }
     const next = applyCookingAction(progress, action);
     if (next === progress || (action !== 'plate' && next.chops === progress.chops && next.pours === progress.pours && next.stirs === progress.stirs)) return;
+    beginActivity();
+    diagnostics.record('cooking_' + action, 'success');
+    if (action === 'plate') {
+      diagnostics.record('cooking_session', 'success', { durationMs: performance.now() - activityStarted.current! });
+      activityStarted.current = null;
+    }
     setProgress(next);
     setPulse(previous => ({ action, id: (previous?.id || 0) + 1 }));
     if (action === 'plate') { setRunning(false); setHeat(0); }
@@ -144,6 +178,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     cookingHaptic(action);
   }, [progress, added.length, recipe.ingredients.length, recipe.steps.length, heat, stepIndex, soundEnabled]);
   const resetKitchen = () => {
+    abandonActivity('reset');
     clearKitchenSnapshot(recipe.id);
     setShoppingNote('');
     setAdded([]);
@@ -225,7 +260,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
 
         <div className="method-topline"><span>Method</span><span>{String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span></div>
         <div className="step-progress" aria-label={'Step ' + (stepIndex + 1) + ' of ' + recipe.steps.length}>
-          {recipe.steps.map((_, i) => <button key={i} type="button" aria-label={'Go to step ' + (i + 1)} aria-current={i === stepIndex ? 'step' : undefined} className={i <= stepIndex ? 'is-complete' : ''} onClick={() => setStepIndex(i)} />)}
+          {recipe.steps.map((_, i) => <button key={i} type="button" aria-label={'Go to step ' + (i + 1)} aria-current={i === stepIndex ? 'step' : undefined} className={i <= stepIndex ? 'is-complete' : ''} onClick={() => changeStep(i)} />)}
         </div>
         <div className="method-card" key={recipe.id + stepIndex} data-direction={direction}>
           <span className="step-number">STEP {String(stepIndex + 1).padStart(2, '0')}</span>
@@ -234,9 +269,9 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           <div className="chef-tip"><span>CHEF'S NOTE</span><p>{step.tip}</p></div>
         </div>
         <div className="step-navigation">
-          <button type="button" className="round-outline" aria-label="Previous step" onClick={() => setStepIndex(i => Math.max(0, i - 1))} disabled={stepIndex === 0}><ArrowLeft size={19} /></button>
+          <button type="button" className="round-outline" aria-label="Previous step" onClick={() => changeStep(Math.max(0, stepIndex - 1))} disabled={stepIndex === 0}><ArrowLeft size={19} /></button>
           <span>{Math.round(stepProgress * 100)}% of the way there</span>
-          <button type="button" className="round-dark" aria-label="Next step" onClick={() => setStepIndex(i => Math.min(recipe.steps.length - 1, i + 1))} disabled={stepIndex === recipe.steps.length - 1}><ArrowRight size={19} /></button>
+          <button type="button" className="round-dark" aria-label="Next step" onClick={() => changeStep(Math.min(recipe.steps.length - 1, stepIndex + 1))} disabled={stepIndex === recipe.steps.length - 1}><ArrowRight size={19} /></button>
         </div>
 
         <div className="timer-card">
@@ -284,7 +319,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
       </aside>
     </div>
     {cookModeOpen && <Suspense fallback={<p role="status" className="cook-mode-loading">Preparing Cook Mode…</p>}>
-      <CookMode recipe={recipe} stepIndex={stepIndex} onStep={setStepIndex} added={added} onAdd={addIngredient} servings={servings} seconds={seconds} running={running} onTimerToggle={toggleTimer} onTimerReset={resetTimer} onTimerAdd={addMinute} heat={heat} onHeat={setHeat} progress={progress} onAction={cookingAction} close={closeCookMode}/>
+      <CookMode recipe={recipe} stepIndex={stepIndex} onStep={changeStep} added={added} onAdd={addIngredient} servings={servings} seconds={seconds} running={running} onTimerToggle={toggleTimer} onTimerReset={resetTimer} onTimerAdd={addMinute} heat={heat} onHeat={setHeat} progress={progress} onAction={cookingAction} close={closeCookMode}/>
     </Suspense>}
   </section>;
 }

@@ -1,3 +1,4 @@
+import { diagnostics } from './diagnostics';
 import { recipes, type Ingredient, type IngredientKind, type Recipe, type RecipeStep, type Region } from '../data/recipes';
 import { getShoppingItems, saveShoppingItems } from './kitchen-storage';
 
@@ -235,6 +236,17 @@ function findSchema(value: unknown): Record<string,unknown> | null {
   return findSchema(obj['@graph']);
 }
 export function importRecipeContent(content: string, sourceUrl = ''): RecipeDraft {
+  const started = performance.now();
+  try {
+    const result = parseRecipeContent(content, sourceUrl);
+    diagnostics.record('recipe_import_text', 'success', { durationMs: performance.now() - started });
+    return result;
+  } catch (error) {
+    diagnostics.record('recipe_import_text', 'failure', { durationMs: performance.now() - started, code: 'invalid_recipe' });
+    throw error;
+  }
+}
+function parseRecipeContent(content: string, sourceUrl = ''): RecipeDraft {
   if (!content || content.length > 500_000) throw new Error('Recipe content is empty or too large (limit 500 KB).');
   let data: unknown = null;
   const trimmed=content.trim();
@@ -270,6 +282,19 @@ export function importRecipeContent(content: string, sourceUrl = ''): RecipeDraf
     ingredients:lines.slice(start+1,middle).join('\n'),steps:lines.slice(middle+1).join('\n'),sourceUrl:allowedUrl(sourceUrl)};
 }
 export async function importRecipeUrl(value: string): Promise<RecipeDraft> {
+  const started = performance.now();
+  try {
+    const result = await fetchRecipeUrl(value);
+    diagnostics.record('recipe_import_url', 'success', { durationMs: performance.now() - started });
+    return result;
+  } catch (error) {
+    diagnostics.record('recipe_import_url', 'failure', {
+      durationMs: performance.now() - started, code: allowedUrl(value) ? 'import_unavailable' : 'invalid_url',
+    });
+    throw error;
+  }
+}
+async function fetchRecipeUrl(value: string): Promise<RecipeDraft> {
   const url=allowedUrl(value);
   if (!url) throw new Error('Enter a public HTTPS recipe URL. Private-network addresses are unsupported.');
   const controller=new AbortController();
@@ -280,7 +305,7 @@ export async function importRecipeUrl(value: string): Promise<RecipeDraft> {
     const contentType=response.headers.get('content-type') || '';
     if (!/text\/html|application\/ld\+json|application\/json/.test(contentType)) throw new Error('This URL did not return a supported recipe page.');
     const content=await response.text();
-    return importRecipeContent(content,url);
+    return parseRecipeContent(content,url);
   } catch (error) {
     if(error instanceof TypeError || (error as Error)?.name==='AbortError') {
       // Vercel's narrow, protected importer is an opt-in fallback for supported hosts.
@@ -293,7 +318,7 @@ export async function importRecipeUrl(value: string): Promise<RecipeDraft> {
         const response=result as {content?:unknown;error?:unknown};
         if(!reply.ok)throw new Error(typeof response.error==='string'?response.error:'Protected import failed.');
         if(typeof response.content!=='string')throw new Error('Invalid recipe response.');
-        return importRecipeContent(response.content,url);
+        return parseRecipeContent(response.content,url);
       }catch(problem){
         throw new Error((problem as Error).message.startsWith('Protected') || (problem as Error).message.startsWith('This website') || (problem as Error).message.startsWith('Import rate') ? (problem as Error).message : 'Website import is unavailable or blocked. Copy the recipe text or JSON-LD into Paste recipe instead.');
       }

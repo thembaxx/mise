@@ -53,6 +53,8 @@ The chopping/slicing and pouring interactions animate illustrative geometry rath
 
 ## Testing
 
+Opt-in local diagnostics and the scheduled synthetic recipe experience review are documented in [Daily recipe experience review](docs/daily-feedback.md).
+
 The Vercel build runs Vitest and TypeScript checks before production bundling. The interactive flows are also operable from ordinary HTML buttons when WebGL is unavailable. Run npm test locally to verify the rules for cooking progression and recipes.
 
 ## Future enhancements

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { diagnostics } from '../lib/diagnostics';
 import { DownloadSimple } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { Check } from '@phosphor-icons/react/dist/csr/Check';
 import { CaretRight } from '@phosphor-icons/react/dist/csr/CaretRight';
@@ -19,6 +20,14 @@ export function NativeHeaderActions({ app, onSettings }: { app: NativeAppState; 
 }
 
 export function NativeDialog({ app, open, close }: { app: NativeAppState; open: boolean; close: () => void }) {
+  const [diagnosticsEnabled, setDiagnosticsEnabled] = useState(diagnostics.isEnabled);
+  useEffect(() => { if (open) setDiagnosticsEnabled(diagnostics.isEnabled()); }, [open]);
+  const exportDiagnostics = () => {
+    const url = URL.createObjectURL(new Blob([diagnostics.exportJSONL()], { type: 'application/x-ndjson' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'mise-diagnostics.jsonl'; link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const sheetRef = useRef<HTMLElement>(null);
   const closeRef = useRef(close);
   useEffect(() => { closeRef.current = close; }, [close]);
@@ -58,6 +67,15 @@ export function NativeDialog({ app, open, close }: { app: NativeAppState; open: 
         <button type="button" onClick={() => void app.share()}><span className="native-action-icon"><ShareNetwork size={18}/></span><span><strong>Share Mise</strong><small>Send your kitchen to a friend</small></span><CaretRight size={17}/></button>
         <button type="button" onClick={() => void app.checkForUpdates()}><span className="native-action-icon"><ArrowsClockwise size={18}/></span><span><strong>Check for updates</strong><small>Get the newest experience</small></span><CaretRight size={17}/></button>
       </div>
+      <p className="native-panel-label">LOCAL DIAGNOSTICS</p>
+      <div className="native-settings-actions">
+        <button type="button" aria-pressed={diagnosticsEnabled} onClick={() => {
+          const enabled = !diagnosticsEnabled;
+          diagnostics.setEnabled(enabled); setDiagnosticsEnabled(enabled);
+        }}><span className="native-action-icon"><SlidersHorizontal size={18}/></span><span><strong>Local diagnostics: {diagnosticsEnabled ? 'on' : 'off'}</strong><small>{diagnosticsEnabled ? 'Turn off to erase collected events' : 'Enable to record operation outcomes on this device'}</small></span></button>
+        <button type="button" onClick={exportDiagnostics}><span className="native-action-icon"><DownloadSimple size={18}/></span><span><strong>Export diagnostics</strong><small>Download a JSONL file to review or share yourself</small></span><CaretRight size={17}/></button>
+      </div>
+      <p className="native-panel-helper">Off by default. A bounded local log of import, cooking, touch and graphics outcomes. Recipe contents and source URLs are excluded. Nothing is uploaded automatically.</p>
       <div className="native-connectivity">
         {app.online ? <WifiHigh size={16}/> : <CloudSlash size={16}/>}
         <span>{!app.online ? 'You are offline' : app.offlineReady ? 'Offline kitchen ready' : 'Online · preparing offline access'}</span>

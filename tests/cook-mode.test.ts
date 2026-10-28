@@ -8,7 +8,7 @@ describe('focused cooking mode', () => {
     expect(studio).toContain("lazy(() => import('./CookMode'))");
     expect(studio).toContain('onTimerToggle={toggleTimer}');
     expect(studio).toContain('onTimerAdd={addMinute}');
-    expect(studio).toContain('onStep={setStepIndex}');
+    expect(studio).toContain('onStep={changeStep}');
     expect(studio).toContain('stepIndex={stepIndex}');
     expect(studio).toContain('onAction={cookingAction}');
     expect(studio).toContain("get('view') === 'cook'");
