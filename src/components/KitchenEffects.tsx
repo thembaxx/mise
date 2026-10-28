@@ -115,15 +115,17 @@ function FinishedPlate() {
   useEffect(() => {
     let cancelled = false;
     const loader = new GLTFLoader();
-    const load = (path: string, older = false) => {
+    const sources = ['/models/original/mise-plated-blender-candidate.glb', '/models/original/mise-plated-dish-animated.glb', '/models/original/mise-plated-dish.glb'];
+    const load = (index: number) => {
+      const path = sources[index];
       loader.load(path, ({ scene, animations }) => {
         if (!cancelled) setOriginalDish({ scene, animations });
       }, undefined, () => {
-        if (!cancelled && !older) load('/models/original/mise-plated-dish.glb', true);
+        if (!cancelled && index + 1 < sources.length) load(index + 1);
         // Keep the existing procedural dish on offline or model errors.
       });
     };
-    load('/models/original/mise-plated-dish-animated.glb');
+    load(0);
     return () => { cancelled = true; };
   }, []);
   useEffect(() => {

@@ -1,0 +1,10 @@
+{
+  "project": "dish",
+  "source": "mise-plated-blender-candidate.blend",
+  "candidate": "mise-plated-blender-candidate.glb",
+  "generator": "Blender bpy",
+  "blender_version": "4.0.2",
+  "sha256": "248e87f5cc008bac83889137537e58dfd6a4f441ae774d0500eb82048a9fa6c4",
+  "review_status": "UNAPPROVED",
+  "notes": "Original procedural Blender work; not an approved replacement for live assets"
+}
