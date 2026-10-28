@@ -1,4 +1,5 @@
 name: Blender candidate art studio (manual review)
+# One-time staging rerun after isolating Vitest suites
 on:
   workflow_dispatch:
   push:
