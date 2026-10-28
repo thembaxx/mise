@@ -53,6 +53,7 @@ jobs:
           cp "$RUNNER_TEMP/blender-review/mise-plated-blender-candidate.json" "assets/blender-source/mise-plated-blender-candidate.json"
           node scripts/validate-3d-assets.mjs public/models --require-assets
           npm ci --ignore-scripts --no-audit --no-fund
+          git show c31453568cf75f63365cca07fda41352acc1c50f:.github/workflows/blender-candidate.yml > .github/workflows/blender-candidate.yml
           npm test
           npm run typecheck
           git show c31453568cf75f63365cca07fda41352acc1c50f:.github/workflows/blender-candidate.yml > .github/workflows/blender-candidate.yml
