@@ -18,4 +18,5 @@ test('ranks only user-confirmed ingredient matches',()=>{
 });
 test('presents visual suggestions but does not invent unseen ingredients',()=>{
  assert.deepEqual(suggestIngredientsFromText('A bowl with mushrooms and spinach',recipes),['mushroom','spinach']);
+ assert.deepEqual(suggestIngredientsFromText('A bowl with bell peppers',[{ingredients:['Bell pepper']}]),['pepper']);
 });
