@@ -221,6 +221,7 @@ export default function App() {
     <KitchenGateway key={selectedRecipe.id} recipe={selectedRecipe} onRecipeChange={setSelectedId} />
     <Experience recipe={selectedRecipe} />
     <Footer />
+    <a href="/vision/index.html" style={{ display: 'block', width: 'fit-content', margin: '16px auto', padding: '12px 18px', border: '1px solid currentColor', borderRadius: 999, fontSize: 14, textDecoration: 'none' }}>Try on-device vision (preview)</a>
     <ActionFeedback notice={feedback.notice} dismiss={feedback.dismiss} />
     <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)} />
     <NativeNotices app={native} />
