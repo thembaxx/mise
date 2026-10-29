@@ -6,7 +6,7 @@ Open `/vision/index.html` or the small in-app link. Select a JPEG, PNG or WebP i
 
 ## mise use case
 
-Pantry and ingredient photographs. Recipe matching is not automatic in this preview; users confirm recognized foods and search Mise's catalogue.
+Pantry and ingredient photographs. The pantry panel now suggests possible ingredients from a model description, but **requires the user to edit/confirm the ingredients and click Find matching recipes**. Ranking is deterministic against eight built-in recipe ingredient lists; it shows missing ingredients and links to recipe pages. Private/personal cookbook recipes are not read.
 
 ## Privacy and network boundary
 
@@ -27,7 +27,7 @@ Pantry and ingredient photographs. Recipe matching is not automatic in this prev
 
 ## Known limitations
 
-- **Preview only:** No automatic domain-specific record updates, recipe matching, bookmark tagging, submission, or linked evidence annotation. Those need careful integration with the existing workflows.
+- **Preview only:** No automatic domain-specific record updates, personal-cookbook recipe matching, bookmark tagging, submission, or linked evidence annotation. Those need careful integration with the existing workflows.
 - Captions and OCR can hallucinate or omit information. This is not an accredited OCR, medical, property, vehicle-safety or legal/compliance evaluation system.
 - The pinned CDN ESM import and model-specific generation APIs need real-device integration testing. No passing runtime, end-to-end or offline inference test is asserted by this PR.
 - Offline model downloads are large and must remain user-initiated. The service worker cache uses device storage and may be evicted.
