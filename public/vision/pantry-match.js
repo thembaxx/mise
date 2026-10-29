@@ -1,5 +1,5 @@
 // Deterministic, transparent matching of user-confirmed ingredients.
-const ignored = new Set(['fresh','mixed','small','large','ripe','chopped','boneless','cooked','plain','extra','virgin','mild','toasted','ground','optional','sheets','pieces','cloves','whole','powder','or','of','and','red','white','green','vegetable','oil','sea','zest','small']);
+const ignored = new Set(['fresh','mixed','small','large','ripe','chopped','boneless','cooked','plain','extra','virgin','mild','toasted','ground','optional','sheets','pieces','cloves','whole','powder','or','of','and','red','white','green','vegetable','oil','sea','zest','small','bell']);
 const alias = {tomatoes:'tomato',tomatos:'tomato',mushrooms:'mushroom',carrots:'carrot',peppers:'pepper',capsicum:'pepper',aubergines:'eggplant',aubergine:'eggplant',eggplants:'eggplant',chillies:'chili',chilies:'chili',chilli:'chili',scallions:'onion',onions:'onion',beans:'bean',garlics:'garlic',limes:'lime',lemons:'lemon',eggs:'egg',tortillas:'tortilla',noodles:'noodle',chickpeas:'chickpea',paprikas:'paprika',coriander:'cilantro',spinach:'spinach',cheeses:'cheese',dill:'dill',basil:'basil',spaghetti:'pasta'};
 export function ingredientTokens(text){
   const words = String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().match(/[a-z]+/g)||[];
