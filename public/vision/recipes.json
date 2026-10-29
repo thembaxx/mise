@@ -1,0 +1,113 @@
+{
+  "source": "src/data/recipes.ts",
+  "note": "Built-in published recipes only; personal cookbook recipes are not read or exported.",
+  "recipes": [
+    {
+      "id": "miso-ramen",
+      "name": "Miso mushroom ramen",
+      "ingredients": [
+        "Mixed mushrooms",
+        "White miso paste",
+        "Ramen noodles",
+        "Vegetable stock",
+        "Garlic cloves",
+        "Spring onions",
+        "Toasted sesame oil"
+      ]
+    },
+    {
+      "id": "pomodoro",
+      "name": "Slow Sunday pomodoro",
+      "ingredients": [
+        "Ripe tomatoes",
+        "Spaghetti",
+        "Garlic cloves",
+        "Extra virgin olive oil",
+        "Fresh basil",
+        "Sea salt",
+        "Parmesan (optional)"
+      ]
+    },
+    {
+      "id": "chakalaka",
+      "name": "Rainbow chakalaka",
+      "ingredients": [
+        "Onion",
+        "Carrots",
+        "Bell pepper",
+        "Fresh chili",
+        "Chopped tomatoes",
+        "Baked beans",
+        "Mild curry powder",
+        "Vegetable oil"
+      ]
+    },
+    {
+      "id": "butter-chicken",
+      "name": "Golden butter chicken",
+      "ingredients": [
+        "Boneless chicken pieces",
+        "Plain yogurt",
+        "Tomato purée",
+        "Onion",
+        "Garlic cloves",
+        "Garam masala",
+        "Butter",
+        "Cooking cream"
+      ]
+    },
+    {
+      "id": "tacos",
+      "name": "Street-style mushroom tacos",
+      "ingredients": [
+        "Oyster or button mushrooms",
+        "Small corn tortillas",
+        "Limes",
+        "Red onion",
+        "Chili powder",
+        "Smoked paprika",
+        "Fresh coriander"
+      ]
+    },
+    {
+      "id": "tagine",
+      "name": "Sunset vegetable tagine",
+      "ingredients": [
+        "Carrots",
+        "Small aubergine",
+        "Cooked chickpeas",
+        "Onion",
+        "Chopped tomatoes",
+        "Ground cumin",
+        "Ground cinnamon",
+        "Lemon"
+      ]
+    },
+    {
+      "id": "green-curry",
+      "name": "Coconut green curry",
+      "ingredients": [
+        "Coconut milk",
+        "Green curry paste",
+        "Aubergine",
+        "Mushrooms",
+        "Bell pepper",
+        "Lime",
+        "Thai basil or fresh basil"
+      ]
+    },
+    {
+      "id": "spanakopita",
+      "name": "Crispy spinach pie",
+      "ingredients": [
+        "Fresh spinach",
+        "Feta cheese",
+        "Filo pastry sheets",
+        "Small onion",
+        "Fresh dill",
+        "Lemon zest",
+        "Olive oil"
+      ]
+    }
+  ]
+}
