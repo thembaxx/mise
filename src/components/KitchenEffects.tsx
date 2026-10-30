@@ -12,6 +12,7 @@ interface Props {
   progress: KitchenProgress;
   addedCount: number;
   heat: number;
+  quality?: 'eco' | 'balanced' | 'high';
   pulse: KitchenPulse;
   onAction: (action: CookingAction) => void;
 }
@@ -69,7 +70,7 @@ function InteractiveUtensils({ pulse, onAction }: Pick<Props, 'pulse' | 'onActio
 
 const STEAM_COUNT = 12;
 
-function Steam({ heat, addedCount }: Pick<Props, 'heat' | 'addedCount'>) {
+function Steam({ heat, addedCount, quality = 'balanced' }: Pick<Props, 'heat' | 'addedCount' | 'quality'>) {
   const spheres = useRef<(THREE.Mesh | null)[]>([]);
   useFrame(({ clock }) => {
     const intensity = heat > .05 && addedCount > 0 ? heat : 0;
@@ -85,7 +86,7 @@ function Steam({ heat, addedCount }: Pick<Props, 'heat' | 'addedCount'>) {
     });
   });
   return <group>
-    {Array.from({ length: STEAM_COUNT }, (_, i) => <mesh key={i} ref={mesh => { spheres.current[i] = mesh; }}>
+    {Array.from({ length: quality === 'eco' ? 5 : STEAM_COUNT }, (_, i) => <mesh key={i} ref={mesh => { spheres.current[i] = mesh; }}>
       <sphereGeometry args={[.095, 9, 7]} />
       <meshBasicMaterial transparent depthWrite={false} color="#fff7e7" opacity={0} />
     </mesh>)}
@@ -179,7 +180,7 @@ function FinishedPlate() {
 
 
 /** Heat-dependent shallow simmer bubbles. No particle texture, shader or extra package. */
-function PanSimmer({ heat, addedCount, pours }: { heat: number; addedCount: number; pours: number }) {
+function PanSimmer({ heat, addedCount, pours, quality = 'balanced' }: { heat: number; addedCount: number; pours: number; quality?: Props['quality'] }) {
   const bubbles = useRef<(THREE.Mesh | null)[]>([]);
   useFrame(({ clock }) => {
     const intensity = heat > .08 && addedCount > 0 ? Math.min(1, heat * (pours ? 1.2 : .8)) : 0;
@@ -193,7 +194,7 @@ function PanSimmer({ heat, addedCount, pours }: { heat: number; addedCount: numb
     });
   });
   return <group position={[1.16, .283, .15]} rotation={[-Math.PI / 2, 0, 0]}>
-    {Array.from({ length: 9 }, (_, index) => {
+    {Array.from({ length: quality === 'eco' ? 4 : 9 }, (_, index) => {
       const angle = index * 2.3999, radius = .12 + .065 * (index % 5);
       return <mesh key={index} ref={node => { bubbles.current[index] = node; }} position={[Math.cos(angle) * radius, Math.sin(angle) * radius, .015]}>
         <ringGeometry args={[.055, .08, 14]}/>
@@ -224,17 +225,28 @@ function PourArc({ pulse }: { pulse: KitchenPulse }) {
   </mesh>;
 }
 
-export default function KitchenEffects({ progress, addedCount, heat, pulse, onAction }: Props) {
+/** An inexpensive, static heat cue keeps the pan readable when motion is reduced or graphics are set to eco. */
+function PanHeatCue({ heat, addedCount }: Pick<Props, 'heat' | 'addedCount'>) {
+  const intensity = Math.max(0, Math.min(1, heat));
+  if (addedCount === 0 || intensity <= .08) return null;
+  return <mesh position={[1.16, .293, .15]} rotation={[-Math.PI / 2, 0, 0]}>
+    <ringGeometry args={[.68, .75, 40]}/>
+    <meshBasicMaterial color="#ffba78" transparent opacity={.1 + intensity * .24} depthWrite={false} side={THREE.DoubleSide}/>
+  </mesh>;
+}
+
+export default function KitchenEffects({ progress, addedCount, heat, pulse, onAction, quality = 'balanced' }: Props) {
   const reducedMotion = useReducedMotion();
   return <>
     <InteractiveUtensils pulse={pulse} onAction={onAction}/>
     {!progress.plated && <ChoppedFood chops={progress.chops}/>}
-    {!reducedMotion && <>
-      <Steam heat={heat} addedCount={addedCount}/>
-      <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours}/>
+    {!progress.plated && <PanHeatCue heat={heat} addedCount={addedCount}/>}
+    {!progress.plated && !reducedMotion && <>
+      <Steam heat={heat} addedCount={addedCount} quality={quality}/>
+      <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours} quality={quality}/>
       <PourArc pulse={pulse}/>
     </>}
-    {progress.pours > 0 && <mesh position={[1.16, .286, .15]} rotation={[-Math.PI / 2, 0, 0]}>
+    {!progress.plated && progress.pours > 0 && <mesh position={[1.16, .286, .15]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[.67, 48]} />
       <meshStandardMaterial color="#927543" transparent opacity={Math.min(progress.pours * .14, .38)} depthWrite={false} metalness={.42} roughness={.3}/>
     </mesh>}
