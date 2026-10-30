@@ -26,6 +26,16 @@ describe('progressive 3D kitchen boundary', () => {
     expect(config).toContain('mise-opt-in-physics-v1');
     expect(config).toContain("handler: 'CacheFirst'");
   });
+  it('keeps cooking visuals in sync with plating and adapts particles to graphics quality', () => {
+    const effects = read('src/components/KitchenEffects.tsx');
+    expect(effects).toContain('!progress.plated && <PanHeatCue');
+    expect(effects).toContain('!progress.plated && !reducedMotion');
+    expect(effects).toContain("quality === 'eco' ? 5 : STEAM_COUNT");
+    expect(effects).toContain("quality === 'eco' ? 4 : 9");
+    for (const scene of ['src/components/LiteKitchenScene.tsx', 'src/components/KitchenScene.tsx']) {
+      expect(read(scene)).toContain('quality={quality} />');
+    }
+  });
   it('keeps kitchen hints out of Drei DOM portals to avoid unmount errors', () => {
     const effects = read('src/components/KitchenEffects.tsx');
     expect(effects).not.toContain('<Html');

@@ -197,7 +197,7 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onAction }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
@@ -210,7 +210,7 @@ function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onActi
     {ingredients.slice(0, 8).map((ingredient, index) =>
       <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} />
     )}
-    <KitchenEffects progress={progress} pulse={pulse} onAction={onAction} heat={heat} addedCount={added.length} />
+    <KitchenEffects progress={progress} pulse={pulse} onAction={onAction} heat={heat} addedCount={added.length} quality={quality} />
 
     <OrbitControls makeDefault enabled={!dragging} enablePan={false} minDistance={5} maxDistance={11} minPolarAngle={.35} maxPolarAngle={1.4} target={[0, .55, 0]} />
   </>;
@@ -219,7 +219,7 @@ function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onActi
 export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
     <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 1.7] : [1, 1.2]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} /></Suspense>
+      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
   </div>;
 }
