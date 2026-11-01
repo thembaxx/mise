@@ -203,9 +203,11 @@ function KitchenEnvironment({ heat }: { heat: number }) {
     {[-.78, .78].map((z, i) => <mesh key={i} position={[-1.64, .077, .23 + z]}><boxGeometry args={[2.4, .005, .016]} /><meshStandardMaterial color="#986b48" transparent opacity={.45} /></mesh>)}
     <mesh position={[1.16, -.06, .15]} castShadow><cylinderGeometry args={[1.28, 1.28, .17, 64]} /><meshStandardMaterial color="#333932" metalness={.62} roughness={.37} /></mesh>
     <Burner heat={heat} />
-    <mesh position={[1.16, .12, .15]} castShadow receiveShadow><cylinderGeometry args={[1.04, .9, .28, 64]} /><meshStandardMaterial color="#272b29" metalness={.68} roughness={.29} /></mesh>
+    <mesh position={[1.16, .12, .15]} castShadow receiveShadow><cylinderGeometry args={[1.04, .9, .28, 64]} /><meshPhysicalMaterial color="#272b29" metalness={.65} roughness={.29} clearcoat={.3} iridescence={.08} iridescenceThicknessRange={[120, 190]} /></mesh>
     <mesh position={[1.16, .271, .15]}><torusGeometry args={[.98, .055, 12, 64]} /><meshStandardMaterial color="#515851" metalness={.7} roughness={.28} /></mesh>
     <mesh position={[1.16, .273, .15]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[.92, 64]} /><meshStandardMaterial color="#3c4039" metalness={.28} roughness={.67} /></mesh>
+    {/* Hand-fastener details are decorative; physics colliders remain unchanged. */}
+    {[-.25, .25].map((z) => <mesh key={z} position={[2.05, .26, .15 + z]} castShadow><sphereGeometry args={[.067, 12, 8]} /><meshStandardMaterial color="#b6b9aa" metalness={.75} roughness={.3} /></mesh>)}
     <mesh position={[2.43, .16, .15]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[.115, .15, 1.3, 20]} /><meshStandardMaterial color="#343a33" roughness={.5} /></mesh>
     <mesh position={[2.99, .16, .15]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[.16, .16, .48, 20]} /><meshStandardMaterial color="#a7774e" roughness={.63} /></mesh>
     <group position={[3.62, .02, -1.3]}>
