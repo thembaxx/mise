@@ -78,3 +78,11 @@ blender --background --factory-startup --python-exit-code 1 \
 live WebGL screenshots and desktop/iPhone Safari QA. If GitHub Actions or Vercel
 quotas prevent execution, treat that as a blocker rather than bypassing the
 validation gate. Do not mark PR #41 ready solely on source contract tests.
+
+
+## November 4 sink and stove material-overlap repair
+- Replace the visually solid worktop with an original extruded stone mesh with a true sink opening. An inset steel basin has curved-edge metallic trim, sloping steel walls, a low-profile drain, and matching faucet stream/ripples.
+- Remove the two redundant original full-coverage surface meshes that would otherwise fill the opening, while preserving the existing invisible Rapier counter and ingredient colliders.
+- Place the burner glow at Y=0.035, above the original stove support (top Y=0.025) but below the pan (bottom Y≈0.064). The previous Y=-0.025 geometry was fully obscured by the stove.
+- The sink is decorative and does not introduce fluid physics; faucet and cooking controls remain keyboard/touch accessible.
+- Must still inspect both Quick and Physics scenes in a real WebGL browser, including overdraw, shadows, camera occlusion and mobile performance, before merging.

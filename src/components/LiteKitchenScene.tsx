@@ -98,7 +98,7 @@ function Burner({ heat }: { heat: number }) {
       shader.current.uniforms.uHeat.value = heat;
     }
   });
-  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, -.025, .15]}>
+  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, .035, .15]}>
     <circleGeometry args={[1.16, 64]} />
     <shaderMaterial
       ref={shader} transparent depthWrite={false}
@@ -121,8 +121,6 @@ function KitchenEnvironment({ heat }: { heat: number }) {
       <mesh position={[0, .22, 0]}><cylinderGeometry args={[.18, .18, .05, 16]} /><meshStandardMaterial color="#3c4034" /></mesh>
     </group>)}
     <mesh position={[0, -.72, 0]} receiveShadow castShadow><boxGeometry args={[9.4, .85, 6.1]} /><meshStandardMaterial color="#785a43" roughness={.78} /></mesh>
-    <mesh position={[0, -.25, 0]} receiveShadow><boxGeometry args={[9.5, .14, 6.2]} /><meshStandardMaterial color="#b7a58c" roughness={.72} /></mesh>
-    <mesh position={[0, -.172, 0]} receiveShadow><boxGeometry args={[9.5, .015, 6.2]} /><meshStandardMaterial color="#e3d8c4" roughness={.7} /></mesh>
     <RoundedBox args={[2.78, .2, 2.2]} radius={.12} smoothness={4} position={[-1.64, -.03, .23]} castShadow receiveShadow><meshStandardMaterial color="#bc8859" roughness={.7} /></RoundedBox>
     {[-.78, .78].map((z, i) => <mesh key={i} position={[-1.64, .077, .23 + z]}><boxGeometry args={[2.4, .005, .016]} /><meshStandardMaterial color="#986b48" transparent opacity={.45} /></mesh>)}
     <mesh position={[1.16, -.06, .15]} castShadow><cylinderGeometry args={[1.28, 1.28, .17, 64]} /><meshStandardMaterial color="#333932" metalness={.62} roughness={.37} /></mesh>

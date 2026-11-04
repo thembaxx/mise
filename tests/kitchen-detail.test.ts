@@ -134,7 +134,7 @@ describe('high-fidelity kitchen feature', () => {
   it('keeps the glowing stove element below the nonstick cooking surface', () => {
     for (const scene of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
       const content = source(scene);
-      expect(content).toContain("position={[1.16, -.025, .15]}");
+      expect(content).toContain("position={[1.16, .035, .15]}");
       expect(content).toContain("abs(d-.466)");
       expect(content).not.toContain("position={[1.16, .279, .15]}");
     }
@@ -148,6 +148,23 @@ describe('high-fidelity kitchen feature', () => {
     const e2e = source('e2e/kitchen-fidelity.e2e.ts');
     expect(e2e).toContain("await burner.press('Home')");
     expect(e2e).not.toContain("burner.fill(");
+  });
+
+  it('models an actual inset sink rather than a blocked solid countertop', () => {
+    const details = source('src/components/KitchenDetails.tsx');
+    expect(details).toContain('function Countertop');
+    expect(details).toContain('surface.holes.push(opening)');
+    expect(details).toContain('new THREE.ExtrudeGeometry');
+    expect(details).toContain('function basinGeometry()');
+    expect(details).toContain('outer.holes.push(inner)');
+    expect(details).toContain('useEffect(() => () => { basin.dispose(); lip.dispose(); }');
+    expect(details).toContain('<Countertop stone={textures.stone} />');
+    for (const scene of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
+      const content = source(scene);
+      expect(content).not.toContain('boxGeometry args={[9.5, .14, 6.2]}');
+      expect(content).not.toContain('boxGeometry args={[9.5, .015, 6.2]}');
+      expect(content).toContain('position={[1.16, .035, .15]}');
+    }
   });
 
   it('keeps the latest published Three.js r187 without a risky version churn', () => {

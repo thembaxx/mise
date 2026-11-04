@@ -86,7 +86,7 @@ function Burner({ heat }: { heat: number }) {
       shader.current.uniforms.uHeat.value = heat;
     }
   });
-  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, -.025, .15]}>
+  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, .035, .15]}>
     <circleGeometry args={[1.16, 64]} />
     <shaderMaterial
       ref={shader} transparent depthWrite={false}
@@ -138,8 +138,6 @@ function KitchenEnvironment({ heat }: { heat: number }) {
       ))}
     </group>
     <mesh position={[0, -.72, 0]} receiveShadow castShadow><boxGeometry args={[9.4, .85, 6.1]} /><meshStandardMaterial color="#785a43" roughness={.78} /></mesh>
-    <mesh position={[0, -.25, 0]} receiveShadow><boxGeometry args={[9.5, .14, 6.2]} /><meshStandardMaterial color="#b7a58c" roughness={.72} /></mesh>
-    <mesh position={[0, -.172, 0]} receiveShadow><boxGeometry args={[9.5, .015, 6.2]} /><meshStandardMaterial color="#e3d8c4" roughness={.7} /></mesh>
     <RigidBody type="fixed" colliders={false}>
       <CuboidCollider args={[4.75, .08, 3.1]} position={[0, -.16, 0]} />
       <CuboidCollider args={[1.38, .1, 1.08]} position={[-1.64, .005, .23]} />

@@ -115,6 +115,64 @@ function UpperCabinet({ x, width = 1.4 }: { x: number; width?: number }) {
   </group>;
 }
 
+
+/**
+ * A real inset opening in the stone, instead of a sink painted onto a
+ * solid countertop. Geometry is intentionally decorative: the established
+ * physics counter collider stays in place, preserving cooking/drag logic.
+ */
+function Countertop({ stone }: { stone: THREE.Texture }) {
+  const geometry = useMemo(() => {
+    const surface = new THREE.Shape();
+    surface.moveTo(-4.76, -3.09);
+    surface.lineTo(4.76, -3.09);
+    surface.lineTo(4.76, 3.09);
+    surface.lineTo(-4.76, 3.09);
+    surface.closePath();
+
+    // After the -90-degree X rotation, negative shape Y is positive world Z.
+    // Sink opening: centre (-3.75, z=1.61), 1.02 × 0.93 inside the rim.
+    const opening = new THREE.Path();
+    opening.moveTo(-4.26, -2.075);
+    opening.lineTo(-4.26, -1.145);
+    opening.lineTo(-3.24, -1.145);
+    opening.lineTo(-3.24, -2.075);
+    opening.closePath();
+    surface.holes.push(opening);
+
+    const result = new THREE.ExtrudeGeometry(surface, {
+      depth: .047, steps: 1,
+      bevelEnabled: true, bevelThickness: .005, bevelSize: .006,
+      bevelSegments: 2, curveSegments: 16,
+    });
+    result.rotateX(-Math.PI / 2);
+    result.computeVertexNormals();
+    return result;
+  }, []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <mesh geometry={geometry} position={[0, -.1385, 0]} castShadow receiveShadow>
+    <meshPhysicalMaterial map={stone} roughness={.34} metalness={.03} clearcoat={.19} clearcoatRoughness={.31} />
+  </mesh>;
+}
+
+/** Continuous inset steel basin with real depth and visible metallic walls. */
+function basinGeometry() {
+  const positions: number[] = [];
+  for (const [hw, hd, y] of [[.51, .465, -.09], [.43, .385, -.275]] as const) {
+    positions.push(-hw, y, -hd, hw, y, -hd, hw, y, hd, -hw, y, hd);
+  }
+  const indices: number[] = [];
+  for (let i = 0; i < 4; i++) {
+    const next = (i + 1) % 4;
+    indices.push(i, next, i + 4, next, next + 4, i + 4);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 function KitchenSink({ quality, faucetRunning, onFaucetChange }: { quality: Quality; faucetRunning: boolean; onFaucetChange: (running: boolean) => void }) {
   const reducedMotion = useReducedMotion();
   const ripples = useRef<(THREE.Mesh | null)[]>([]);
@@ -127,6 +185,26 @@ function KitchenSink({ quality, faucetRunning, onFaucetChange }: { quality: Qual
       ring.visible = faucetRunning;
     });
   });
+  const basin = useMemo(basinGeometry, []);
+  const lip = useMemo(() => {
+    const outer = new THREE.Shape();
+    outer.moveTo(-.63, -.56);
+    outer.lineTo(.63, -.56);
+    outer.lineTo(.63, .56);
+    outer.lineTo(-.63, .56);
+    outer.closePath();
+    const inner = new THREE.Path();
+    inner.moveTo(-.51, -.465);
+    inner.lineTo(-.51, .465);
+    inner.lineTo(.51, .465);
+    inner.lineTo(.51, -.465);
+    inner.closePath();
+    outer.holes.push(inner);
+    const geometry = new THREE.ExtrudeGeometry(outer, { depth: .014, bevelEnabled: true, bevelThickness: .004, bevelSize: .004, bevelSegments: 2 });
+    geometry.rotateX(-Math.PI / 2);
+    return geometry;
+  }, []);
+  useEffect(() => () => { basin.dispose(); lip.dispose(); }, [basin, lip]);
   const faucet = useMemo(() => new THREE.CatmullRomCurve3([
     new THREE.Vector3(-3.75, -.03, 2.62),
     new THREE.Vector3(-3.75, .38, 2.62),
@@ -135,25 +213,18 @@ function KitchenSink({ quality, faucetRunning, onFaucetChange }: { quality: Qual
     new THREE.Vector3(-3.75, .46, 1.98),
   ]), []);
   return <group>
-    <RoundedBox args={[1.24, .022, 1.12]} radius={.08} smoothness={4} position={[-3.75, -.078, 1.61]} castShadow>
-      <meshPhysicalMaterial color="#b7b9b5" metalness={.87} roughness={.21} />
+    <mesh geometry={lip} position={[-3.75, -.092, 1.61]} castShadow receiveShadow>
+      <meshPhysicalMaterial color="#bec5c2" metalness={.95} roughness={.19} />
+    </mesh>
+    <mesh geometry={basin} position={[-3.75, 0, 1.61]} receiveShadow>
+      <meshPhysicalMaterial color="#6a7572" metalness={.84} roughness={.28} side={THREE.DoubleSide} />
+    </mesh>
+    <RoundedBox args={[.86, .017, .77]} position={[-3.75, -.275, 1.61]} radius={.07} smoothness={4} receiveShadow>
+      <meshPhysicalMaterial color="#4b5b59" metalness={.75} roughness={.34} />
     </RoundedBox>
-    {/* Dark inside and curved sides are separate from the lip so the sink has real depth. */}
-    <mesh position={[-3.75, -.085, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
-      <circleGeometry args={[.50, 64]} />
-      <meshPhysicalMaterial color="#303c3e" metalness={.63} roughness={.27} />
-    </mesh>
-    <mesh position={[-3.75, -.087, 1.61]} rotation={[Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[.45, .048, 18, 80]} />
-      <meshPhysicalMaterial color="#6f7c7e" metalness={.81} roughness={.23} />
-    </mesh>
-    <mesh position={[-3.75, -.052, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[.52, .033, 12, 64]} />
-      <meshPhysicalMaterial color="#e1e3de" metalness={.96} roughness={.15} />
-    </mesh>
-    <mesh position={[-3.75, -.05, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[.07, .013, 8, 24]} />
-      <meshStandardMaterial color="#adb4b0" metalness={.8} roughness={.25} />
+    <mesh position={[-3.75, -.262, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[.065, .012, 8, 32]} />
+      <meshStandardMaterial color="#b6c3be" metalness={.94} roughness={.18} />
     </mesh>
     <mesh castShadow>
       <tubeGeometry args={[faucet, quality === 'eco' ? 18 : 36, .048, 12, false]} />
@@ -167,12 +238,12 @@ function KitchenSink({ quality, faucetRunning, onFaucetChange }: { quality: Qual
       </mesh>
     </group>
     {faucetRunning && <>
-      <mesh position={[-3.75, .22, 1.98]}>
-        <cylinderGeometry args={[.015, .03, .48, 20]} />
+      <mesh position={[-3.75, .10, 1.98]}>
+        <cylinderGeometry args={[.015, .03, .73, 20]} />
         <meshPhysicalMaterial color="#a2dce8" transmission={.35} transparent opacity={.71} roughness={.08} metalness={0} depthWrite={false} />
       </mesh>
       {[0, 1, 2].map(index => (
-        <mesh key={index} ref={node => { ripples.current[index] = node; }} position={[-3.75, -.055 + index * .002, 1.98]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh key={index} ref={node => { ripples.current[index] = node; }} position={[-3.75, -.262 + index * .002, 1.98]} rotation={[-Math.PI / 2, 0, 0]}>
           <torusGeometry args={[.09, .005, 6, 32]} />
           <meshBasicMaterial color="#d0f5fa" transparent opacity={.15} depthWrite={false} />
         </mesh>
@@ -236,10 +307,7 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
       <Lightformer form="rect" intensity={1.6} position={[4, 3, -2]} rotation={[0, -Math.PI / 2, 0]} scale={[4, 2, 1]} />
     </Environment>}
     {/* Slightly raised slab sits above the original physics collision plane. */}
-    <mesh receiveShadow position={[0, -.115, 0]}>
-      <boxGeometry args={[9.52, .047, 6.18]} />
-      <meshPhysicalMaterial map={textures.stone} roughness={.34} metalness={.03} clearcoat={.19} clearcoatRoughness={.31} />
-    </mesh>
+    <Countertop stone={textures.stone} />
     <mesh position={[0, -.17, 3.11]} castShadow>
       <boxGeometry args={[9.54, .095, .06]} />
       <meshStandardMaterial color="#a9a99e" metalness={.36} roughness={.42} />
