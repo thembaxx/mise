@@ -11,6 +11,8 @@ type Props = {
   onHeatChange: (value: number) => void;
   drawerOpen: boolean;
   onDrawerChange: (open: boolean) => void;
+  faucetRunning: boolean;
+  onFaucetChange: (running: boolean) => void;
 };
 
 const CREAM = '#ece7d9';
@@ -127,7 +129,18 @@ function SaucepanDetails() {
   </group>;
 }
 
-function KitchenSink({ quality }: { quality: Quality }) {
+function KitchenSink({ quality, faucetRunning, onFaucetChange }: { quality: Quality; faucetRunning: boolean; onFaucetChange: (running: boolean) => void }) {
+  const reducedMotion = useReducedMotion();
+  const ripples = useRef<(THREE.Mesh | null)[]>([]);
+  useFrame(({clock}) => {
+    ripples.current.forEach((ring, index) => {
+      if (!ring) return;
+      const phase = reducedMotion ? .3 + index * .23 : (clock.elapsedTime * .7 + index / 3) % 1;
+      ring.scale.setScalar(.3 + phase * 2.7);
+      (ring.material as THREE.MeshBasicMaterial).opacity = faucetRunning ? .29 * (1 - phase) : 0;
+      ring.visible = faucetRunning;
+    });
+  });
   const faucet = useMemo(() => new THREE.CatmullRomCurve3([
     new THREE.Vector3(-3.75, -.03, 2.62),
     new THREE.Vector3(-3.75, .38, 2.62),
@@ -139,9 +152,14 @@ function KitchenSink({ quality }: { quality: Quality }) {
     <RoundedBox args={[1.24, .022, 1.12]} radius={.08} smoothness={4} position={[-3.75, -.078, 1.61]} castShadow>
       <meshPhysicalMaterial color="#b7b9b5" metalness={.87} roughness={.21} />
     </RoundedBox>
-    <mesh position={[-3.75, -.061, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
-      <circleGeometry args={[.52, 48]} />
-      <meshPhysicalMaterial color="#353c3d" metalness={.73} roughness={.29} />
+    {/* Dark inside and curved sides are separate from the lip so the sink has real depth. */}
+    <mesh position={[-3.75, -.085, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[.50, 64]} />
+      <meshPhysicalMaterial color="#303c3e" metalness={.63} roughness={.27} />
+    </mesh>
+    <mesh position={[-3.75, -.087, 1.61]} rotation={[Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[.45, .048, 18, 80]} />
+      <meshPhysicalMaterial color="#6f7c7e" metalness={.81} roughness={.23} />
     </mesh>
     <mesh position={[-3.75, -.052, 1.61]} rotation={[-Math.PI / 2, 0, 0]}>
       <torusGeometry args={[.52, .033, 12, 64]} />
@@ -155,10 +173,25 @@ function KitchenSink({ quality }: { quality: Quality }) {
       <tubeGeometry args={[faucet, quality === 'eco' ? 18 : 36, .048, 12, false]} />
       <meshPhysicalMaterial color="#c9cdc9" metalness={.94} roughness={.16} />
     </mesh>
-    <mesh position={[-3.75, .46, 1.98]}>
-      <cylinderGeometry args={[.064, .063, .09, 20]} />
-      <meshStandardMaterial color="#c9cdc9" metalness={.91} roughness={.2} />
-    </mesh>
+    <group position={[-3.57, .25, 2.56]} onClick={event => { event.stopPropagation(); onFaucetChange(!faucetRunning); }}>
+      <mesh castShadow><cylinderGeometry args={[.09, .09, .12, 32]} /><meshPhysicalMaterial color="#c9cdc9" metalness={.94} roughness={.15} /></mesh>
+      <mesh position={[.13, .055, 0]} rotation={[0, 0, faucetRunning ? -.28 : 0]} castShadow>
+        <boxGeometry args={[.26, .037, .068]} />
+        <meshPhysicalMaterial color="#d3d9d6" metalness={.95} roughness={.17} />
+      </mesh>
+    </group>
+    {faucetRunning && <>
+      <mesh position={[-3.75, .22, 1.98]}>
+        <cylinderGeometry args={[.015, .03, .48, 20]} />
+        <meshPhysicalMaterial color="#a2dce8" transmission={.35} transparent opacity={.71} roughness={.08} metalness={0} depthWrite={false} />
+      </mesh>
+      {[0, 1, 2].map(index => (
+        <mesh key={index} ref={node => { ripples.current[index] = node; }} position={[-3.75, -.055 + index * .002, 1.98]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[.09, .005, 6, 32]} />
+          <meshBasicMaterial color="#d0f5fa" transparent opacity={.15} depthWrite={false} />
+        </mesh>
+      ))}
+    </>}
   </group>;
 }
 
@@ -192,7 +225,7 @@ function StoveDetails({ heat, onHeatChange }: Pick<Props, 'heat' | 'onHeatChange
   </group>;
 }
 
-export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen, onDrawerChange }: Props) {
+export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange }: Props) {
   const reducedMotion = useReducedMotion();
   const drawer = useRef<THREE.Group>(null);
   const textures = useMemo(() => ({
@@ -206,7 +239,7 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
 
   useFrame((_state, delta) => {
     if (!drawer.current) return;
-    const target = drawerOpen ? 3.67 : 3.115;
+    const target = drawerOpen ? 3.79 : 3.115;
     drawer.current.position.z = reducedMotion ? target : THREE.MathUtils.damp(drawer.current.position.z, target, 11, Math.min(delta, .1));
   });
 
@@ -251,9 +284,9 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
     </mesh>
     <pointLight position={[1.16, 2.83, -2.3]} intensity={quality === 'eco' ? .35 : .85} distance={5} color="#ffdea8" />
     <StoveDetails heat={heat} onHeatChange={onHeatChange} />
-    <KitchenSink quality={quality} />
+    <KitchenSink quality={quality} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} />
     {/* Front cabinetry is visible from the default three-quarter camera. */}
-    {[-3.72, -1.94, -.15, 1.65, 3.52].map((x, i) => (
+    {[-3.72, -1.94, -.15, 1.65, 3.52].map((x, i) => i === 1 ? null : (
       <group key={i} position={[x, -.68, 3.06]}>
         <RoundedBox args={[1.59, .66, .065]} radius={.035} smoothness={3} castShadow>
           <meshPhysicalMaterial color={i % 2 === 0 ? '#425347' : '#3b4b41'} roughness={.57} clearcoat={.16} />
@@ -261,15 +294,23 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
         <MetalHandle x={0} y={.18} z={.08} width={.7} />
       </group>
     ))}
+    <mesh position={[-1.94, -.65, 3.062]}>
+      <boxGeometry args={[1.57, .65, .012]} /><meshStandardMaterial color="#18251d" roughness={1} />
+    </mesh>
     <group ref={drawer} position={[-1.94, -.65, 3.115]} onClick={event => { event.stopPropagation(); onDrawerChange(!drawerOpen); }}>
       <RoundedBox args={[1.53, .35, .09]} radius={.035} smoothness={4} castShadow>
         <meshPhysicalMaterial color="#536856" roughness={.5} clearcoat={.2} />
       </RoundedBox>
       <MetalHandle x={0} y={.04} z={.085} width={.72} />
-      {drawerOpen && <group position={[0, .04, -.2]}>
-        <mesh><boxGeometry args={[1.42, .035, .8]} /><meshStandardMaterial color="#8c6548" roughness={.76} /></mesh>
-        {[-.68, .68].map(x => <mesh key={x} position={[x, .12, 0]}><boxGeometry args={[.028, .22, .8]} /><meshStandardMaterial color="#8c6548" /></mesh>)}
-      </group>}
+      <group position={[0, .04, -.30]}>
+        <mesh receiveShadow position={[0, -.13, 0]}><boxGeometry args={[1.39, .035, .69]} /><meshStandardMaterial color="#936f4c" roughness={.76} /></mesh>
+        {[-.68, .68].map(x => <mesh key={x} position={[x, -.02, 0]}><boxGeometry args={[.028, .22, .69]} /><meshStandardMaterial color="#936f4c" roughness={.78} /></mesh>)}
+        <mesh position={[0, -.02, -.34]}><boxGeometry args={[1.4, .22, .025]} /><meshStandardMaterial color="#7f5e42" /></mesh>
+        {[-.3, 0, .3].map((x, i) => <group key={x} position={[x, -.091, -.03]} rotation={[0, 0, Math.PI / 2]}>
+          <mesh castShadow><cylinderGeometry args={[.017, .027, .47, 12]} /><meshStandardMaterial color={i === 1 ? BRASS : STEEL} metalness={.84} roughness={.27} /></mesh>
+          <mesh position={[0, .26, 0]}><sphereGeometry args={[.036, 10, 8]} /><meshStandardMaterial color={i === 1 ? BRASS : STEEL} metalness={.81} roughness={.27} /></mesh>
+        </group>)}
+      </group>
     </group>
     {/* Small glazed objects add scale cues and catch highlights without extra downloads. */}
     {[-3.13, -2.62, 3.12, 3.57].map((x, i) => (
