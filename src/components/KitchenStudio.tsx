@@ -245,14 +245,14 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
             <span className="gesture-symbol"><ForkKnife size={17} /></span>
             <div><strong>Get hands-on</strong><small>Drag food into the pan, tap the stove dial to adjust heat, or rotate the view. Use the drawer, faucet and pan lid.</small><button type="button" className="drawer-control" aria-pressed={drawerOpen} onClick={() => setDrawerOpen(open => !open)}>{drawerOpen ? 'Close prep drawer' : 'Open prep drawer'}</button><button type="button" className="drawer-control faucet-control" aria-pressed={faucetRunning} onClick={() => setFaucetRunning(value => !value)}>{faucetRunning ? 'Turn off faucet' : 'Turn on faucet'}</button><button type="button" className="drawer-control lid-control" aria-pressed={!lidOpen} onClick={() => setLidOpen(open => !open)}>{lidOpen ? 'Cover pan' : 'Lift pan lid'}</button></div>
           </div>
+          <div className="heat-control">
+            <label htmlFor="burner-heat"><Fire size={16} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
+            <input id="burner-heat" aria-label="Burner heat" type="range" min="0" max="1" step=".05" value={heat} onChange={e => setHeat(Number(e.target.value))} style={{ '--heat': (heat * 100) + '%' } as React.CSSProperties} />
+          </div>
           <div className="kitchen-camera-modes" role="group" aria-label="Kitchen camera view">
             {([['overview', 'Full kitchen'], ['pan', 'Focus pan'], ['prep', 'Prep station']] as const).map(([value, label]) =>
               <button key={value} type="button" aria-pressed={cameraView === value} onClick={() => setCameraView(value)}>{label}</button>
             )}
-          </div>
-          <div className="heat-control">
-            <label htmlFor="burner-heat"><Fire size={16} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
-            <input id="burner-heat" aria-label="Burner heat" type="range" min="0" max="1" step=".05" value={heat} onChange={e => setHeat(Number(e.target.value))} style={{ '--heat': (heat * 100) + '%' } as React.CSSProperties} />
           </div>
         </div>
       </div>
