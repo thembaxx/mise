@@ -30,7 +30,7 @@ jobs:
           /usr/bin/python3 -c "import numpy; print(numpy.__version__)"
       - name: Validate Python syntax and both asset gates
         run: |
-          python3 -m py_compile scripts/author-blender-candidate.py scripts/author-kitchen-cookware.py
+          python3 -m py_compile scripts/author-blender-candidate.py scripts/author-kitchen-cookware.py scripts/render-kitchen-cookware.py
           node --test scripts/check-blender-review.test.mjs scripts/check-kitchen-candidate.test.mjs
       - name: Author original plated-dish candidate in Blender
         if: ${{ inputs.preset == 'dish' }}
@@ -52,6 +52,13 @@ jobs:
       - name: Verify cookware model names, PBR glass, animation and provenance
         if: ${{ inputs.preset == 'cookware' }}
         run: node scripts/check-kitchen-candidate.mjs "$RUNNER_TEMP/blender-review"
+      - name: Render covered and lifted cookware QA frames (CPU Cycles)
+        if: ${{ inputs.preset == 'cookware' }}
+        run: |
+          blender --background --factory-startup --python-exit-code 1 \
+            --python scripts/render-kitchen-cookware.py -- \
+            --input "$RUNNER_TEMP/blender-review/mise-premium-cookware-candidate.blend" \
+            --output-dir "$RUNNER_TEMP/blender-review"
       - name: Upload unapproved review pack (no production writes)
         uses: actions/upload-artifact@v4
         with:
