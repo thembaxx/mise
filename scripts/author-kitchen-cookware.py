@@ -53,7 +53,7 @@ def empty(name, parent=None):
     return obj
 
 
-def lathe(name, profile, material, root, *, segments=RINGS):
+def lathe(name, profile, material, root, *, segments=RINGS, face_inward=False):
     vertices = []
     for radius, height in profile:
         for j in range(segments):
@@ -66,7 +66,8 @@ def lathe(name, profile, material, root, *, segments=RINGS):
             b = i * segments + (j + 1) % segments
             c = (i + 1) * segments + (j + 1) % segments
             d = (i + 1) * segments + j
-            faces.append((a, b, c, d))
+            # Exterior faces point out and down; inner surfaces point up and in.
+            faces.append((a, d, c, b) if face_inward else (a, b, c, d))
     mesh = bpy.data.meshes.new(name + " geometry")
     mesh.from_pydata(vertices, [], faces)
     mesh.update()
@@ -123,7 +124,7 @@ def create():
     inner = lathe("Skillet_inner_ceramic_bowl", [
         (.005, .273), (.50, .273), (.71, .28), (.83, .31),
         (.92, .361), (1.014, .431),
-    ], nonstick, pan)
+    ], nonstick, pan, face_inward=True)
 
     torus("Skillet_polished_rolled_rim", pan, 1.036, .026, .441, edge)
     torus("Skillet_base_pressure_ring", pan, .71, .014, .069, steel)
@@ -144,7 +145,7 @@ def create():
     lathe("Lid_curved_glass_shell", [
         (.005, .184), (.13, .181), (.28, .17), (.51, .14),
         (.72, .087), (.88, .033), (.98, .015),
-    ], glass, lid)
+    ], glass, lid, face_inward=True)
     torus("Lid_polished_rolled_edge", lid, .978, .041, .014, edge)
     cylinder("Lid_graphite_knob_foot", lid, (0, 0, .21), .20, .092, grip, verts=64)
     cylinder("Lid_polished_knob_cap", lid, (0, 0, .30), .14, .085, edge, verts=64)
