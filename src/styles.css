@@ -816,3 +816,44 @@ h1, h2, h3, h4 { overflow-wrap: break-word; }
 .recipe-switch,
 .graphics-mode-control select,
 .scene-actions select{font-size:16px}}
+
+
+/* R187 kitchen art direction — primary controls remain real HTML for a11y. */
+.drawer-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid #879b81;
+  border-radius: 999px;
+  background: #eef3e5;
+  color: #28402e;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.drawer-control[aria-pressed="true"] { background: #d8e7cc; border-color: #55754f; }
+.drawer-control:focus-visible { outline: 3px solid #f18c50; outline-offset: 3px; }
+@media (hover:hover) and (pointer:fine) {
+  .drawer-control:hover { background: #dcebcf; transform: translateY(-1px); }
+}
+@media (max-width:760px) {
+  .scene-hint { gap: 12px; }
+  .scene-hint small { font-size: 13px; line-height: 1.5; }
+  .drawer-control { width: fit-content; max-width: 100%; font-size: 14px; }
+  .scene-actions { min-width: 0; }
+  .kitchen-scene-outer { overflow: hidden; }
+}
+/* Avoid Safari focus zoom and tiny inputs in every mode, not just narrow layouts. */
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+select, textarea { font-size: 16px; }
+@media (prefers-reduced-motion:reduce) {
+  .drawer-control { transition: none; }
+  .drawer-control:hover { transform: none; }
+}
