@@ -1,6 +1,15 @@
 name: Blender candidate art studio (manual review)
 on:
   workflow_dispatch:
+    inputs:
+      preset:
+        description: Which original model pack should Blender author?
+        type: choice
+        required: true
+        default: dish
+        options:
+          - dish
+          - cookware
 
 permissions:
   contents: read
@@ -8,7 +17,7 @@ permissions:
 jobs:
   author-candidate:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,22 +28,41 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y blender python3-numpy
           blender --version | head -2
           /usr/bin/python3 -c "import numpy; print(numpy.__version__)"
-      - name: Validate Python syntax and candidate gate tests
+      - name: Validate Python syntax and both asset gates
         run: |
-          python3 -m py_compile scripts/author-blender-candidate.py
-          node --test scripts/check-blender-review.test.mjs
-      - name: Author original candidate models in Blender
+          python3 -m py_compile scripts/author-blender-candidate.py scripts/author-kitchen-cookware.py scripts/render-kitchen-cookware.py
+          node --test scripts/check-blender-review.test.mjs scripts/check-kitchen-candidate.test.mjs
+      - name: Author original plated-dish candidate in Blender
+        if: ${{ inputs.preset == 'dish' }}
         run: |
-          blender --background --factory-startup --python-exit-code 1 --python scripts/author-blender-candidate.py -- \
+          blender --background --factory-startup --python-exit-code 1 \
+            --python scripts/author-blender-candidate.py -- \
             --preset dish --output-dir "$RUNNER_TEMP/blender-review"
-      - name: Validate embedded web GLB size and geometry
+      - name: Author original high-detail kitchen cookware in Blender
+        if: ${{ inputs.preset == 'cookware' }}
+        run: |
+          blender --background --factory-startup --python-exit-code 1 \
+            --python scripts/author-kitchen-cookware.py -- \
+            --output-dir "$RUNNER_TEMP/blender-review"
+      - name: Validate embedded GLB size and geometry
         run: node scripts/validate-3d-assets.mjs "$RUNNER_TEMP/blender-review" --require-assets
-      - name: Verify Blender animation and provenance before upload
+      - name: Verify plated dish provenance and animation
+        if: ${{ inputs.preset == 'dish' }}
         run: node scripts/check-blender-review.mjs dish "$RUNNER_TEMP/blender-review"
+      - name: Verify cookware model names, PBR glass, animation and provenance
+        if: ${{ inputs.preset == 'cookware' }}
+        run: node scripts/check-kitchen-candidate.mjs "$RUNNER_TEMP/blender-review"
+      - name: Render covered and lifted cookware QA frames (CPU Cycles)
+        if: ${{ inputs.preset == 'cookware' }}
+        run: |
+          blender --background --factory-startup --python-exit-code 1 \
+            --python scripts/render-kitchen-cookware.py -- \
+            --input "$RUNNER_TEMP/blender-review/mise-premium-cookware-candidate.blend" \
+            --output-dir "$RUNNER_TEMP/blender-review"
       - name: Upload unapproved review pack (no production writes)
         uses: actions/upload-artifact@v4
         with:
-          name: dish-blender-review-pack
+          name: ${{ inputs.preset }}-blender-review-pack
           path: ${{ runner.temp }}/blender-review/
           if-no-files-found: error
           retention-days: 7
