@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { RoundedBox } from '@react-three/drei';
+import { Environment, Lightformer, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { useReducedMotion } from '../motion/preferences';
 
@@ -175,7 +175,7 @@ function StoveDetails({ heat, onHeatChange }: Pick<Props, 'heat' | 'onHeatChange
       <torusGeometry args={[radius, .018, 8, 64]} /><meshStandardMaterial color="#424a47" roughness={.3} metalness={.8} />
     </mesh>)}
     <group position={[2.55, .04, 1.02]} onClick={event => { event.stopPropagation(); stepHeat(); }}>
-      <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+      <mesh castShadow>
         <cylinderGeometry args={[.175, .175, .10, 40]} />
         <meshPhysicalMaterial color="#aaa9a1" metalness={.88} roughness={.18} clearcoat={.38} />
       </mesh>
@@ -211,6 +211,12 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
   });
 
   return <group>
+    {/* Studio softboxes reflected by the physical metals and glaze; fully offline. */}
+    {quality !== 'eco' && <Environment resolution={quality === 'high' ? 512 : 256}>
+      <Lightformer form="rect" intensity={3.4} position={[0, 5, 3]} rotation={[Math.PI / 2, 0, 0]} scale={[9, 4, 1]} />
+      <Lightformer form="rect" intensity={2.2} position={[-5, 2, 1]} rotation={[0, Math.PI / 2, 0]} scale={[5, 3, 1]} />
+      <Lightformer form="rect" intensity={1.6} position={[4, 3, -2]} rotation={[0, -Math.PI / 2, 0]} scale={[4, 2, 1]} />
+    </Environment>}
     {/* Slightly raised slab sits above the original physics collision plane. */}
     <mesh receiveShadow position={[0, -.115, 0]}>
       <boxGeometry args={[9.52, .047, 6.18]} />
