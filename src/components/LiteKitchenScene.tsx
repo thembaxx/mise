@@ -10,7 +10,7 @@ import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 import KitchenDetails from './KitchenDetails';
 import IngredientModel from './KitchenProduce';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange, quality }: {
@@ -126,11 +126,7 @@ function KitchenEnvironment({ heat }: { heat: number }) {
     {[-.78, .78].map((z, i) => <mesh key={i} position={[-1.64, .077, .23 + z]}><boxGeometry args={[2.4, .005, .016]} /><meshStandardMaterial color="#986b48" transparent opacity={.45} /></mesh>)}
     <mesh position={[1.16, -.06, .15]} castShadow><cylinderGeometry args={[1.28, 1.28, .17, 64]} /><meshStandardMaterial color="#333932" metalness={.62} roughness={.37} /></mesh>
     <Burner heat={heat} />
-    <mesh position={[1.16, .12, .15]} castShadow receiveShadow><cylinderGeometry args={[1.04, .9, .28, 64]} /><meshStandardMaterial color="#272b29" metalness={.68} roughness={.29} /></mesh>
-    <mesh position={[1.16, .271, .15]}><torusGeometry args={[.98, .055, 12, 64]} /><meshStandardMaterial color="#515851" metalness={.7} roughness={.28} /></mesh>
-    <mesh position={[1.16, .273, .15]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[.92, 64]} /><meshStandardMaterial color="#3c4039" metalness={.28} roughness={.67} /></mesh>
-    <mesh position={[2.43, .16, .15]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[.115, .15, 1.3, 20]} /><meshStandardMaterial color="#343a33" roughness={.5} /></mesh>
-    <mesh position={[2.99, .16, .15]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[.16, .16, .48, 20]} /><meshStandardMaterial color="#a7774e" roughness={.63} /></mesh>
+    {/* Skillet and lid are modeled once in KitchenCookware; keep the original collision volumes. */}
     <group position={[3.62, .02, -1.3]}>
       <mesh castShadow><cylinderGeometry args={[.31, .26, .53, 20]} /><meshStandardMaterial color="#ddd3b9" /></mesh>
       {Array.from({ length: 5 }, (_, i) => <mesh key={i} position={[(i - 2) * .07, .42 + (i % 2) * .1, 0]}><sphereGeometry args={[.15, 12, 8]} /><meshStandardMaterial color="#567c4b" /></mesh>)}
@@ -142,7 +138,7 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
@@ -152,7 +148,7 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
     <directionalLight position={[-3, 7, 5]} intensity={2.75} castShadow shadow-mapSize={quality === 'high' ? [2048, 2048] : quality === 'balanced' ? [1024, 1024] : [512, 512]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} />
     <pointLight position={[1, 2.3, .2]} color={heat > 0 ? '#ffab6b' : '#fff4d8'} intensity={heat * 2.4 + .75} distance={5} />
     <KitchenEnvironment heat={heat} />
-      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} />
+      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} />
     {ingredients.slice(0, 8).map((ingredient, index) =>
       <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} quality={quality} />
     )}
@@ -162,10 +158,10 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
   </>;
 }
 
-export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, onAdd, resetKey, progress, pulse, onAction }: Props) {
+export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
     <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
+      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
   </div>;
 }
