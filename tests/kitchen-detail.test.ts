@@ -131,6 +131,25 @@ describe('high-fidelity kitchen feature', () => {
     expect((studio.match(/cameraView={cameraView}/g) ?? []).length).toBe(2);
   });
 
+  it('keeps the glowing stove element below the nonstick cooking surface', () => {
+    for (const scene of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
+      const content = source(scene);
+      expect(content).toContain("position={[1.16, -.025, .15]}");
+      expect(content).toContain("abs(d-.466)");
+      expect(content).not.toContain("position={[1.16, .279, .15]}");
+    }
+  });
+
+  it('lays out camera views on their own row, with mobile single-column fallback', () => {
+    const css = source('src/styles.css');
+    expect(css).toContain('.scene-bottom {\n  display: grid;');
+    expect(css).toContain('.kitchen-camera-modes { grid-column: 1 / -1; }');
+    expect(css).toContain('@media (max-width: 700px)');
+    const e2e = source('e2e/kitchen-fidelity.e2e.ts');
+    expect(e2e).toContain("await burner.press('Home')");
+    expect(e2e).not.toContain("burner.fill(");
+  });
+
   it('keeps the latest published Three.js r187 without a risky version churn', () => {
     const pkg = JSON.parse(source('package.json'));
     expect(pkg.dependencies.three).toBe('^0.187.0');

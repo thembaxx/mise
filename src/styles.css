@@ -908,3 +908,22 @@ select, textarea { font-size: 16px; }
 @media (prefers-reduced-motion: reduce) {
   .kitchen-camera-modes button { transition: none; }
 }
+
+
+/* Keep the cookware controls and camera presets in a stable two-row grid.
+   The original scene-bottom flex row crammed the new buttons on small screens. */
+.scene-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 200px);
+  align-items: start;
+  gap: 12px 20px;
+}
+.scene-hint { min-width: 0; align-items: flex-start; }
+.scene-hint > div { min-width: 0; }
+.heat-control { min-width: 0; width: 100%; align-self: center; }
+.kitchen-camera-modes { grid-column: 1 / -1; }
+@media (max-width: 700px) {
+  .scene-bottom { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 16px; }
+  .heat-control { max-width: none; }
+  .kitchen-camera-modes { grid-column: 1; }
+}

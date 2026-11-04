@@ -98,13 +98,13 @@ function Burner({ heat }: { heat: number }) {
       shader.current.uniforms.uHeat.value = heat;
     }
   });
-  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, .279, .15]}>
+  return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[1.16, -.025, .15]}>
     <circleGeometry args={[1.16, 64]} />
     <shaderMaterial
       ref={shader} transparent depthWrite={false}
       uniforms={{ uTime: { value: 0 }, uHeat: { value: heat } }}
       vertexShader="varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}"
-      fragmentShader="varying vec2 vUv; uniform float uTime; uniform float uHeat; void main(){float d=distance(vUv,vec2(.5));float rings=smoothstep(.018,.002,abs(d-.31))+smoothstep(.015,.002,abs(d-.39));float pulse=.78+.22*sin(uTime*(2.0+uHeat*3.0));vec3 col=mix(vec3(.23,.28,.21),vec3(1.,.29,.08),uHeat);gl_FragColor=vec4(col,rings*(.25+uHeat*.72)*pulse);}"
+      fragmentShader="varying vec2 vUv; uniform float uTime; uniform float uHeat; void main(){float d=distance(vUv,vec2(.5));float rings=smoothstep(.018,.002,abs(d-.466))+smoothstep(.012,.003,abs(d-.486));float pulse=.78+.22*sin(uTime*(2.0+uHeat*3.0));vec3 col=mix(vec3(.31,.29,.27),vec3(1.,.32,.08),uHeat);gl_FragColor=vec4(col,rings*(.08+uHeat*.82)*pulse);}"
     />
   </mesh>;
 }

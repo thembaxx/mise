@@ -30,7 +30,9 @@ test('kitchen 3D drawer and cooking controls remain accessible on mobile and des
   await graphics.selectOption('high');
   await expect(graphics).toHaveValue('high');
   const burner = page.getByRole('slider', { name: 'Burner heat' });
-  await burner.fill('0.8');
+  await burner.focus();
+  await burner.press('Home');
+  for (let i = 0; i < 16; i++) await burner.press('ArrowRight');
   await expect(burner).toHaveValue('0.8');
 
   const cameras = page.getByRole('group', { name: 'Kitchen camera view' });
@@ -39,6 +41,7 @@ test('kitchen 3D drawer and cooking controls remain accessible on mobile and des
   await expect(cameras.getByRole('button', { name: 'Focus pan' })).toHaveAttribute('aria-pressed', 'true');
   await cameras.getByRole('button', { name: 'Prep station' }).click();
   await expect(cameras.getByRole('button', { name: 'Prep station' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(cameras.getByRole('button', { name: 'Full kitchen' })).toHaveAttribute('aria-pressed', 'false');
 
   const clipped = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   expect(clipped).toBe(false);

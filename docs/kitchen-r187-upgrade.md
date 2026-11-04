@@ -31,3 +31,10 @@ Treat the interactive kitchen as a premium cooking environment, not a low-poly i
 
 ## Follow-on art production
 For genuinely cinematic realism, replace the primary cookware and ingredients with human-reviewed, license-verified, high-resolution Blender meshes, PBR material sets, animation rigs and baked light maps. Keep the current offline geometry as a fallback. This requires viewing and testing actual rendered results, not only source-level tests.
+
+
+## Review pass — functional realism and responsive controls
+- Burner ring is rendered underneath the skillet rather than coplanar with the food, so the glow appears only at the edge of the base.
+- The kitchen control footer uses a two-row responsive CSS grid to keep heat slider, faucet, drawer, glass-lid actions and camera controls reachable on narrow screens.
+- Browser tests use keyboard input for the heat slider instead of attempting unsupported Playwright fill() on a native range control.
+- Asset generation remains a separately reviewed art stage, not a silent replacement of the production cooking simulation.
