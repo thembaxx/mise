@@ -29,6 +29,7 @@ import { allRecipes } from '../lib/personal-cookbook';
 import { addRecipeToShoppingList, loadKitchenSnapshot, saveKitchenSnapshot, clearKitchenSnapshot } from '../lib/kitchen-storage';
 import { ClipboardText } from '@phosphor-icons/react/dist/csr/ClipboardText';
 import { CornersOut } from '@phosphor-icons/react/dist/csr/CornersOut';
+import { CornersIn } from '@phosphor-icons/react/dist/csr/CornersIn';
 import { Gauge } from '@phosphor-icons/react/dist/csr/Gauge';
 
 type Props = { recipe: Recipe; onRecipeChange: (id: string) => void };
@@ -39,6 +40,33 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [restored] = useState(() => loadKitchenSnapshot(recipe));
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const sceneVisualRef = useRef<HTMLDivElement>(null);
+  const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
+  const [fullscreenActive, setFullscreenActive] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState('');
+  useEffect(() => {
+    const sync = () => {
+      setFullscreenAvailable(document.fullscreenEnabled === true);
+      setFullscreenActive(document.fullscreenElement === sceneVisualRef.current);
+    };
+    sync();
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
+  }, []);
+  const toggleFullscreen = async () => {
+    setFullscreenError('');
+    try {
+      if (document.fullscreenElement === sceneVisualRef.current) {
+        await document.exitFullscreen();
+      } else if (sceneVisualRef.current?.requestFullscreen) {
+        await sceneVisualRef.current.requestFullscreen();
+      } else {
+        setFullscreenError('Fullscreen is unavailable here. Install Mise for an app-like view.');
+      }
+    } catch {
+      setFullscreenError('Fullscreen is unavailable here. Install Mise for an app-like view.');
+    }
+  };
   const [faucetRunning, setFaucetRunning] = useState(false);
   const [lidOpen, setLidOpen] = useState(true);
   const [cameraView, setCameraView] = useState<KitchenCameraView>('overview');
@@ -220,7 +248,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     </div>
 
     <div className="studio-shell">
-      <div className="studio-visual">
+      <div ref={sceneVisualRef} className="studio-visual">
         <div className="scene-topbar">
           <span className="scene-live"><span /> Interactive kitchen</span>
           <span className="local-clock"><Clock size={15} /> {clockText}</span>
@@ -229,9 +257,11 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
               {physicsEnabled ? 'Physics on' : 'Quick 3D'} <span className="physics-status-dot" aria-hidden="true" />
             </button>
             <label className="graphics-mode-control" title="3D graphics quality"><Gauge size={14}/><span className="visually-hidden">Graphics quality</span><select aria-label="Graphics quality" value={graphics} onChange={event => setGraphics(event.target.value as 'eco'|'balanced'|'high')}><option value="eco">Eco</option><option value="balanced">Balanced</option><option value="high">High</option></select></label>
+            {fullscreenAvailable && <button className="scene-icon-button scene-fullscreen-button" type="button" onClick={() => void toggleFullscreen()} aria-label={fullscreenActive ? 'Exit immersive kitchen' : 'Make kitchen fullscreen'} aria-pressed={fullscreenActive} title={fullscreenActive ? 'Exit fullscreen' : 'Fullscreen kitchen'}>{fullscreenActive ? <CornersIn size={17} /> : <CornersOut size={17} />}</button>}
             <button className="scene-icon-button" type="button" onClick={resetKitchen} aria-label="Reset 3D kitchen" title="Reset 3D kitchen"><ArrowCounterClockwise size={16} /></button>
           </div>
         </div>
+        {fullscreenError && <p className="fullscreen-status" role="status">{fullscreenError}</p>}
         <SceneErrorBoundary><SupportsWebGL>
           <div className="kitchen-scene-outer">
           {physicsEnabled
