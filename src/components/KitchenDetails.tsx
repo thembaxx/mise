@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Environment, Lightformer, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { useReducedMotion } from '../motion/preferences';
+import KitchenCookware from './KitchenCookware';
 
 type Quality = 'eco' | 'balanced' | 'high';
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
   onDrawerChange: (open: boolean) => void;
   faucetRunning: boolean;
   onFaucetChange: (running: boolean) => void;
+  lidOpen: boolean;
+  onLidChange: (open: boolean) => void;
 };
 
 const CREAM = '#ece7d9';
@@ -112,23 +115,6 @@ function UpperCabinet({ x, width = 1.4 }: { x: number; width?: number }) {
   </group>;
 }
 
-function SaucepanDetails() {
-  return <group position={[1.16, 0, .15]}>
-    <mesh position={[0, .286, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[.70, .86, 80]} />
-      <meshPhysicalMaterial color="#777c78" roughness={.27} metalness={.82} transparent opacity={.34} side={THREE.DoubleSide} />
-    </mesh>
-    {[.56, .71].map(radius => <mesh key={radius} position={[0, .287, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[radius, .006, 6, 96]} />
-      <meshStandardMaterial color="#8f9892" metalness={.88} roughness={.21} transparent opacity={.48} />
-    </mesh>)}
-    <mesh position={[1.04, .17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-      <cylinderGeometry args={[.16, .16, .34, 24]} />
-      <meshStandardMaterial color={STEEL} metalness={.87} roughness={.22} />
-    </mesh>
-  </group>;
-}
-
 function KitchenSink({ quality, faucetRunning, onFaucetChange }: { quality: Quality; faucetRunning: boolean; onFaucetChange: (running: boolean) => void }) {
   const reducedMotion = useReducedMotion();
   const ripples = useRef<(THREE.Mesh | null)[]>([]);
@@ -221,11 +207,10 @@ function StoveDetails({ heat, onHeatChange }: Pick<Props, 'heat' | 'onHeatChange
         <meshStandardMaterial color={heat > 0 ? '#ee9650' : '#727a73'} metalness={.6} roughness={.45} />
       </mesh>
     </group>
-    <SaucepanDetails />
   </group>;
 }
 
-export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange }: Props) {
+export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange }: Props) {
   const reducedMotion = useReducedMotion();
   const drawer = useRef<THREE.Group>(null);
   const textures = useMemo(() => ({
@@ -284,6 +269,7 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
     </mesh>
     <pointLight position={[1.16, 2.83, -2.3]} intensity={quality === 'eco' ? .35 : .85} distance={5} color="#ffdea8" />
     <StoveDetails heat={heat} onHeatChange={onHeatChange} />
+    <KitchenCookware quality={quality} heat={heat} lidOpen={lidOpen} onLidChange={onLidChange} />
     <KitchenSink quality={quality} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} />
     {/* Front cabinetry is visible from the default three-quarter camera. */}
     {[-3.72, -1.94, -.15, 1.65, 3.52].map((x, i) => i === 1 ? null : (
