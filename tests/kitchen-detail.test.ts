@@ -50,6 +50,38 @@ describe('high-fidelity kitchen feature', () => {
     expect(styles).toContain('select, textarea { font-size: 16px; }');
   });
 
+  it('shares detailed produce meshes between physics and quick renderers', () => {
+    const sourceFile = source('src/components/KitchenProduce.tsx');
+    expect(sourceFile).toContain('new THREE.DataTexture');
+    expect(sourceFile).toContain('THREE.SRGBColorSpace');
+    for (const part of ['Tomato', 'Citrus', 'Carrot', 'Mushroom', 'Onion', 'Chili', 'Garlic', 'Herb']) {
+      expect(sourceFile).toContain('function ' + part);
+    }
+    for (const renderer of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
+      const content = source(renderer);
+      expect(content).toContain("import IngredientModel from './KitchenProduce'");
+      expect(content).toContain('<IngredientModel kind={ingredient.kind} quality={quality}');
+    }
+  });
+
+  it('wires the faucet to real controls in both renderers and studio UI', () => {
+    const details = source('src/components/KitchenDetails.tsx');
+    const studio = source('src/components/KitchenStudio.tsx');
+    expect(details).toContain('onFaucetChange(!faucetRunning)');
+    expect(details).toContain('faucetRunning &&');
+    expect(studio).toContain('aria-pressed={faucetRunning}');
+    expect(studio).toContain('Turn off faucet');
+    expect(studio).toContain('Turn on faucet');
+    expect((studio.match(/onFaucetChange={setFaucetRunning}/g) ?? []).length).toBe(2);
+  });
+
+  it('avoids duplicate drawer faces and provides a real interior', () => {
+    const details = source('src/components/KitchenDetails.tsx');
+    expect(details).toContain('i === 1 ? null');
+    expect(details).toContain('const target = drawerOpen ? 3.79 : 3.115');
+    expect(details).toContain('drawer.current.position.z');
+  });
+
   it('keeps the latest published Three.js r187 without a risky version churn', () => {
     const pkg = JSON.parse(source('package.json'));
     expect(pkg.dependencies.three).toBe('^0.187.0');
