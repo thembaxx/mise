@@ -10,7 +10,7 @@ import type { CookingAction, KitchenProgress } from '../lib/cooking';
 import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 import KitchenDetails from './KitchenDetails';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function IngredientModel({ kind }: { kind: IngredientKind }) {
@@ -227,7 +227,7 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
@@ -238,7 +238,7 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
     <pointLight position={[1, 2.3, .2]} color={heat > 0 ? '#ffab6b' : '#fff4d8'} intensity={heat * 2.4 + .75} distance={5} />
     <Physics gravity={[0, -9.81, 0]} colliders={false}>
       <KitchenEnvironment heat={heat} />
-      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} />
+      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} />
       {ingredients.slice(0, 8).map((ingredient, index) =>
         <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} />
       )}
@@ -249,10 +249,10 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
   </>;
 }
 
-export default function KitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, onAdd, resetKey, progress, pulse, onAction }: Props) {
+export default function KitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
     <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
+      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
   </div>;
 }
