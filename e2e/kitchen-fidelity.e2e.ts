@@ -18,6 +18,14 @@ test('kitchen 3D drawer and cooking controls remain accessible on mobile and des
   await page.getByRole('button', { name: 'Turn off faucet' }).click();
   await expect(faucet).toHaveAttribute('aria-pressed', 'false');
 
+  const coverPan = page.getByRole('button', { name: 'Cover pan' });
+  await expect(coverPan).toHaveAttribute('aria-pressed', 'false');
+  await coverPan.click();
+  const liftPan = page.getByRole('button', { name: 'Lift pan lid' });
+  await expect(liftPan).toHaveAttribute('aria-pressed', 'true');
+  await liftPan.click();
+  await expect(coverPan).toHaveAttribute('aria-pressed', 'false');
+
   const graphics = page.getByRole('combobox', { name: 'Graphics quality' });
   await graphics.selectOption('high');
   await expect(graphics).toHaveValue('high');
@@ -38,4 +46,5 @@ test('kitchen can opt into physics and still exposes equivalent HTML controls', 
   await expect(page.getByRole('button', { name: 'Open prep drawer' })).toBeVisible();
   await expect(page.getByRole('slider', { name: 'Burner heat' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Turn on faucet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cover pan' })).toBeVisible();
 });
