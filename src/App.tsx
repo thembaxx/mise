@@ -76,7 +76,7 @@ function Hero() {
     <div className="hero-copy">
       <p className="hero-overline">A recipe for tonight</p>
       <h1 id="hero-title">The world,<br /><em>on your table.</em></h1>
-      <p className="hero-description">Find a dish you want to make. Save it for later, gather your ingredients, and cook one step at a time.</p>
+      <p className="hero-description">Choose a recipe, gather your ingredients, and cook at your own pace.</p>
       <div className="hero-buttons">
         <button type="button" className="button-dark" onClick={() => scrollToSection('kitchen')}>Step into the kitchen <span><ArrowUpRight size={19} /></span></button>
         <button type="button" className="button-text" onClick={() => scrollToSection('discover')}>Explore recipes <ArrowRight size={19} /></button>
@@ -169,7 +169,7 @@ function Experience({ recipe }: { recipe: Recipe }) {
 
 function Footer() {
   return <footer className="footer">
-    <div className="footer-bottom"><Logo light /><p>A cookbook to make your own.</p><a href="#top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>Back to top <ArrowUpRight size={16} /></a></div>
+    <div className="footer-bottom"><Logo light /><p>A cookbook to make your own.</p><nav className="footer-links" aria-label="More from Mise"><a href="/vision/index.html">Vision preview <ArrowUpRight size={16} /></a><a href="#top" onClick={(e) => { e.preventDefault(); scrollToSection('top'); }}>Back to top <ArrowUpRight size={16} /></a></nav></div>
   </footer>;
 }
 
@@ -221,7 +221,6 @@ export default function App() {
     <KitchenGateway key={selectedRecipe.id} recipe={selectedRecipe} onRecipeChange={setSelectedId} />
     <Experience recipe={selectedRecipe} />
     <Footer />
-    <a href="/vision/index.html" style={{ display: 'block', width: 'fit-content', margin: '16px auto', padding: '12px 18px', border: '1px solid currentColor', borderRadius: 999, fontSize: 14, textDecoration: 'none' }}>Try on-device vision (preview)</a>
     <ActionFeedback notice={feedback.notice} dismiss={feedback.dismiss} />
     <NativeDialog app={native} open={settingsOpen} close={() => setSettingsOpen(false)} />
     <NativeNotices app={native} />
