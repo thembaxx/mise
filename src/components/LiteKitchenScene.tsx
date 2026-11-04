@@ -7,8 +7,9 @@ import * as THREE from 'three';
 import type { Ingredient, IngredientKind } from '../data/recipes';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
 import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
+import KitchenDetails from './KitchenDetails';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function IngredientModel({ kind }: { kind: IngredientKind }) {
@@ -197,16 +198,17 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
     <fog attach="fog" args={['#d8d1bf', 12, 23]} />
-    <ambientLight intensity={1.45} />
-    <hemisphereLight args={['#fff9e8', '#6a5d4b', 1.35]} />
-    <directionalLight position={[-3, 7, 5]} intensity={3} castShadow shadow-mapSize={[512, 512]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} />
-    <pointLight position={[1, 2.3, .2]} color={heat > 0 ? '#ffab6b' : '#fff4d8'} intensity={heat * 4 + .6} distance={5} />
+    <ambientLight intensity={.68} />
+    <hemisphereLight args={['#fff9e8', '#6a5d4b', .92]} />
+    <directionalLight position={[-3, 7, 5]} intensity={2.75} castShadow shadow-mapSize={quality === 'high' ? [2048, 2048] : quality === 'balanced' ? [1024, 1024] : [512, 512]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} />
+    <pointLight position={[1, 2.3, .2]} color={heat > 0 ? '#ffab6b' : '#fff4d8'} intensity={heat * 2.4 + .75} distance={5} />
     <KitchenEnvironment heat={heat} />
+      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} />
     {ingredients.slice(0, 8).map((ingredient, index) =>
       <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} />
     )}
@@ -216,10 +218,10 @@ function KitchenWorld({ ingredients, added, heat, onAdd, progress, pulse, onActi
   </>;
 }
 
-export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onAdd, resetKey, progress, pulse, onAction }: Props) {
+export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
-    <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 1.7] : [1, 1.2]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
+    <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
+      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
   </div>;
 }
