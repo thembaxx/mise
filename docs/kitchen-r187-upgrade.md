@@ -38,3 +38,43 @@ For genuinely cinematic realism, replace the primary cookware and ingredients wi
 - The kitchen control footer uses a two-row responsive CSS grid to keep heat slider, faucet, drawer, glass-lid actions and camera controls reachable on narrow screens.
 - Browser tests use keyboard input for the heat slider instead of attempting unsupported Playwright fill() on a native range control.
 - Asset generation remains a separately reviewed art stage, not a silent replacement of the production cooking simulation.
+
+
+## Original Blender cookware review pack — prepared, not executed
+
+The new authoring pipeline is deliberately isolated from live \`KitchenCookware\`. It
+generates an editable \`.blend\`, a GLB with distinct curved outer/inner skillet
+surfaces and PBR glass lid, a SHA-256 provenance manifest, and CPU-rendered review
+images of the covered and lifted lid. Nothing is auto-copied into \`public/models\`.
+
+The existing dispatchable GitHub Actions workflow is reused because a newly
+created manual workflow is not selectable until it exists on the default branch:
+
+1. Open the Mise repository **Actions → Blender candidate art studio (manual review)**.
+2. Choose **Run workflow**, select branch \`feat/immersive-kitchen-r187-20261104\`
+   and preset **cookware**.
+3. Download the **cookware-blender-review-pack** artifact. It contains:
+   \`mise-premium-cookware-candidate.blend\`, \`.glb\`, \`.json\` and
+   \`review-cookware-covered.png\`, \`review-cookware-lifted.png\`.
+4. Review appearance, mesh orientation, glTF glass support, scale, lid motion,
+   licensing provenance, keyboard/touch affordances and GPU behaviour.
+5. Only then replace the existing runtime geometries behind the offline-safe
+   procedural fallback, and validate both Quick and Rapier renderers.
+
+Locally or in a runner with Blender installed, equivalent commands are:
+
+\`\`\`sh
+blender --background --factory-startup --python-exit-code 1 \
+  --python scripts/author-kitchen-cookware.py -- --output-dir /tmp/mise-kitchen-review
+node scripts/validate-3d-assets.mjs /tmp/mise-kitchen-review --require-assets
+node scripts/check-kitchen-candidate.mjs /tmp/mise-kitchen-review
+blender --background --factory-startup --python-exit-code 1 \
+  --python scripts/render-kitchen-cookware.py -- \
+  --input /tmp/mise-kitchen-review/mise-premium-cookware-candidate.blend \
+  --output-dir /tmp/mise-kitchen-review
+\`\`\`
+
+**Unverified:** Blender execution, final mesh export, offline runtime loading,
+live WebGL screenshots and desktop/iPhone Safari QA. If GitHub Actions or Vercel
+quotas prevent execution, treat that as a blocker rather than bypassing the
+validation gate. Do not mark PR #41 ready solely on source contract tests.
