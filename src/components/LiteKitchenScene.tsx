@@ -4,73 +4,17 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
 import { OrbitControls, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Ingredient, IngredientKind } from '../data/recipes';
+import type { Ingredient } from '../data/recipes';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
 import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 import KitchenDetails from './KitchenDetails';
+import IngredientModel from './KitchenProduce';
 
 type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-function IngredientModel({ kind }: { kind: IngredientKind }) {
-  switch (kind) {
-    case 'tomato':
-      return <group>
-        <mesh castShadow><sphereGeometry args={[.24, 28, 20]} /><meshStandardMaterial color="#d94b32" roughness={.3} /></mesh>
-        {Array.from({ length: 5 }, (_, i) => <mesh key={i} position={[0, .24, 0]} rotation={[0, i * Math.PI * 2 / 5, Math.PI / 2]}><coneGeometry args={[.055, .21, 3]} /><meshStandardMaterial color="#4d7140" /></mesh>)}
-      </group>;
-    case 'lemon':
-    case 'lime':
-      return <group>
-        <mesh castShadow scale={[1.27, .83, .82]}><sphereGeometry args={[.23, 32, 24]} /><meshStandardMaterial color={kind === 'lime' ? '#94b945' : '#f4d15c'} roughness={.55} /></mesh>
-        {[-1, 1].map(side => <mesh key={side} position={[side * .3, 0, 0]} rotation={[0, 0, side * Math.PI / 2]}><coneGeometry args={[.06, .12, 12]} /><meshStandardMaterial color={kind === 'lime' ? '#8dab3c' : '#e9c44d'} /></mesh>)}
-      </group>;
-    case 'carrot':
-      return <group rotation={[0, 0, -.32]}>
-        <mesh castShadow rotation={[0, 0, Math.PI / 2]}><coneGeometry args={[.17, .72, 24]} /><meshStandardMaterial color="#ee8c35" roughness={.65} /></mesh>
-        {[-.1, 0, .1].map((z, i) => <mesh key={i} position={[-.38, .06, z]} rotation={[z * 2, 0, -.7 + i * .28]}><coneGeometry args={[.035, .3, 6]} /><meshStandardMaterial color="#598746" /></mesh>)}
-      </group>;
-    case 'mushroom':
-      return <group>
-        <mesh position={[0, -.09, 0]} castShadow><cylinderGeometry args={[.075, .09, .27, 16]} /><meshStandardMaterial color="#e5d8b9" /></mesh>
-        <mesh position={[0, .1, 0]} castShadow scale={[1.2, .72, 1.2]}><sphereGeometry args={[.23, 24, 16, 0, Math.PI * 2, 0, Math.PI / 1.7]} /><meshStandardMaterial color="#a7754d" roughness={.82} /></mesh>
-        <mesh position={[0, .08, 0]}><cylinderGeometry args={[.19, .19, .025, 24]} /><meshStandardMaterial color="#eee1c6" /></mesh>
-      </group>;
-    case 'onion':
-      return <group>
-        <mesh castShadow scale={[.92, 1.04, .92]}><sphereGeometry args={[.23, 28, 24]} /><meshStandardMaterial color="#b58aa0" roughness={.47} /></mesh>
-        <mesh position={[0, .23, 0]}><coneGeometry args={[.055, .13, 12]} /><meshStandardMaterial color="#c6a1a8" /></mesh>
-        {[-.12, 0, .12].map((x, i) => <mesh key={i} position={[x, 0, .204]} scale={[.15, .88, .08]}><sphereGeometry args={[.23, 12, 12]} /><meshStandardMaterial color="#dfb6bc" transparent opacity={.45} /></mesh>)}
-      </group>;
-    case 'chili': {
-      const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(-.33, .07, 0), new THREE.Vector3(-.1, -.06, 0), new THREE.Vector3(.14, -.04, 0), new THREE.Vector3(.31, .1, 0)]);
-      return <group><mesh castShadow><tubeGeometry args={[curve, 20, .083, 10, false]} /><meshStandardMaterial color="#c93b2c" roughness={.34} /></mesh><mesh position={[-.35, .09, 0]} rotation={[0, 0, -.6]}><cylinderGeometry args={[.035, .04, .17, 8]} /><meshStandardMaterial color="#457a43" /></mesh></group>;
-    }
-    case 'garlic':
-      return <group>
-        {Array.from({ length: 5 }, (_, i) => <mesh key={i} castShadow position={[Math.sin(i * 1.256) * .11, -.035, Math.cos(i * 1.256) * .11]} scale={[.65, 1.05, .65]}><sphereGeometry args={[.17, 16, 12]} /><meshStandardMaterial color="#eee3cb" roughness={.83} /></mesh>)}
-        <mesh position={[0, .18, 0]}><coneGeometry args={[.07, .24, 12]} /><meshStandardMaterial color="#e5d6b8" /></mesh>
-      </group>;
-    case 'eggplant':
-      return <group rotation={[0, 0, -.42]}>
-        <mesh castShadow scale={[.8, 1.42, .8]}><sphereGeometry args={[.24, 28, 24]} /><meshStandardMaterial color="#50355b" roughness={.29} metalness={.08} /></mesh>
-        <mesh position={[0, .36, 0]}><coneGeometry args={[.14, .23, 6]} /><meshStandardMaterial color="#568045" /></mesh>
-      </group>;
-    case 'herb':
-      return <group>
-        {Array.from({ length: 7 }, (_, i) => {
-          const a = i * Math.PI * 2 / 7;
-          return <group key={i} rotation={[0, a, -.35]}>
-            <mesh position={[.1, .1, 0]} rotation={[0, 0, -.55]}><sphereGeometry args={[.13, 12, 10]} /><meshStandardMaterial color={i % 2 ? '#5b9349' : '#80a85b'} side={THREE.DoubleSide} /></mesh>
-            <mesh position={[0, -.02, 0]}><cylinderGeometry args={[.012, .015, .3, 6]} /><meshStandardMaterial color="#487d42" /></mesh>
-          </group>;
-        })}
-      </group>;
-  }
-}
-
-function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange }: {
-  ingredient: Ingredient; index: number; cooked: boolean; onAdd: (id: string) => void; onDraggingChange: (dragging: boolean) => void;
+function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange, quality }: {
+  ingredient: Ingredient; index: number; cooked: boolean; onAdd: (id: string) => void; onDraggingChange: (dragging: boolean) => void; quality: 'eco' | 'balanced' | 'high';
 }) {
   const body = useRef<THREE.Group>(null);
   const target = useRef<THREE.Vector3 | null>(null);
@@ -138,7 +82,7 @@ function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChang
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      <IngredientModel kind={ingredient.kind} />
+      <IngredientModel kind={ingredient.kind} quality={quality} />
       {hover && !cooked && <mesh position={[0, .52, 0]}><ringGeometry args={[.20, .27, 24]} /><meshBasicMaterial color="#a7e063" side={THREE.DoubleSide} /></mesh>}
     </group>
   </group>;
@@ -210,7 +154,7 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
     <KitchenEnvironment heat={heat} />
       <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} />
     {ingredients.slice(0, 8).map((ingredient, index) =>
-      <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} />
+      <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} quality={quality} />
     )}
     <KitchenEffects progress={progress} pulse={pulse} onAction={onAction} heat={heat} addedCount={added.length} quality={quality} />
 
