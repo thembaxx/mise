@@ -4,7 +4,7 @@
 Treat the interactive kitchen as a premium cooking environment, not a low-poly illustrative prop. Size is not the primary constraint, but browser responsiveness and existing cooking functionality must not regress.
 
 ## What changed
-- Shared \`KitchenDetails\` scene dressing is rendered in both quick Three.js and optional Rapier physics scenes.
+- Shared `KitchenDetails` scene dressing is rendered in both quick Three.js and optional Rapier physics scenes.
 - Locally generated color textures for oak and marble, physically based metals, ceramic tiles, cabinetry, sink/faucet, cooking hood, saucepan detailing, additional stove elements and jars.
 - New standalone `KitchenCookware` renderer replaces both low-poly, solid-cylinder pan replicas with a lathe-modeled concave skillet: layered PBR nonstick cooking surface, brushed-metal shell, rivets, ergonomic handle, and a movable glass lid with accurate low dome geometry and heat-dependent condensation.
 - Pan lid can be covered/lifted in the 3D environment or via an accessible 44px+ HTML action, with reduced-motion-safe interpolation; the lid sits away from the pan by default so ingredients remain visible.
@@ -24,7 +24,7 @@ Treat the interactive kitchen as a premium cooking environment, not a low-poly i
 ## Constraints and checks
 - Texture maps are deterministic and local, without external downloads or asset licenses.
 - This is a higher-quality **procedural** kitchen, not a Blender-authored high-poly asset or a claim of photorealistic scanned geometry.
-- Test paths: \`npm run typecheck\`, \`npm test\`, \`npm run build\`, \`npm run test:e2e -- e2e/kitchen-fidelity.e2e.ts e2e/progressive-3d.e2e.ts e2e/responsive-layout.e2e.ts\`, desktop WebGL and mobile Safari/manual visual inspection.
+- Test paths: `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e -- e2e/kitchen-fidelity.e2e.ts e2e/progressive-3d.e2e.ts e2e/responsive-layout.e2e.ts`, desktop WebGL and mobile Safari/manual visual inspection.
 - The PR source-based tests now also guard against reinstating a second duplicate solid pan, and verify that the shared lid state is wired to both renderers.
 - Avoid merging or deploying until real WebGL screenshots confirm material quality, no geometric overlaps, correct tap targeting, frame rate and safe disposal across scene remounts.
 - No source pipeline for heavy external GLBs was changed, and the experimental TanStack Redact branch remains isolated.
@@ -42,20 +42,20 @@ For genuinely cinematic realism, replace the primary cookware and ingredients wi
 
 ## Original Blender cookware review pack — prepared, not executed
 
-The new authoring pipeline is deliberately isolated from live \`KitchenCookware\`. It
-generates an editable \`.blend\`, a GLB with distinct curved outer/inner skillet
+The new authoring pipeline is deliberately isolated from live `KitchenCookware`. It
+generates an editable `.blend`, a GLB with distinct curved outer/inner skillet
 surfaces and PBR glass lid, a SHA-256 provenance manifest, and CPU-rendered review
-images of the covered and lifted lid. Nothing is auto-copied into \`public/models\`.
+images of the covered and lifted lid. Nothing is auto-copied into `public/models`.
 
 The existing dispatchable GitHub Actions workflow is reused because a newly
 created manual workflow is not selectable until it exists on the default branch:
 
 1. Open the Mise repository **Actions → Blender candidate art studio (manual review)**.
-2. Choose **Run workflow**, select branch \`feat/immersive-kitchen-r187-20261104\`
+2. Choose **Run workflow**, select branch `feat/immersive-kitchen-r187-20261104`
    and preset **cookware**.
 3. Download the **cookware-blender-review-pack** artifact. It contains:
-   \`mise-premium-cookware-candidate.blend\`, \`.glb\`, \`.json\` and
-   \`review-cookware-covered.png\`, \`review-cookware-lifted.png\`.
+   `mise-premium-cookware-candidate.blend`, `.glb`, `.json` and
+   `review-cookware-covered.png`, `review-cookware-lifted.png`.
 4. Review appearance, mesh orientation, glTF glass support, scale, lid motion,
    licensing provenance, keyboard/touch affordances and GPU behaviour.
 5. Only then replace the existing runtime geometries behind the offline-safe
@@ -63,7 +63,7 @@ created manual workflow is not selectable until it exists on the default branch:
 
 Locally or in a runner with Blender installed, equivalent commands are:
 
-\`\`\`sh
+```sh
 blender --background --factory-startup --python-exit-code 1 \
   --python scripts/author-kitchen-cookware.py -- --output-dir /tmp/mise-kitchen-review
 node scripts/validate-3d-assets.mjs /tmp/mise-kitchen-review --require-assets
@@ -72,7 +72,7 @@ blender --background --factory-startup --python-exit-code 1 \
   --python scripts/render-kitchen-cookware.py -- \
   --input /tmp/mise-kitchen-review/mise-premium-cookware-candidate.blend \
   --output-dir /tmp/mise-kitchen-review
-\`\`\`
+```
 
 **Unverified:** Blender execution, final mesh export, offline runtime loading,
 live WebGL screenshots and desktop/iPhone Safari QA. If GitHub Actions or Vercel
