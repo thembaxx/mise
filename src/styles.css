@@ -857,3 +857,13 @@ select, textarea { font-size: 16px; }
   .drawer-control { transition: none; }
   .drawer-control:hover { transform: none; }
 }
+
+
+/* Inline controls belong to the DOM, not a transparent WebGL overlay. */
+.scene-hint > div { display: flex; flex-wrap: wrap; align-content: start; gap: 0 8px; min-width: 0; }
+.scene-hint > div > strong, .scene-hint > div > small { flex: 0 0 100%; }
+.scene-hint > div > .drawer-control { flex: 0 1 auto; margin-top: 9px; }
+@media (max-width: 600px) {
+  .scene-hint > div { gap: 0 6px; }
+  .scene-hint > div > .drawer-control { font-size: 13px; padding: 10px 12px; }
+}
