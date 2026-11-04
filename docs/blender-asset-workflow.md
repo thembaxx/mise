@@ -17,3 +17,14 @@ Recommended authoring chain: **blender-director → prop-artist → stylized-sty
 5. Only after previewing actual built scenes on mobile/desktop, integrate an approved GLB behind existing progressive-loading and fallback boundaries. No unreviewed asset is automatically enabled.
 
 **Current limitation:** This change introduces authoring/export and automated file-quality gates. It does not claim to have run Blender or to ship new 3D models; production visual changes must be independently reviewed and verified before integration.
+
+
+## Premium Mise cookware candidate workflow
+To prepare more physically believable cookware without installing Blender on
+the phone or deploying unfinished models, use the existing manual GitHub Actions
+workflow **Blender candidate art studio (manual review)** with branch
+\`feat/immersive-kitchen-r187-20261104\` and preset \`cookware\`.
+It authors, verifies and uploads original editable Blender source, embedded
+GLB, provenance and two CPU Cycles visual-review PNGs. The candidate remains
+UNAPPROVED until real screenshot/animation and mobile GPU inspection. No public
+app assets are overwritten. See \`docs/kitchen-r187-upgrade.md\` for full steps.
