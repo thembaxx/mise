@@ -26,6 +26,8 @@
 .studio-visual:fullscreen {
   display: flex;
   flex-direction: column;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100dvh;
   min-height: 0;
@@ -52,6 +54,16 @@
 .studio-visual:fullscreen .scene-bottom {
   flex-shrink: 0;
   padding-bottom: max(12px, var(--app-safe-bottom));
+}
+.fullscreen-status {
+  position: relative;
+  z-index: 10;
+  margin: 0;
+  padding: 8px 12px;
+  background: #243526;
+  color: white;
+  font-size: 13px;
+  line-height: 1.4;
 }
 @media (max-width: 600px) {
   .studio-visual:fullscreen .local-clock { display: none; }
