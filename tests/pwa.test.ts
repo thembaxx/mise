@@ -18,6 +18,9 @@ describe('Mise offline-first PWA', () => {
     expect(manifest.start_url).toBe('/');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
+    expect(manifest.display_override).toEqual(['standalone', 'minimal-ui']);
+    expect(source('src/native-shell.css')).toContain('--app-safe-top');
+    expect(source('src/components/KitchenStudio.tsx')).toContain('requestFullscreen()');
     expect(manifest.shortcuts.map((shortcut: {url: string}) => shortcut.url)).toEqual(['/?view=discover','/cookbook/','/?view=kitchen']);
     expect(manifest.share_target).toEqual({action:'/cookbook/',method:'GET',enctype:'application/x-www-form-urlencoded',params:{title:'title',text:'text',url:'url'}});
     expect(manifest.background_color).toBe('#F7F6F1');

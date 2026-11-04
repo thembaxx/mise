@@ -6,6 +6,7 @@ import CookbookPage from './components/CookbookPage';
 import { findRecipe } from './lib/personal-cookbook';
 import './styles.css';
 import './mobile-ux.css';
+import './native-shell.css';
 import { trackInputModality } from './motion/preferences';
 
 const stopTracking = trackInputModality();
