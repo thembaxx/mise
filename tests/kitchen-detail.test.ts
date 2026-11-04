@@ -9,7 +9,7 @@ describe('high-fidelity kitchen feature', () => {
     expect(details).toContain('new THREE.DataTexture');
     expect(details).toContain('THREE.SRGBColorSpace');
     expect(details).toContain('<Environment');
-    for (const part of ['Ceramics', 'UpperCabinet', 'KitchenSink', 'StoveDetails', 'SaucepanDetails', 'MetalHandle']) {
+    for (const part of ['Ceramics', 'UpperCabinet', 'KitchenSink', 'StoveDetails', 'KitchenCookware', 'MetalHandle']) {
       expect(details).toContain(part);
     }
     expect(details).not.toContain('https://');
@@ -80,6 +80,41 @@ describe('high-fidelity kitchen feature', () => {
     expect(details).toContain('i === 1 ? null');
     expect(details).toContain('const target = drawerOpen ? 3.79 : 3.115');
     expect(details).toContain('drawer.current.position.z');
+  });
+
+  it('uses a hollow, physically modeled skillet rather than layered solid cylinders', () => {
+    const cookware = source('src/components/KitchenCookware.tsx');
+    const details = source('src/components/KitchenDetails.tsx');
+    for (const model of ['panGeometry', 'PanBody', 'Lid', 'brushingTexture']) {
+      expect(cookware).toContain(model);
+    }
+    expect(cookware).toContain('new THREE.LatheGeometry');
+    expect(cookware).toContain('roughnessMap={brushed}');
+    expect(cookware).toContain('onChange(!open)');
+    expect(cookware).toContain('THREE.MathUtils.damp');
+    expect(cookware).toContain('reducedMotion');
+    expect(details).toContain("import KitchenCookware from './KitchenCookware'");
+    expect(details).toContain('<KitchenCookware quality={quality}');
+    expect(details).not.toContain('function SaucepanDetails');
+    for (const scene of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
+      const content = source(scene);
+      expect(content).toContain('lidOpen={lidOpen}');
+      expect(content).toContain('onLidChange={onLidChange}');
+      expect(content).not.toContain('cylinderGeometry args={[1.04, .9, .28, 64]}');
+    }
+  });
+
+  it('retains accessible pan lid controls through both renderers and reset', () => {
+    const studio = source('src/components/KitchenStudio.tsx');
+    expect(studio).toContain('const [lidOpen, setLidOpen] = useState(true)');
+    expect(studio).toContain('setLidOpen(true)');
+    expect(studio).toContain('aria-pressed={!lidOpen}');
+    expect(studio).toContain('Cover pan');
+    expect(studio).toContain('Lift pan lid');
+    expect((studio.match(/onLidChange={setLidOpen}/g) ?? []).length).toBe(2);
+    const cookware = source('src/components/KitchenCookware.tsx');
+    expect(cookware).toContain('scale={[1, .15, 1]}');
+    expect(cookware).toContain('!open && heat > .35');
   });
 
   it('keeps the latest published Three.js r187 without a risky version churn', () => {
