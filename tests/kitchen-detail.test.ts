@@ -117,6 +117,20 @@ describe('high-fidelity kitchen feature', () => {
     expect(cookware).toContain('!open && heat > .35');
   });
 
+  it('offers consistent smooth, interruptible camera presets in both renderers', () => {
+    const rig = source('src/components/KitchenCameraRig.tsx');
+    for (const name of ['overview', 'pan', 'prep', 'OrbitControls', 'transitioning', 'onStart', 'reducedMotion']) {
+      expect(rig).toContain(name);
+    }
+    for (const scene of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
+      expect(source(scene)).toContain('<KitchenCameraRig view={cameraView} dragging={dragging}');
+    }
+    const studio = source('src/components/KitchenStudio.tsx');
+    expect(studio).toContain('aria-label="Kitchen camera view"');
+    expect(studio).toContain('setCameraView(value)');
+    expect((studio.match(/cameraView={cameraView}/g) ?? []).length).toBe(2);
+  });
+
   it('keeps the latest published Three.js r187 without a risky version churn', () => {
     const pkg = JSON.parse(source('package.json'));
     expect(pkg.dependencies.three).toBe('^0.187.0');

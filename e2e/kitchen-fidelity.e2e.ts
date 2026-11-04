@@ -33,6 +33,13 @@ test('kitchen 3D drawer and cooking controls remain accessible on mobile and des
   await burner.fill('0.8');
   await expect(burner).toHaveValue('0.8');
 
+  const cameras = page.getByRole('group', { name: 'Kitchen camera view' });
+  await expect(cameras.getByRole('button', { name: 'Full kitchen' })).toHaveAttribute('aria-pressed', 'true');
+  await cameras.getByRole('button', { name: 'Focus pan' }).click();
+  await expect(cameras.getByRole('button', { name: 'Focus pan' })).toHaveAttribute('aria-pressed', 'true');
+  await cameras.getByRole('button', { name: 'Prep station' }).click();
+  await expect(cameras.getByRole('button', { name: 'Prep station' })).toHaveAttribute('aria-pressed', 'true');
+
   const clipped = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   expect(clipped).toBe(false);
 });

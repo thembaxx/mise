@@ -2,7 +2,7 @@ import { diagnostics, recordIngredientDrop } from '../lib/diagnostics';
 import { useReducedMotion } from '../motion/preferences';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame } from '@react-three/fiber';
-import { ContactShadows, OrbitControls, RoundedBox } from '@react-three/drei';
+import { ContactShadows, RoundedBox } from '@react-three/drei';
 import { CuboidCollider, Physics, RigidBody, RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import type { Ingredient } from '../data/recipes';
@@ -10,8 +10,9 @@ import type { CookingAction, KitchenProgress } from '../lib/cooking';
 import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 import KitchenDetails from './KitchenDetails';
 import IngredientModel from './KitchenProduce';
+import KitchenCameraRig, { type KitchenCameraView } from './KitchenCameraRig';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange, quality }: {
@@ -160,7 +161,7 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, progress, pulse, onAction, quality = 'balanced' }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
@@ -178,14 +179,14 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
     </Physics>
     <KitchenEffects progress={progress} pulse={pulse} onAction={onAction} heat={heat} addedCount={added.length} quality={quality} />
     <ContactShadows position={[0, -.15, 0]} opacity={.24} scale={10} blur={2.5} far={4} />
-    <OrbitControls makeDefault enabled={!dragging} enablePan={false} minDistance={5} maxDistance={11} minPolarAngle={.35} maxPolarAngle={1.4} target={[0, .55, 0]} />
+    <KitchenCameraRig view={cameraView} dragging={dragging} />
   </>;
 }
 
-export default function KitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, onAdd, resetKey, progress, pulse, onAction }: Props) {
+export default function KitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, resetKey, progress, pulse, onAction }: Props) {
   return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
     <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
+      <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} cameraView={cameraView} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
   </div>;
 }

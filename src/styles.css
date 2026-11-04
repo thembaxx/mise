@@ -867,3 +867,44 @@ select, textarea { font-size: 16px; }
   .scene-hint > div { gap: 0 6px; }
   .scene-hint > div > .drawer-control { font-size: 13px; padding: 10px 12px; }
 }
+
+
+/* Touch-size camera presets stay outside WebGL so view switching always works. */
+.kitchen-camera-modes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-top: 2px;
+}
+.kitchen-camera-modes button {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid #c1cabc;
+  background: #f7f8f1;
+  color: #38513a;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 170ms ease, border-color 170ms ease;
+}
+.kitchen-camera-modes button[aria-pressed="true"] {
+  background: #d7e9c7;
+  border-color: #7ea567;
+  color: #233a29;
+}
+.kitchen-camera-modes button:focus-visible {
+  outline: 3px solid #f18c50;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .kitchen-camera-modes { gap: 6px; }
+  .kitchen-camera-modes button { padding-inline: 12px; font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kitchen-camera-modes button { transition: none; }
+}

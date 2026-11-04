@@ -15,6 +15,7 @@ import { ArrowCounterClockwise } from '@phosphor-icons/react/dist/csr/ArrowCount
 import { Timer } from '@phosphor-icons/react/dist/csr/Timer';
 import { ForkKnife } from '@phosphor-icons/react/dist/csr/ForkKnife';
 import CookingControls from './CookingControls';
+import type { KitchenCameraView } from './KitchenCameraRig';
 import type { KitchenPulse } from './KitchenEffects';
 import { applyCookingAction, getCookingRequirements, initialKitchenProgress, isReadyToPlate, type CookingAction } from '../lib/cooking';
 import { playCookingCue, cookingHaptic } from '../lib/cooking-sound';
@@ -40,6 +41,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [faucetRunning, setFaucetRunning] = useState(false);
   const [lidOpen, setLidOpen] = useState(true);
+  const [cameraView, setCameraView] = useState<KitchenCameraView>('overview');
   const [cookModeOpen, setCookModeOpen] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
   const closeCookMode = useCallback(() => setCookModeOpen(false), []);
   const [graphics, setGraphics] = useState<'eco' | 'balanced' | 'high'>(() => {
@@ -188,6 +190,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     setDrawerOpen(false);
     setFaucetRunning(false);
     setLidOpen(true);
+    setCameraView('overview');
     setHeat(.35);
     setProgress(initialKitchenProgress());
     setPulse(null);
@@ -232,8 +235,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         <SceneErrorBoundary><SupportsWebGL>
           <div className="kitchen-scene-outer">
           {physicsEnabled
-            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
-            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
             {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
           </div>
         </SupportsWebGL></SceneErrorBoundary>
@@ -241,6 +244,11 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
           <div className="scene-hint">
             <span className="gesture-symbol"><ForkKnife size={17} /></span>
             <div><strong>Get hands-on</strong><small>Drag food into the pan, tap the stove dial to adjust heat, or rotate the view. Use the drawer, faucet and pan lid.</small><button type="button" className="drawer-control" aria-pressed={drawerOpen} onClick={() => setDrawerOpen(open => !open)}>{drawerOpen ? 'Close prep drawer' : 'Open prep drawer'}</button><button type="button" className="drawer-control faucet-control" aria-pressed={faucetRunning} onClick={() => setFaucetRunning(value => !value)}>{faucetRunning ? 'Turn off faucet' : 'Turn on faucet'}</button><button type="button" className="drawer-control lid-control" aria-pressed={!lidOpen} onClick={() => setLidOpen(open => !open)}>{lidOpen ? 'Cover pan' : 'Lift pan lid'}</button></div>
+          </div>
+          <div className="kitchen-camera-modes" role="group" aria-label="Kitchen camera view">
+            {([['overview', 'Full kitchen'], ['pan', 'Focus pan'], ['prep', 'Prep station']] as const).map(([value, label]) =>
+              <button key={value} type="button" aria-pressed={cameraView === value} onClick={() => setCameraView(value)}>{label}</button>
+            )}
           </div>
           <div className="heat-control">
             <label htmlFor="burner-heat"><Fire size={16} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>

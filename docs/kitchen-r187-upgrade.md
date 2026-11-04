@@ -19,6 +19,8 @@ Treat the interactive kitchen as a premium cooking environment, not a low-poly i
 - All form text inputs/selects/textarea default to at least 16px to avoid tiny interactive type and mobile Safari input focus zoom.
 - The project already targets Three.js 0.187.0 (r187, released 2026-10-30); no dependency update necessary.
 
+- Shared `KitchenCameraRig` adds touch-friendly Full kitchen / Focus pan / Prep station camera views, smooth interruptible movement, and an immediate reduced-motion alternative, without altering gesture dragging or Rapier physics.
+
 ## Constraints and checks
 - Texture maps are deterministic and local, without external downloads or asset licenses.
 - This is a higher-quality **procedural** kitchen, not a Blender-authored high-poly asset or a claim of photorealistic scanned geometry.

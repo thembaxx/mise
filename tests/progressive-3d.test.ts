@@ -10,7 +10,8 @@ describe('progressive 3D kitchen boundary', () => {
     expect(quick).not.toContain('<Physics');
     expect(quick).toContain('DraggableIngredient');
     expect(quick).toContain('onPointerMove');
-    expect(quick).toContain('OrbitControls');
+    expect(quick).toContain('KitchenCameraRig');
+    expect(read('src/components/KitchenCameraRig.tsx')).toContain('OrbitControls');
   });
   it('uses a deferred physics-specific import, not an eager engine import', () => {
     const studio = read('src/components/KitchenStudio.tsx');
