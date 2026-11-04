@@ -117,7 +117,7 @@ function PanBody({ quality }: { quality: Quality }) {
  * vessel by default, so ingredients remain visible and touch targets clear.
  * Its HTML counterpart is always usable without WebGL pointer support.
  */
-function Lid({ quality, open, onChange }: { quality: Quality; open: boolean; onChange: (value: boolean) => void }) {
+function Lid({ quality, open, heat, onChange }: { quality: Quality; open: boolean; heat: number; onChange: (value: boolean) => void }) {
   const reducedMotion = useReducedMotion();
   const root = useRef<THREE.Group>(null);
   const domeGeometry = useMemo(() => new THREE.SphereGeometry(
@@ -128,7 +128,7 @@ function Lid({ quality, open, onChange }: { quality: Quality; open: boolean; onC
 
   useFrame((_, delta) => {
     if (!root.current) return;
-    const target = open ? [3.64, .60, 1.02, -.31] : [1.16, .47, .15, 0];
+    const target = open ? [3.42, .62, 1.67, -.24] : [1.16, .47, .15, 0];
     const step = Math.min(.07, delta);
     if (reducedMotion) {
       root.current.position.set(target[0], target[1], target[2]);
@@ -141,10 +141,10 @@ function Lid({ quality, open, onChange }: { quality: Quality; open: boolean; onC
     root.current.rotation.z = THREE.MathUtils.damp(root.current.rotation.z, target[3], 9, step);
   });
 
-  return <group ref={root} position={open ? [3.64, .60, 1.02] : [1.16, .47, .15]} rotation={[0, 0, open ? -.31 : 0]}
+  return <group ref={root} position={open ? [3.42, .62, 1.67] : [1.16, .47, .15]} rotation={[0, 0, open ? -.24 : 0]}
     onClick={event => { event.stopPropagation(); onChange(!open); }}>
     {/* True hollow shape/scale cues instead of a flat circular sticker. */}
-    <mesh geometry={domeGeometry} castShadow>
+    <mesh geometry={domeGeometry} scale={[1, .15, 1]} castShadow>
       <meshPhysicalMaterial color="#e4eee9" metalness={0} roughness={.09}
         transmission={quality === 'eco' ? .15 : .87} thickness={.04} ior={1.47}
         transparent opacity={quality === 'eco' ? .38 : .81}
@@ -163,6 +163,14 @@ function Lid({ quality, open, onChange }: { quality: Quality; open: boolean; onC
       <cylinderGeometry args={[.14, .16, .09, 48]} />
       <meshPhysicalMaterial color="#b8bdba" metalness={.89} roughness={.18} />
     </mesh>
+    {/* Condensation builds inside the lid with heat, without animation or external particles. */}
+    {!open && heat > .35 && quality !== 'eco' && Array.from({length: quality === 'high' ? 26 : 14}, (_, index) => {
+      const angle = index * 2.399963, radius = .19 + (index % 6) * .11;
+      return <mesh key={index} position={[Math.sin(angle) * radius, .022 + .13 * (1 - radius / .98), Math.cos(angle) * radius]} scale={[1, .32, 1]}>
+        <sphereGeometry args={[.018 + (index % 3) * .006, 10, 8]} />
+        <meshPhysicalMaterial color="#e5f1e9" roughness={.08} transmission={.8} transparent opacity={.58} />
+      </mesh>;
+    })}
     {quality !== 'eco' && <mesh position={[0, .09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[.58, .66, 80]} />
       <meshPhysicalMaterial color="#dee7e3" metalness={0} roughness={.27} transparent opacity={.1} side={THREE.DoubleSide} depthWrite={false} />
@@ -173,7 +181,7 @@ function Lid({ quality, open, onChange }: { quality: Quality; open: boolean; onC
 export default function KitchenCookware({ quality, heat, lidOpen, onLidChange }: Props) {
   return <group>
     <PanBody quality={quality} />
-    <Lid quality={quality} open={lidOpen} onChange={onLidChange} />
+    <Lid quality={quality} open={lidOpen} heat={heat} onChange={onLidChange} />
     {/* Warmth near the base increases with the user's actual burner heat. */}
     {heat > .12 && <pointLight position={[1.16, .18, .15]} intensity={heat * .58} distance={2.4} color="#f8a46d" />}
   </group>;
