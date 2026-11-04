@@ -37,6 +37,7 @@ const formatAmount = (amount: number) => Number.isInteger(amount) ? String(amoun
 export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [restored] = useState(() => loadKitchenSnapshot(recipe));
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [cookModeOpen, setCookModeOpen] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
   const closeCookMode = useCallback(() => setCookModeOpen(false), []);
   const [graphics, setGraphics] = useState<'eco' | 'balanced' | 'high'>(() => {
@@ -44,7 +45,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
       const value = localStorage.getItem('mise:graphics');
       if (value === 'eco' || value === 'balanced' || value === 'high') return value;
     } catch { /* Private browsing or storage denied. */ }
-    return window.matchMedia('(max-width: 760px)').matches ? 'eco' : 'balanced';
+    return window.matchMedia('(max-width: 760px)').matches ? 'balanced' : 'high';
   });
   const [stepIndex, setStepIndex] = useState(restored.stepIndex);
   const [added, setAdded] = useState<string[]>(restored.added);
@@ -182,6 +183,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
     clearKitchenSnapshot(recipe.id);
     setShoppingNote('');
     setAdded([]);
+    setDrawerOpen(false);
     setHeat(.35);
     setProgress(initialKitchenProgress());
     setPulse(null);
@@ -226,15 +228,15 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         <SceneErrorBoundary><SupportsWebGL>
           <div className="kitchen-scene-outer">
           {physicsEnabled
-            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
-            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
             {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
           </div>
         </SupportsWebGL></SceneErrorBoundary>
         <div className="scene-bottom">
           <div className="scene-hint">
             <span className="gesture-symbol"><ForkKnife size={17} /></span>
-            <div><strong>Get hands-on</strong><small>Drag ingredients into the pan. Tap utensils, drag the worktop to look around, or pinch to zoom. You can also use the recipe controls.</small></div>
+            <div><strong>Get hands-on</strong><small>Drag food into the pan, tap the stove dial to adjust heat, or rotate the view. Try the working prep drawer.</small><button type="button" className="drawer-control" aria-pressed={drawerOpen} onClick={() => setDrawerOpen(open => !open)}>{drawerOpen ? 'Close prep drawer' : 'Open prep drawer'}</button></div>
           </div>
           <div className="heat-control">
             <label htmlFor="burner-heat"><Fire size={16} /> Heat <strong>{heat < .05 ? 'Off' : heat < .4 ? 'Low' : heat < .75 ? 'Medium' : 'High'}</strong></label>
