@@ -1,0 +1,54 @@
+/* Mobile typography and control polish for the existing cooking experience.
+   Preserve cooking physics, timers, Cook Mode and offline-first behavior. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+:where(.site-wrap, .recipe-page, .cookbook-page, .studio-shopping) {
+  min-width: 0;
+}
+:where(.recipe-name, .cookbook-hero, .method-card, .cook-mode-step-content) {
+  overflow-wrap: anywhere;
+}
+.mobile-menu {
+  max-height: calc(100dvh - 90px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-menu :is(a, button) {
+  min-height: 48px;
+}
+:where(.cookbook-form, .cookbook-import-field, .companion-timer-add)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select) {
+  font-size: 16px;
+}
+@media (pointer: coarse), (max-width: 767px) {
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select) {
+    font-size: 16px !important; /* Keep iOS focus from unexpectedly zooming the page. */
+  }
+  .mobile-menu :is(a, button),
+  .graphics-mode-control select,
+  .scene-actions select {
+    min-height: 44px;
+  }
+}
+@media (max-width: 600px) {
+  .hero-description {
+    font-size: clamp(16px, 3.8vw, 18px);
+    line-height: 1.55;
+  }
+  .hero-buttons {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .mobile-menu {
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu :is(a, button) {
+    transition: none;
+  }
+}
