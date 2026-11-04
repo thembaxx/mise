@@ -23,8 +23,8 @@ Recommended authoring chain: **blender-director → prop-artist → stylized-sty
 To prepare more physically believable cookware without installing Blender on
 the phone or deploying unfinished models, use the existing manual GitHub Actions
 workflow **Blender candidate art studio (manual review)** with branch
-\`feat/immersive-kitchen-r187-20261104\` and preset \`cookware\`.
+`feat/immersive-kitchen-r187-20261104` and preset `cookware`.
 It authors, verifies and uploads original editable Blender source, embedded
 GLB, provenance and two CPU Cycles visual-review PNGs. The candidate remains
 UNAPPROVED until real screenshot/animation and mobile GPU inspection. No public
-app assets are overwritten. See \`docs/kitchen-r187-upgrade.md\` for full steps.
+app assets are overwritten. See `docs/kitchen-r187-upgrade.md` for full steps.
