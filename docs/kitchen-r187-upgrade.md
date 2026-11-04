@@ -7,6 +7,9 @@ Treat the interactive kitchen as a premium cooking environment, not a low-poly i
 - Shared \`KitchenDetails\` scene dressing is rendered in both quick Three.js and optional Rapier physics scenes.
 - Locally generated color textures for oak and marble, physically based metals, ceramic tiles, cabinetry, sink/faucet, cooking hood, saucepan detailing, additional stove elements and jars.
 - Reflection lightformers inside a local environment capture make metal, ceramic and lacquer respond to light without CDN HDR assets.
+- Replaced the small ingredient primitives with shared, materially textured higher-detail produce meshes for tomato, citrus, carrot, mushroom, onion, chili, garlic, eggplant and herbs, reused in the Quick and Physics renderers.
+- Added a clickable faucet with a real visible water stream and ripple effect, coupled to a keyboard/touch-safe HTML button.
+- Corrected the cabinet face overlap and modeled the drawer with visible wood lining and cutlery.
 - Interactive burner dial updates the actual heat slider; working drawer can be tapped in 3D **or** opened through a labelled HTML button.
 - Reduced-motion friendly drawer easing, retained accessible ingredient buttons, mobile touch targets, quality presets and WebGL fallback.
 - High preset uses 2x capped DPR, up to 2048 shadow maps, 1024-square material maps and 512-resolution generated reflection environment; Balanced/Eco remain manually available.
