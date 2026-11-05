@@ -929,3 +929,24 @@ select, textarea { font-size: 16px; }
   .heat-control { max-width: none; }
   .kitchen-camera-modes { grid-column: 1; }
 }
+
+/* Visual audit: readable text on the existing cream, dark and tomato surfaces. */
+:root:not([data-theme="dark"]) .hero h1 em,
+:root:not([data-theme="dark"]) .product-help h2 em,
+:root:not([data-theme="dark"]) .cookbook-hero h1 em {
+  color: #4b6539;
+}
+:root[data-theme="dark"] .hero h1 em,
+:root[data-theme="dark"] .product-help h2 em,
+:root[data-theme="dark"] .cookbook-hero h1 em {
+  color: var(--mise-pistachio);
+}
+.recipe-page-actions a {
+  color: #17130e;
+}
+@media (max-width: 430px) {
+  .recipe-page-actions a,
+  .recipe-page-actions button {
+    min-height: 44px;
+  }
+}
