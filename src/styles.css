@@ -805,7 +805,7 @@ h1, h2, h3, h4 { overflow-wrap: break-word; }
 .method-card,.cook-mode-step-content { transform:translateX(0); opacity:1; transition:transform var(--mise-step-duration,220ms) var(--motion-out),opacity var(--mise-step-duration,180ms) var(--motion-out); }
 @starting-style {
   .method-card,.cook-mode-step-content { opacity:0;transform:translateX(var(--mise-step-distance,8px)); }
-  .method-card[data-direction="backward"],.cook-mode-step-content[data-direction="backward"] { transform:translateX(calc(-1 * var(--mise-step-distance,8px))); }
+  .method-card[data-direction="backward"],.cook-mode-step-content[data-direction="backward"] { transform:translateX(calc(0px - var(--mise-step-distance,8px))); }
   .cook-mode-step-content[data-motion-reduced="true"] { opacity:1;transform:none; }
 }
 .action-feedback-region { width:min(460px,calc(100% - 32px)); }
