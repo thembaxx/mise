@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowLeft } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import { Check } from '@phosphor-icons/react/dist/csr/Check';
@@ -17,6 +17,8 @@ import { X } from '@phosphor-icons/react/dist/csr/X';
 import { Sun } from '@phosphor-icons/react/dist/csr/Sun';
 import { Moon } from '@phosphor-icons/react/dist/csr/Moon';
 import { useStepDirection } from '../motion/useStepDirection';
+import { useReducedMotion } from '../motion/preferences';
+import { getMotionIntent } from '../motion/intents';
 import type { Recipe } from '../data/recipes';
 import { IngredientGuide, PrepChecklist, RecipeTimers } from './SmartCompanion';
 import { getCookingRequirements, isReadyToPlate, type CookingAction, type KitchenProgress } from '../lib/cooking';
@@ -57,6 +59,8 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
   const [voiceStatus, setVoiceStatus] = useState('');
   const [reading, setReading] = useState(false);
   const direction = useStepDirection(stepIndex);
+  const reducedMotion = useReducedMotion();
+  const stepMotion = getMotionIntent('step', reducedMotion);
   const step = recipe.steps[stepIndex];
   const complete = progress.plated;
   const requirements = getCookingRequirements(progress, added.length, recipe.ingredients.length, heat, stepIndex, recipe.steps.length);
@@ -192,6 +196,9 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
             className="cook-mode-step-content"
             key={recipe.id + ':' + stepIndex}
             data-direction={direction}
+            data-motion-intent="step"
+            data-motion-reduced={reducedMotion ? 'true' : 'false'}
+            style={{ '--mise-step-duration': `${stepMotion.duration}s`, '--mise-step-distance': `${stepMotion.distance}px` } as CSSProperties}
             tabIndex={0}
             role="group"
             aria-label={'Recipe step ' + (stepIndex + 1) + '. Swipe or use arrow keys to change steps.'}
