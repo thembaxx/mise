@@ -801,14 +801,16 @@ h1, h2, h3, h4 { overflow-wrap: break-word; }
 :root[data-theme=dark] .desktop-nav a { color:var(--app-ink); }
 .recipe-name,.action-feedback>span,.shopping-items strong,.shopping-items small { overflow-wrap:anywhere; }
 
-/* Step changes have one motion owner, so instructions and notes arrive together. */
-.method-card,.cook-mode-step-content { transform:translateX(0); opacity:1; transition:transform 220ms var(--motion-out),opacity 180ms var(--motion-out); }
+/* Step changes use the same intent as the GSAP surfaces; only content moves, never controls. */
+.method-card,.cook-mode-step-content { transform:translateX(0); opacity:1; transition:transform var(--mise-step-duration,220ms) var(--motion-out),opacity var(--mise-step-duration,180ms) var(--motion-out); }
 @starting-style {
-  .method-card,.cook-mode-step-content { opacity:0;transform:translateX(8px); }
-  .method-card[data-direction="backward"],.cook-mode-step-content[data-direction="backward"] { transform:translateX(-8px); }
+  .method-card,.cook-mode-step-content { opacity:0;transform:translateX(var(--mise-step-distance,8px)); }
+  .method-card[data-direction="backward"],.cook-mode-step-content[data-direction="backward"] { transform:translateX(calc(-1 * var(--mise-step-distance,8px))); }
+  .cook-mode-step-content[data-motion-reduced="true"] { opacity:1;transform:none; }
 }
 .action-feedback-region { width:min(460px,calc(100% - 32px)); }
-@media(prefers-reduced-motion:reduce) { .method-card,.cook-mode-step-content { transform:none!important; } }
+.cook-mode-step-content[data-motion-reduced="true"] { opacity:1;transform:none;transition:none; }
+@media(prefers-reduced-motion:reduce) { .method-card,.cook-mode-step-content { opacity:1!important;transform:none!important;transition:none!important; } }
 /* Specific compact controls must not override the touch input zoom minimum. */
 @media (pointer: coarse){
 .search-wrap input,
