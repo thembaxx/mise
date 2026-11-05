@@ -1,0 +1,28 @@
+name: Phase 3 motion quality
+on:
+  pull_request:
+    paths:
+      - 'src/motion/**'
+      - 'src/components/CookMode.tsx'
+      - 'src/styles.css'
+      - 'tests/motion-intents.test.ts'
+      - 'e2e/motion.e2e.ts'
+      - '.github/workflows/phase3-motion-quality.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - name: Lint changed motion and cooking files
+        run: npx --yes oxlint@1.90.0 src/motion/intents.ts src/motion/usePageMotion.ts src/components/CookMode.tsx tests/motion-intents.test.ts e2e/motion.e2e.ts
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
