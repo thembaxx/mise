@@ -49,6 +49,7 @@ function formatTime(seconds: number) {
 export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, servings, seconds, running, onTimerToggle, onTimerReset, onTimerAdd, heat, onHeat, progress, onAction, close }: Props) {
   const dialog = useRef<HTMLDivElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const lock = useRef<WakeLockSentinel | null>(null);
   const requestedWake = useRef(false);
   const [wakeEnabled, setWakeEnabled] = useState(false);
@@ -187,7 +188,32 @@ export default function CookMode({ recipe, stepIndex, onStep, added, onAdd, serv
           <p className="cook-mode-kicker">{recipe.country} · {recipe.name} · {servings} {servings === 1 ? 'serving' : 'servings'}</p>
           <div className="cook-mode-stepcount"><span>STEP {String(stepIndex + 1).padStart(2, '0')} / {String(recipe.steps.length).padStart(2, '0')}</span><span>{Math.round((stepIndex + 1) / recipe.steps.length * 100)}% through the recipe</span></div>
           <div className="cook-mode-progress" role="progressbar" aria-label="Recipe step progress" aria-valuemin={0} aria-valuemax={recipe.steps.length} aria-valuenow={stepIndex + 1}><span style={{transform: `scaleX(${(stepIndex + 1) / recipe.steps.length})`}}/></div>
-          <div className="cook-mode-step-content" key={recipe.id + ':' + stepIndex} data-direction={direction}>
+          <div
+            className="cook-mode-step-content"
+            key={recipe.id + ':' + stepIndex}
+            data-direction={direction}
+            tabIndex={0}
+            role="group"
+            aria-label={'Recipe step ' + (stepIndex + 1) + '. Swipe or use arrow keys to change steps.'}
+            onKeyDown={event => {
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              changeStep(stepIndex + (event.key === 'ArrowRight' ? 1 : -1));
+            }}
+            onPointerDown={event => {
+              if (event.pointerType === 'touch') swipeStart.current = { x: event.clientX, y: event.clientY };
+            }}
+            onPointerUp={event => {
+              const start = swipeStart.current;
+              swipeStart.current = null;
+              if (!start || event.pointerType !== 'touch') return;
+              const dx = event.clientX - start.x;
+              const dy = event.clientY - start.y;
+              if (Math.abs(dx) < 65 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+              changeStep(stepIndex + (dx < 0 ? 1 : -1));
+            }}
+            onPointerCancel={() => { swipeStart.current = null; }}
+          >
             <h2 id="cook-mode-title">{step.title}</h2>
             <p id="cook-mode-description" className="cook-mode-instruction">{step.instruction}</p>
             <aside className="cook-mode-tip"><span>CHEF'S NOTE</span><p>{step.tip}</p></aside>
