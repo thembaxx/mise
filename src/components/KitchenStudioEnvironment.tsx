@@ -1,20 +1,20 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
-import { PMREMGenerator } from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { Environment, Lightformer } from '@react-three/drei';
 import {
   isSoftwareKitchenRenderer,
+  kitchenStudioReflectionResolution,
   kitchenStudioReflectionIntensity,
   type KitchenGraphicsTier,
 } from '../lib/kitchen-studio-light';
 
 /**
- * Physically based softbox reflections give metal cookware, taps and glass
- * the appearance of actual manufactured materials. The room is never drawn:
- * the kitchen's authored walls/background and touch targets remain unchanged.
+ * A single softbox reflection source for both lightweight and physics kitchens.
+ * This replaces the former inline environment; no second PMREM is allocated,
+ * and Drei owns GPU cleanup when the scene unmounts.
  */
 export default function KitchenStudioEnvironment({ quality }: { quality: KitchenGraphicsTier }) {
-  const { gl, scene, invalidate } = useThree();
+  const { gl } = useThree();
   const software = useMemo(() => {
     const context = gl.getContext();
     const debug = context.getExtension('WEBGL_debug_renderer_info');
@@ -23,27 +23,33 @@ export default function KitchenStudioEnvironment({ quality }: { quality: Kitchen
     );
     return isSoftwareKitchenRenderer(renderer);
   }, [gl]);
+  const resolution = kitchenStudioReflectionResolution(quality, software);
   const intensity = kitchenStudioReflectionIntensity(quality, software);
+  if (resolution === 0) return null;
 
-  useEffect(() => {
-    if (intensity === 0) return;
-    const room = new RoomEnvironment();
-    const generator = new PMREMGenerator(gl);
-    const target = generator.fromScene(room, 0.04);
-    const previous = scene.environment;
-    const previousIntensity = scene.environmentIntensity;
-    scene.environment = target.texture;
-    scene.environmentIntensity = intensity;
-    room.dispose();
-    generator.dispose();
-    invalidate();
-    return () => {
-      scene.environment = previous;
-      scene.environmentIntensity = previousIntensity;
-      target.dispose();
-      invalidate();
-    };
-  }, [gl, scene, invalidate, intensity]);
-
-  return null;
+  return (
+    <Environment resolution={resolution}>
+      <Lightformer
+        form="rect"
+        intensity={intensity}
+        position={[0, 5, 3]}
+        rotation={[Math.PI / 2, 0, 0]}
+        scale={[9, 4, 1]}
+      />
+      <Lightformer
+        form="rect"
+        intensity={intensity * 0.65}
+        position={[-5, 2, 1]}
+        rotation={[0, Math.PI / 2, 0]}
+        scale={[5, 3, 1]}
+      />
+      <Lightformer
+        form="rect"
+        intensity={intensity * 0.47}
+        position={[4, 3, -2]}
+        rotation={[0, -Math.PI / 2, 0]}
+        scale={[4, 2, 1]}
+      />
+    </Environment>
+  );
 }
