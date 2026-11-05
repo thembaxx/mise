@@ -16,6 +16,9 @@ describe('focused cooking mode', () => {
   it('pauses hidden 3D rendering and restores it without dropping scene state', () => {
     const studio = read('src/components/KitchenStudio.tsx');
     expect(studio).toContain('const scenePaused = cookModeOpen || !sceneInView');
+    expect(studio).toContain('const node = sceneRenderRef.current');
+    expect(studio).toContain('ref={sceneRenderRef} className="kitchen-scene-outer"');
+    expect(studio).toContain('entry.intersectionRatio >= 0.55');
     expect(studio).toContain('paused={scenePaused}');
     for (const path of ['src/components/LiteKitchenScene.tsx', 'src/components/KitchenScene.tsx']) {
       const scene = read(path);
