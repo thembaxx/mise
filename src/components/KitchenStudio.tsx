@@ -41,6 +41,17 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sceneVisualRef = useRef<HTMLDivElement>(null);
+  const [sceneInView, setSceneInView] = useState(true);
+  // Keep the optional WebGL stage idle when it is offscreen; never obscure cooking controls.
+  useEffect(() => {
+    const node = sceneVisualRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(entries => {
+      setSceneInView(entries.some(entry => entry.isIntersecting));
+    }, { rootMargin: '120px 0px' });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
   const [fullscreenActive, setFullscreenActive] = useState(false);
   const [fullscreenError, setFullscreenError] = useState('');
@@ -72,6 +83,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [cameraView, setCameraView] = useState<KitchenCameraView>('overview');
   const [cookModeOpen, setCookModeOpen] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
   const closeCookMode = useCallback(() => setCookModeOpen(false), []);
+  const scenePaused = cookModeOpen || !sceneInView;
   const [graphics, setGraphics] = useState<'eco' | 'balanced' | 'high'>(() => {
     try {
       const value = localStorage.getItem('mise:graphics');
@@ -265,8 +277,8 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         <SceneErrorBoundary><SupportsWebGL>
           <div className="kitchen-scene-outer">
           {physicsEnabled
-            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
-            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} paused={scenePaused} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            : <LiteKitchenScene quality={graphics} paused={scenePaused} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
             {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
           </div>
         </SupportsWebGL></SceneErrorBoundary>
