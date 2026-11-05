@@ -105,7 +105,8 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   await expect(content).toHaveAttribute('data-direction', 'backward');
   await page.keyboard.press('Escape');
   await expect(page.locator('.cook-mode')).toHaveCount(0);
-  expect(await page.locator('.method-card').evaluate(element => getComputedStyle(element).opacity)).toBe('1');
+  // The normal-motion method reveal may still be settling immediately after the dialog closes.
+  await expect(page.locator('.method-card')).toHaveCSS('opacity', '1');
 });
 
 
