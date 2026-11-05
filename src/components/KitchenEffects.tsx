@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RoundedBox } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import GpuSteam from './GpuSteam';
 import { useReducedMotion } from '../motion/preferences';
 import type { CookingAction, KitchenProgress } from '../lib/cooking';
 
@@ -242,7 +243,7 @@ export default function KitchenEffects({ progress, addedCount, heat, pulse, onAc
     {!progress.plated && <ChoppedFood chops={progress.chops}/>}
     {!progress.plated && <PanHeatCue heat={heat} addedCount={addedCount}/>}
     {!progress.plated && !reducedMotion && <>
-      <Steam heat={heat} addedCount={addedCount} quality={quality}/>
+      {quality === "eco" ? <Steam heat={heat} addedCount={addedCount} quality={quality}/> : <GpuSteam heat={heat} addedCount={addedCount} quality={quality}/>}
       <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours} quality={quality}/>
       <PourArc pulse={pulse}/>
     </>}
