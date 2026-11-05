@@ -41,6 +41,22 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sceneVisualRef = useRef<HTMLDivElement>(null);
+  const sceneRenderRef = useRef<HTMLDivElement>(null);
+  const [sceneInView, setSceneInView] = useState(true);
+  // Prioritize HTML cooking controls over continuous GPU animation while in use.
+  // The interactive stage resumes as soon as the learner touches the 3D canvas.
+  const [workingWithControls, setWorkingWithControls] = useState(false);
+  // Observe only the canvas, not the entire studio (which also contains HTML controls).
+  // When the user scrolls down to the cooking buttons, suspend the expensive 3D loop.
+  useEffect(() => {
+    const node = sceneRenderRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(entries => {
+      setSceneInView(entries.some(entry => entry.intersectionRatio >= 0.55));
+    }, { threshold: [0, 0.55] });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
   const [fullscreenActive, setFullscreenActive] = useState(false);
   const [fullscreenError, setFullscreenError] = useState('');
@@ -72,6 +88,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [cameraView, setCameraView] = useState<KitchenCameraView>('overview');
   const [cookModeOpen, setCookModeOpen] = useState(() => new URLSearchParams(window.location.search).get('view') === 'cook');
   const closeCookMode = useCallback(() => setCookModeOpen(false), []);
+  const scenePaused = cookModeOpen || !sceneInView || workingWithControls;
   const [graphics, setGraphics] = useState<'eco' | 'balanced' | 'high'>(() => {
     try {
       const value = localStorage.getItem('mise:graphics');
@@ -263,14 +280,14 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
         {fullscreenError && <p className="fullscreen-status" role="status">{fullscreenError}</p>}
         <SceneErrorBoundary><SupportsWebGL>
-          <div className="kitchen-scene-outer">
+          <div ref={sceneRenderRef} className="kitchen-scene-outer" onPointerDownCapture={() => setWorkingWithControls(false)}>
           {physicsEnabled
-            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
-            : <LiteKitchenScene quality={graphics} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
+            ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} paused={scenePaused} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
+            : <LiteKitchenScene quality={graphics} paused={scenePaused} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
             {progress.plated && <p className="kitchen-finished-overlay" role="status">Bon appétit!</p>}
           </div>
         </SupportsWebGL></SceneErrorBoundary>
-        <div className="scene-bottom">
+        <div className="scene-bottom" onPointerDownCapture={() => setWorkingWithControls(true)} onFocusCapture={() => setWorkingWithControls(true)}>
           <div className="scene-hint">
             <span className="gesture-symbol"><ForkKnife size={17} /></span>
             <div><strong>Get hands-on</strong><small>Drag food into the pan, tap the stove dial to adjust heat, or rotate the view. Use the drawer, faucet and pan lid.</small><button type="button" className="drawer-control" aria-pressed={drawerOpen} onClick={() => setDrawerOpen(open => !open)}>{drawerOpen ? 'Close prep drawer' : 'Open prep drawer'}</button><button type="button" className="drawer-control faucet-control" aria-pressed={faucetRunning} onClick={() => setFaucetRunning(value => !value)}>{faucetRunning ? 'Turn off faucet' : 'Turn on faucet'}</button><button type="button" className="drawer-control lid-control" aria-pressed={!lidOpen} onClick={() => setLidOpen(open => !open)}>{lidOpen ? 'Cover pan' : 'Lift pan lid'}</button></div>
@@ -287,7 +304,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
       </div>
 
-      <aside className="studio-panel" aria-label="Guided recipe and cooking controls">
+      <aside className="studio-panel" aria-label="Guided recipe and cooking controls" onPointerDownCapture={() => setWorkingWithControls(true)} onFocusCapture={() => setWorkingWithControls(true)}>
         <div className="panel-menu-label">
           <span>Recipe</span>
           <ChefHat size={18} />

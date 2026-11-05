@@ -13,6 +13,22 @@ describe('focused cooking mode', () => {
     expect(studio).toContain('onAction={cookingAction}');
     expect(studio).toContain("get('view') === 'cook'");
   });
+  it('pauses hidden 3D rendering and restores it without dropping scene state', () => {
+    const studio = read('src/components/KitchenStudio.tsx');
+    expect(studio).toContain('const scenePaused = cookModeOpen || !sceneInView || workingWithControls');
+    expect(studio).toContain('onPointerDownCapture={() => setWorkingWithControls(true)}');
+    expect(studio).toContain('onPointerDownCapture={() => setWorkingWithControls(false)}');
+    expect(studio).toContain('const node = sceneRenderRef.current');
+    expect(studio).toContain('ref={sceneRenderRef} className="kitchen-scene-outer"');
+    expect(studio).toContain('entry.intersectionRatio >= 0.55');
+    expect(studio).toContain('paused={scenePaused}');
+    for (const path of ['src/components/LiteKitchenScene.tsx', 'src/components/KitchenScene.tsx']) {
+      const scene = read(path);
+      expect(scene).toContain("frameloop={paused ? 'never' : 'always'}");
+      expect(scene).toContain('data-scene-paused=');
+    }
+    expect(read('src/components/KitchenScene.tsx')).toContain('paused={paused}');
+  });
   it('has accessible dialogue, escape/focus management and opt-in wake lock', () => {
     const mode=read('src/components/CookMode.tsx');
     expect(mode).toContain('role="dialog" aria-modal="true"');

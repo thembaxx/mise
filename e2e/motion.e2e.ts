@@ -78,6 +78,10 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   await next.focus();
   await next.press('Enter');
   await expect(dialog.getByRole('heading', { name: 'Soften the vegetables' })).toBeVisible();
+  const content = dialog.locator('.cook-mode-step-content');
+  await expect(content).toHaveAttribute('data-motion-intent', 'step');
+  await expect(content).toHaveAttribute('data-motion-reduced', 'true');
+  await expect(content).toHaveCSS('transition-duration', '0s');
   const progress = dialog.getByRole('progressbar', { name: 'Recipe step progress' });
   await expect(progress).toHaveAttribute('aria-valuenow', '2');
   const fillRatio = await progress.evaluate(element => {
@@ -87,10 +91,13 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   expect(fillRatio).toBeCloseTo(2 / 6, 2);
   expect(await dialog.evaluate(element => getComputedStyle(element).transform)).toBe('none');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await next.press('Enter');
+  await expect(content).toHaveAttribute('data-motion-reduced', 'false');
+  // Keyboard advance is verified above; also exercise real pointer/touch
+  // advancement after the live OS preference change.
+  await next.click();
   await expect(progress).toHaveAttribute('aria-valuenow', '3');
-  const content = dialog.locator('.cook-mode-step-content');
-  expect(await content.evaluate(element => element.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
+  // With motion enabled, the step transition may briefly run; it must settle promptly.
+  await expect.poll(() => content.evaluate(element => element.getAnimations().filter(animation => animation.playState === 'running').length), { timeout: 3_000 }).toBe(0);
   await dialog.getByRole('button', { name: 'Previous', exact: true }).click();
   await expect(dialog.getByRole('heading', { name: 'Soften the vegetables' })).toBeVisible();
   await expect(content).toHaveAttribute('data-direction', 'backward');
@@ -98,7 +105,8 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   await expect(content).toHaveAttribute('data-direction', 'backward');
   await page.keyboard.press('Escape');
   await expect(page.locator('.cook-mode')).toHaveCount(0);
-  expect(await page.locator('.method-card').evaluate(element => getComputedStyle(element).opacity)).toBe('1');
+  // The normal-motion method reveal may still be settling immediately after the dialog closes.
+  await expect(page.locator('.method-card')).toHaveCSS('opacity', '1');
 });
 
 

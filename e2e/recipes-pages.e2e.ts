@@ -47,7 +47,9 @@ test('cook a linked recipe and restore progress after a page refresh',async ({pa
   await chop.click();
   await chop.click();
   await page.getByRole('button',{name:/go to step 3/i}).click();
-  await expect(page.locator('.cooking-meter')).toHaveAttribute('aria-valuenow',/^[1-6]$/);
+  // Step navigation and the cooking activity checklist are independent progress measures.
+  await expect(page.getByRole('button',{name:/go to step 3/i})).toHaveAttribute('aria-current','step');
+  await expect(page.getByRole('progressbar',{name:'Cooking activity progress'})).toHaveAttribute('aria-valuenow',/^[0-6]$/);
   await page.reload();
   await page.getByRole('button',{name:/step into the kitchen/i}).click();
   await expect(page.getByRole('button',{name:/go to step 3/i})).toHaveAttribute('aria-current','step');
