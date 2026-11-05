@@ -77,10 +77,19 @@ export function playCookingCue(action: CookingAction, enabled: boolean, heat = .
   }
 }
 
+/** Tiny gestures are optional; no iOS-specific workaround or autoplay simulation. */
+export function cookingVibration(action?: CookingAction): number | number[] {
+  return action === 'plate' ? [14, 24, 24] : action === 'chop' ? 12 : action === 'pour' ? 9 : 7;
+}
+
 export function cookingHaptic(action?: CookingAction): void {
   try {
-    if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
-    const feedback = action === 'plate' ? [14, 24, 24] : action === 'chop' ? 12 : action === 'pour' ? 9 : 7;
-    navigator.vibrate?.(feedback);
-  } catch { /* WebKit and other browsers may not support vibration. */ }
+    if (typeof navigator === 'undefined' || typeof document === 'undefined') return;
+    if (typeof navigator.vibrate !== 'function') return;
+    if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    navigator.vibrate(cookingVibration(action));
+  } catch {
+    // Browser hardware feedback is optional and must never block cooking.
+  }
 }
