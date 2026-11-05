@@ -8,7 +8,10 @@ describe('high-fidelity kitchen feature', () => {
     const details = source('src/components/KitchenDetails.tsx');
     expect(details).toContain('new THREE.DataTexture');
     expect(details).toContain('THREE.SRGBColorSpace');
-    expect(details).toContain('<Environment');
+    const environment = source('src/components/KitchenStudioEnvironment.tsx');
+    expect(environment).toContain('<Environment');
+    expect(details).not.toContain('<Environment');
+    expect(environment).toContain('kitchenStudioReflectionResolution');
     for (const part of ['Ceramics', 'UpperCabinet', 'KitchenSink', 'StoveDetails', 'KitchenCookware', 'MetalHandle']) {
       expect(details).toContain(part);
     }
@@ -19,6 +22,8 @@ describe('high-fidelity kitchen feature', () => {
     for (const path of ['src/components/KitchenScene.tsx', 'src/components/LiteKitchenScene.tsx']) {
       const scene = source(path);
       expect(scene).toContain("import KitchenDetails from './KitchenDetails'");
+      expect(scene).toContain("import KitchenStudioEnvironment from './KitchenStudioEnvironment'");
+      expect(scene).toContain('<KitchenStudioEnvironment quality={quality} />');
       expect(scene).toContain('<KitchenDetails quality={quality}');
       expect(scene).toContain('onHeatChange={onHeatChange}');
       expect(scene).toContain('onDrawerChange={onDrawerChange}');
