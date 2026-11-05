@@ -92,7 +92,9 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   expect(await dialog.evaluate(element => getComputedStyle(element).transform)).toBe('none');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(content).toHaveAttribute('data-motion-reduced', 'false');
-  await next.press('Enter');
+  // Keyboard advance is verified above; also exercise real pointer/touch
+  // advancement after the live OS preference change.
+  await next.click();
   await expect(progress).toHaveAttribute('aria-valuenow', '3');
   expect(await content.evaluate(element => element.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
   await dialog.getByRole('button', { name: 'Previous', exact: true }).click();
