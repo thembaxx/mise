@@ -11,7 +11,7 @@ import KitchenDetails from './KitchenDetails';
 import IngredientModel from './KitchenProduce';
 import KitchenCameraRig, { type KitchenCameraView } from './KitchenCameraRig';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; paused?: boolean; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange, quality }: {
@@ -157,9 +157,9 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
   </>;
 }
 
-export default function LiteKitchenScene({ quality = 'balanced', ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, resetKey, progress, pulse, onAction }: Props) {
-  return <div className="kitchen-canvas" aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
-    <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
+export default function LiteKitchenScene({ quality = 'balanced', paused = false, ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, resetKey, progress, pulse, onAction }: Props) {
+  return <div className="kitchen-canvas" data-scene-paused={paused ? 'true' : 'false'} aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
+    <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} frameloop={paused ? 'never' : 'always'} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
       <Suspense fallback={null}><KitchenWorld ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} cameraView={cameraView} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
   </div>;
