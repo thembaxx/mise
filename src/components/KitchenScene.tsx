@@ -11,6 +11,7 @@ import KitchenEffects, { type KitchenPulse } from './KitchenEffects';
 import KitchenDetails from './KitchenDetails';
 import IngredientModel from './KitchenProduce';
 import KitchenCameraRig, { type KitchenCameraView } from './KitchenCameraRig';
+import KitchenStudioEnvironment from './KitchenStudioEnvironment';
 
 type Props = { quality?: 'eco' | 'balanced' | 'high'; paused?: boolean; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -164,6 +165,7 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
   return <>
     <color attach="background" args={['#d8d1bf']} />
     <fog attach="fog" args={['#d8d1bf', 12, 23]} />
+    <KitchenStudioEnvironment quality={quality} />
     <ambientLight intensity={.68} />
     <hemisphereLight args={['#fff9e8', '#6a5d4b', .92]} />
     <directionalLight position={[-3, 7, 5]} intensity={2.75} castShadow shadow-mapSize={quality === 'high' ? [2048, 2048] : quality === 'balanced' ? [1024, 1024] : [512, 512]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} />
