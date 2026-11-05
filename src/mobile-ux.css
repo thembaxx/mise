@@ -72,3 +72,19 @@ html {
     justify-content: space-between;
   }
 }
+
+
+/* Phase 1: step gestures and comfortable controls while hands are busy. */
+.cook-mode-step-content { touch-action: pan-y; }
+.cook-mode-step-actions button { touch-action: manipulation; }
+@media (max-width: 760px) {
+  .cook-mode { border-radius: 0; height: 100dvh; max-height: 100dvh; }
+  .cook-mode-backdrop { padding: 0; }
+  .cook-mode-body { overscroll-behavior-y: contain; }
+  .cook-mode-step-actions { position: sticky; bottom: 0; z-index: 2; gap: 10px; padding: 14px 0 max(14px, env(safe-area-inset-bottom)); background: var(--cm-bg); border-top: 1px solid var(--cm-border); }
+  .cook-mode-step-actions button { min-height: 54px; padding-inline: 10px; font-size: 14px; }
+  .cook-mode-step-content { min-height: 210px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cook-mode-step-content { animation: none !important; transition: none !important; }
+}
