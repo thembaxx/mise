@@ -15,8 +15,21 @@ permissions:
   contents: read
 jobs:
   playwright:
+    name: playwright (${{ matrix.project }} ${{ matrix.shard }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: desktop-chromium
+            shard: '1/2'
+          - project: desktop-chromium
+            shard: '2/2'
+          - project: mobile-chromium
+            shard: '1/2'
+          - project: mobile-chromium
+            shard: '2/2'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,12 +38,18 @@ jobs:
           cache: npm
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      # A single WebGL/SwiftShader worker per runner prevents concurrent
+      # kitchens from exhausting memory. Independent shards run in parallel.
+      - name: Run browser shard
+        run: npm run test:e2e -- --project="$PLAYWRIGHT_PROJECT" --shard="$PLAYWRIGHT_SHARD"
+        env:
+          PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+          PLAYWRIGHT_SHARD: ${{ matrix.shard }}
       - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: mise-playwright-results
+          name: mise-playwright-results-${{ matrix.project }}-${{ strategy.job-index }}
           path: |
             playwright-report/
             test-results/
