@@ -41,14 +41,16 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sceneVisualRef = useRef<HTMLDivElement>(null);
+  const sceneRenderRef = useRef<HTMLDivElement>(null);
   const [sceneInView, setSceneInView] = useState(true);
-  // Keep the optional WebGL stage idle when it is offscreen; never obscure cooking controls.
+  // Observe only the canvas, not the entire studio (which also contains HTML controls).
+  // When the user scrolls down to the cooking buttons, suspend the expensive 3D loop.
   useEffect(() => {
-    const node = sceneVisualRef.current;
+    const node = sceneRenderRef.current;
     if (!node || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(entries => {
-      setSceneInView(entries.some(entry => entry.isIntersecting));
-    }, { rootMargin: '120px 0px' });
+      setSceneInView(entries.some(entry => entry.intersectionRatio >= 0.55));
+    }, { threshold: [0, 0.55] });
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
@@ -275,7 +277,7 @@ export default function KitchenStudio({ recipe, onRecipeChange }: Props) {
         </div>
         {fullscreenError && <p className="fullscreen-status" role="status">{fullscreenError}</p>}
         <SceneErrorBoundary><SupportsWebGL>
-          <div className="kitchen-scene-outer">
+          <div ref={sceneRenderRef} className="kitchen-scene-outer">
           {physicsEnabled
             ? <Suspense fallback={<p className="physics-loader" role="status">Loading realistic motion…</p>}><PhysicsKitchenScene quality={graphics} paused={scenePaused} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} /></Suspense>
             : <LiteKitchenScene quality={graphics} paused={scenePaused} ingredients={recipe.ingredients} added={added} heat={heat} onHeatChange={setHeat} drawerOpen={drawerOpen} onDrawerChange={setDrawerOpen} faucetRunning={faucetRunning} onFaucetChange={setFaucetRunning} lidOpen={lidOpen} onLidChange={setLidOpen} cameraView={cameraView} onAdd={addIngredient} resetKey={recipe.id + '-' + resetCount} progress={progress} pulse={pulse} onAction={cookingAction} />}
