@@ -96,7 +96,8 @@ test('reduced-motion cooking preserves progress and instant keyboard step change
   // advancement after the live OS preference change.
   await next.click();
   await expect(progress).toHaveAttribute('aria-valuenow', '3');
-  expect(await content.evaluate(element => element.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
+  // With motion enabled, the step transition may briefly run; it must settle promptly.
+  await expect.poll(() => content.evaluate(element => element.getAnimations().filter(animation => animation.playState === 'running').length), { timeout: 3_000 }).toBe(0);
   await dialog.getByRole('button', { name: 'Previous', exact: true }).click();
   await expect(dialog.getByRole('heading', { name: 'Soften the vegetables' })).toBeVisible();
   await expect(content).toHaveAttribute('data-direction', 'backward');
