@@ -2,6 +2,7 @@ import { useLayoutEffect, type RefObject } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { isKeyboardInteraction } from './preferences';
+import { getMotionIntent } from './intents';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,9 +12,10 @@ export function usePageMotion(root: RefObject<HTMLElement | null>) {
     media.add('(prefers-reduced-motion: no-preference)', () => {
       // Deep links should arrive at an immediately usable kitchen or recipe list.
       if (!new URLSearchParams(window.location.search).has('view') && window.scrollY < 100) {
+        const hero = getMotionIntent('hero', false);
         gsap.timeline({ defaults: { ease: 'power3.out', clearProps: 'transform,opacity' } })
-          .fromTo('.hero-copy > *', { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .65, stagger: .055 })
-          .fromTo('.hero-visual', { y: 18, scale: .98, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: .8 }, .08);
+          .fromTo('.hero-copy > *', { y: hero.distance, opacity: 0 }, { y: 0, opacity: 1, duration: hero.duration, stagger: hero.stagger })
+          .fromTo('.hero-visual', { y: hero.distance + 2, scale: .98, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: hero.duration + .15 }, .08);
       }
     }, root);
     media.add('(prefers-reduced-motion: no-preference) and (min-width: 1100px) and (hover: hover) and (pointer: fine)', () => {
@@ -68,6 +70,7 @@ export function useRecipeReveal(root: RefObject<HTMLElement | null>, resultKey: 
       // Searching and keyboard filtering should produce instant, legible results.
       if (isKeyboardInteraction()) return;
       const cards = gsap.utils.toArray<HTMLElement>('.recipe-card', root.current!);
+      const reveal = getMotionIntent('recipe', false);
       if (!cards.length) return;
       let active = true;
       const triggers = ScrollTrigger.batch(cards, {
@@ -75,8 +78,8 @@ export function useRecipeReveal(root: RefObject<HTMLElement | null>, resultKey: 
         onEnter: batch => {
           if (!active || isKeyboardInteraction()) return;
           // Start on entry rather than leaving offscreen or focused content faded.
-          gsap.fromTo(batch, { y: 16, opacity: .7 }, {
-            y: 0, opacity: 1, duration: .24, stagger: .04, ease: 'power3.out',
+          gsap.fromTo(batch, { y: reveal.distance, opacity: .7 }, {
+            y: 0, opacity: 1, duration: reveal.duration, stagger: reveal.stagger, ease: 'power3.out',
             clearProps: 'transform,opacity', overwrite: true,
           });
         },
