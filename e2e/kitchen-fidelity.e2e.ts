@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('kitchen 3D drawer and cooking controls remain accessible on mobile and desktop', async ({ page }) => {
+test('kitchen 3D drawer and cooking controls remain accessible on mobile and desktop', async ({ page, isMobile }) => {
   await page.goto('/?view=kitchen');
   const openDrawer = page.getByRole('button', { name: 'Open prep drawer' });
   await expect(openDrawer).toBeVisible({ timeout: 40_000 });
@@ -13,6 +13,10 @@ test('kitchen 3D drawer and cooking controls remain accessible on mobile and des
 
   const faucet = page.getByRole('button', { name: 'Turn on faucet' });
   await expect(faucet).toBeVisible();
+  await faucet.scrollIntoViewIfNeeded();
+  // On a narrow screen the 3D canvas is mostly above the cooking controls.
+  // Pausing only that canvas keeps real HTML controls responsive.
+  if (isMobile) await expect(page.locator('.kitchen-canvas')).toHaveAttribute('data-scene-paused', 'true');
   await faucet.click();
   await expect(page.getByRole('button', { name: 'Turn off faucet' })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Turn off faucet' }).click();
