@@ -6,6 +6,7 @@ import * as THREE from 'three';
 const vertexShader = `
   uniform float uTime;
   uniform float uHeat;
+  uniform float uPixelRatio;
   attribute float aSeed;
   varying float vFade;
   void main() {
@@ -14,8 +15,11 @@ const vertexShader = `
     p.y += progress * (1.25 + uHeat * 0.6);
     p.x += sin(aSeed * 31.0 + uTime * 0.65) * (0.055 + progress * 0.18);
     p.z += cos(aSeed * 24.0 + uTime * 0.4) * (0.045 + progress * 0.16);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-    gl_PointSize = 3.5 + progress * 5.5;
+    vec4 viewPosition = modelViewMatrix * vec4(p, 1.0);
+    gl_Position = projectionMatrix * viewPosition;
+    // Nearby steam remains soft and broad; distant steam contracts naturally.
+    float perspective = clamp(2.7 / max(0.6, -viewPosition.z), 0.65, 1.9);
+    gl_PointSize = (4.0 + progress * 8.0) * min(uPixelRatio, 2.0) * perspective;
     vFade = sin(progress * 3.14159265) * (0.5 + 0.5 * aSeed);
   }
 `;
@@ -26,6 +30,7 @@ const fragmentShader = `
     float d = length(gl_PointCoord - vec2(0.5));
     float fog = 1.0 - smoothstep(0.08, 0.5, d);
     gl_FragColor = vec4(vec3(0.96, 0.97, 0.93), fog * vFade * uOpacity);
+    #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
 `;
@@ -54,11 +59,13 @@ export default function GpuSteam({ heat, addedCount, quality }: {
     uTime: { value: 0 },
     uHeat: { value: 0 },
     uOpacity: { value: 0 },
+    uPixelRatio: { value: 1 },
   }), []);
-  useFrame(({ clock }) => {
+  useFrame(({ clock, gl }) => {
     const target = shader.current;
     if (!target) return;
     target.uniforms.uTime.value = clock.elapsedTime;
+    target.uniforms.uPixelRatio.value = gl.getPixelRatio();
     target.uniforms.uHeat.value = heat;
     target.uniforms.uOpacity.value = addedCount > 0 && heat > 0.05 ? Math.min(0.23, heat * 0.21) : 0;
   });
