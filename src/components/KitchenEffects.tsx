@@ -243,7 +243,8 @@ export default function KitchenEffects({ progress, addedCount, heat, pulse, onAc
     {!progress.plated && <ChoppedFood chops={progress.chops}/>}
     {!progress.plated && <PanHeatCue heat={heat} addedCount={addedCount}/>}
     {!progress.plated && !reducedMotion && <>
-      {quality === "eco" ? <Steam heat={heat} addedCount={addedCount} quality={quality}/> : <GpuSteam heat={heat} addedCount={addedCount} quality={quality}/>}
+      {quality === 'eco' && <Steam heat={heat} addedCount={addedCount} quality={quality}/>}
+      {quality !== 'eco' && addedCount > 0 && heat > .05 && <GpuSteam heat={heat} addedCount={addedCount} quality={quality}/>}
       <PanSimmer heat={heat} addedCount={addedCount} pours={progress.pours} quality={quality}/>
       <PourArc pulse={pulse}/>
     </>}
