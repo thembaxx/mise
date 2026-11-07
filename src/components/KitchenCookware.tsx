@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { useReducedMotion } from '../motion/preferences';
+import { prepareCookwareInspection, setCookwareInspection } from '../lib/cookware-inspection';
 
 type Quality = 'eco' | 'balanced' | 'high';
 
@@ -11,6 +12,8 @@ type Props = {
   heat: number;
   lidOpen: boolean;
   onLidChange: (open: boolean) => void;
+  /** Deterministic teardown scrub: 0 assembled, 1 fully separated. */
+  inspectionProgress?: number;
 };
 
 const PAN_POSITION: [number, number, number] = [1.16, 0, .15];
@@ -178,10 +181,37 @@ function Lid({ quality, open, heat, onChange }: { quality: Quality; open: boolea
   </group>;
 }
 
-export default function KitchenCookware({ quality, heat, lidOpen, onLidChange }: Props) {
-  return <group>
-    <PanBody quality={quality} />
-    <Lid quality={quality} open={lidOpen} heat={heat} onChange={onLidChange} />
+export default function KitchenCookware({ quality, heat, lidOpen, onLidChange, inspectionProgress = 0 }: Props) {
+  const assembly = useRef<THREE.Group>(null);
+  const pan = useRef<THREE.Group>(null);
+  const lid = useRef<THREE.Group>(null);
+  const lastInspectionProgress = useRef<number | null>(null);
+  useEffect(() => {
+    if (!assembly.current || !pan.current || !lid.current) return;
+    prepareCookwareInspection(assembly.current, [
+      { object: pan.current, direction: new THREE.Vector3(-1, .24, 0), distance: .68, rotation: new THREE.Vector3(0, 0, -.08) },
+      { object: lid.current, direction: new THREE.Vector3(.28, 1, .32), distance: .54, rotation: new THREE.Vector3(.12, 0, .16) },
+    ]);
+    assembly.current.userData.setInspectionProgress = (progress: number) => setCookwareInspection(assembly.current!, progress);
+  }, []);
+  useFrame(() => {
+    if (!assembly.current) return;
+    const progress = THREE.MathUtils.clamp(
+      Number.isFinite(inspectionProgress) ? inspectionProgress : 0,
+      0,
+      1,
+    );
+    if (lastInspectionProgress.current === progress) return;
+    setCookwareInspection(assembly.current, progress);
+    lastInspectionProgress.current = progress;
+  });
+  return <group ref={assembly}>
+    <group ref={pan}>
+      <PanBody quality={quality} />
+    </group>
+    <group ref={lid}>
+      <Lid quality={quality} open={lidOpen} heat={heat} onChange={onLidChange} />
+    </group>
     {/* Warmth near the base increases with the user's actual burner heat. */}
     {heat > .12 && <pointLight position={[1.16, .18, .15]} intensity={heat * .58} distance={2.4} color="#f8a46d" />}
   </group>;

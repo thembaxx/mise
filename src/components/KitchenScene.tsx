@@ -13,7 +13,7 @@ import IngredientModel from './KitchenProduce';
 import KitchenCameraRig, { type KitchenCameraView } from './KitchenCameraRig';
 import KitchenStudioEnvironment from './KitchenStudioEnvironment';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; paused?: boolean; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; paused?: boolean; inspectionProgress?: number; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange, quality }: {
@@ -160,7 +160,7 @@ function KitchenEnvironment({ heat }: { heat: number }) {
   </group>;
 }
 
-function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, progress, pulse, onAction, quality = 'balanced', paused = false }: Omit<Props, 'resetKey'>) {
+function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, progress, pulse, onAction, quality = 'balanced', paused = false, inspectionProgress = 0 }: Omit<Props, 'resetKey'>) {
   const [dragging, setDragging] = useState(false);
   return <>
     <color attach="background" args={['#d8d1bf']} />
@@ -172,7 +172,7 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
     <pointLight position={[1, 2.3, .2]} color={heat > 0 ? '#ffab6b' : '#fff4d8'} intensity={heat * 2.4 + .75} distance={5} />
     <Physics gravity={[0, -9.81, 0]} colliders={false} paused={paused}>
       <KitchenEnvironment heat={heat} />
-      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} />
+      <KitchenDetails quality={quality} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} inspectionProgress={inspectionProgress} />
       {ingredients.slice(0, 8).map((ingredient, index) =>
         <DraggableIngredient key={ingredient.id} ingredient={ingredient} index={index} cooked={added.includes(ingredient.id)} onAdd={onAdd} onDraggingChange={setDragging} quality={quality} />
       )}
@@ -184,9 +184,39 @@ function KitchenWorld({ ingredients, added, heat, onHeatChange, drawerOpen, onDr
 }
 
 export default function KitchenScene({ quality = 'balanced', paused = false, ingredients, added, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, cameraView, onAdd, resetKey, progress, pulse, onAction }: Props) {
-  return <div className="kitchen-canvas" data-scene-paused={paused ? 'true' : 'false'} aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
+  const [inspectionProgress, setInspectionProgress] = useState(0);
+  useEffect(() => setInspectionProgress(0), [resetKey]);
+  return <div className="kitchen-canvas" style={{ position: 'relative' }} data-scene-paused={paused ? 'true' : 'false'} aria-label="Interactive three-dimensional kitchen. Drag food from the chopping board into the pan, or use the ingredient buttons beside the scene.">
     <Canvas onCreated={() => diagnostics.record('webgl_start', 'success')} key={resetKey} frameloop={paused ? 'never' : 'always'} shadows={quality !== 'eco'} camera={{ position: [5.2, 4.25, 6.8], fov: 42, near: .1, far: 100 }} dpr={quality === 'eco' ? [1, 1] : quality === 'high' ? [1, 2] : [1, 1.5]} gl={{ antialias: quality !== 'eco', powerPreference: quality === 'eco' ? 'low-power' : 'high-performance' }}>
-      <Suspense fallback={null}><KitchenWorld paused={paused} ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} cameraView={cameraView} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
+      <Suspense fallback={null}><KitchenWorld inspectionProgress={inspectionProgress} paused={paused} ingredients={ingredients} added={added} heat={heat} onHeatChange={onHeatChange} drawerOpen={drawerOpen} onDrawerChange={onDrawerChange} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} lidOpen={lidOpen} onLidChange={onLidChange} cameraView={cameraView} onAdd={onAdd} progress={progress} pulse={pulse} onAction={onAction} quality={quality} /></Suspense>
     </Canvas>
+    <label
+      className="kitchen-inspection-control"
+      style={{
+        position: 'absolute',
+        zIndex: 5,
+        left: 12,
+        bottom: 12,
+        display: 'grid',
+        gap: 4,
+        padding: '8px 10px',
+        borderRadius: 12,
+        background: 'rgba(24, 32, 27, .88)',
+        color: '#fff',
+        fontSize: 12,
+      }}
+    >
+      <span>Inspect cookware</span>
+      <input
+        aria-label="Cookware teardown progress"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value={inspectionProgress}
+        onChange={(event) => setInspectionProgress(Number(event.target.value))}
+      />
+      <output>{Math.round(inspectionProgress * 100)}%</output>
+    </label>
   </div>;
 }
