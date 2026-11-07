@@ -13,7 +13,7 @@ import IngredientModel from './KitchenProduce';
 import KitchenCameraRig, { type KitchenCameraView } from './KitchenCameraRig';
 import KitchenStudioEnvironment from './KitchenStudioEnvironment';
 
-type Props = { quality?: 'eco' | 'balanced' | 'high'; paused?: boolean; inspectionProgress?: number; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void; inspectionProgress?: number };
+type Props = { quality?: 'eco' | 'balanced' | 'high'; paused?: boolean; inspectionProgress?: number; ingredients: Ingredient[]; added: string[]; heat: number; onHeatChange: (value: number) => void; drawerOpen: boolean; onDrawerChange: (open: boolean) => void; faucetRunning: boolean; onFaucetChange: (running: boolean) => void; lidOpen: boolean; onLidChange: (open: boolean) => void; cameraView: KitchenCameraView; onAdd: (id: string) => void; resetKey: string; progress: KitchenProgress; pulse: KitchenPulse; onAction: (action: CookingAction) => void };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function DraggableIngredient({ ingredient, index, cooked, onAdd, onDraggingChange, quality }: {
