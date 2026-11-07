@@ -16,6 +16,7 @@ type Props = {
   onFaucetChange: (running: boolean) => void;
   lidOpen: boolean;
   onLidChange: (open: boolean) => void;
+  inspectionProgress?: number;
 };
 
 const CREAM = '#ece7d9';
@@ -281,7 +282,7 @@ function StoveDetails({ heat, onHeatChange }: Pick<Props, 'heat' | 'onHeatChange
   </group>;
 }
 
-export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange }: Props) {
+export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen, onDrawerChange, faucetRunning, onFaucetChange, lidOpen, onLidChange, inspectionProgress = 0 }: Props) {
   const reducedMotion = useReducedMotion();
   const drawer = useRef<THREE.Group>(null);
   const textures = useMemo(() => ({
@@ -331,7 +332,7 @@ export default function KitchenDetails({ quality, heat, onHeatChange, drawerOpen
     </mesh>
     <pointLight position={[1.16, 2.83, -2.3]} intensity={quality === 'eco' ? .35 : .85} distance={5} color="#ffdea8" />
     <StoveDetails heat={heat} onHeatChange={onHeatChange} />
-    <KitchenCookware quality={quality} heat={heat} lidOpen={lidOpen} onLidChange={onLidChange} />
+    <KitchenCookware quality={quality} heat={heat} lidOpen={lidOpen} onLidChange={onLidChange} inspectionProgress={inspectionProgress} />
     <KitchenSink quality={quality} faucetRunning={faucetRunning} onFaucetChange={onFaucetChange} />
     {/* Front cabinetry is visible from the default three-quarter camera. */}
     {[-3.72, -1.94, -.15, 1.65, 3.52].map((x, i) => i === 1 ? null : (
