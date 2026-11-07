@@ -177,7 +177,6 @@ describe('high-fidelity kitchen feature', () => {
     expect(pkg.dependencies.three).toBe('^0.187.0');
     expect(pkg.devDependencies['@types/three']).toBe('^0.187.0');
   });
-});
 
   it('exposes an accessible teardown scrubber for the cookware assembly', () => {
     const scene = source('src/components/KitchenScene.tsx');
@@ -189,3 +188,5 @@ describe('high-fidelity kitchen feature', () => {
     expect(cookware).toContain('prepareCookwareInspection');
     expect(cookware).toContain('setCookwareInspection');
   });
+
+});
