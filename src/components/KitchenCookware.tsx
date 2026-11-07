@@ -185,6 +185,7 @@ export default function KitchenCookware({ quality, heat, lidOpen, onLidChange, i
   const assembly = useRef<THREE.Group>(null);
   const pan = useRef<THREE.Group>(null);
   const lid = useRef<THREE.Group>(null);
+  const lastInspectionProgress = useRef<number | null>(null);
   useEffect(() => {
     if (!assembly.current || !pan.current || !lid.current) return;
     prepareCookwareInspection(assembly.current, [
@@ -194,7 +195,15 @@ export default function KitchenCookware({ quality, heat, lidOpen, onLidChange, i
     assembly.current.userData.setInspectionProgress = (progress: number) => setCookwareInspection(assembly.current!, progress);
   }, []);
   useFrame(() => {
-    if (assembly.current) setCookwareInspection(assembly.current, inspectionProgress);
+    if (!assembly.current) return;
+    const progress = THREE.MathUtils.clamp(
+      Number.isFinite(inspectionProgress) ? inspectionProgress : 0,
+      0,
+      1,
+    );
+    if (lastInspectionProgress.current === progress) return;
+    setCookwareInspection(assembly.current, progress);
+    lastInspectionProgress.current = progress;
   });
   return <group ref={assembly}>
     <group ref={pan}>
